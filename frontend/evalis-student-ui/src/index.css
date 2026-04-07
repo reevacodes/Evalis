@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+.navigator{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:10px;
+}
+
+.nav-btn{
+padding:8px;
+border-radius:6px;
+border:none;
+cursor:pointer;
+}
+
+.attempted{
+background:#22c55e;
+color:white;
+}
+
+.not-attempted{
+background:#ff0000;
+}
+
+.review{
+background:#f59e0b;
+color:white;
+}
+
+.gutter {
+  background-color: #d1d5db;
+  background-clip: padding-box;
+}
+
+.gutter:hover {
+  background-color: #9ca3af;
+}
+
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+  cursor: row-resize;
+}
+
+.input {
+  @apply bg-slate-800 border border-slate-700 px-4 py-2 rounded text-white w-full;
+}
+
+/* 🔥 Smooth modal animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.input-dark {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: white;
+  outline: none;
+}
+
+.input-dark:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}

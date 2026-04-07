@@ -1,0 +1,114 @@
+from fastapi import APIRouter, HTTPException, status, Depends
+from app.schemas.user_schema import UserSignup, UserLogin, LoginResponse
+from app.models.user_model import create_user, get_user_by_email
+from app.utils.security import hash_password, verify_password
+from app.utils.jwt_handler import create_access_token
+from app.database import db
+from pymongo.errors import DuplicateKeyError
+from app.utils.auth_dependency import get_current_user
+from app.database import get_db
+from app.models.user_model import update_user_role
+from app.utils.auth_dependency import get_current_user, require_admin
+
+router = APIRouter()
+
+
+# =========================
+# 🟢 SIGNUP
+# =========================
+@router.post("/signup")
+def signup(user: UserSignup):
+    # Hash password
+    hashed_password = hash_password(user.password)
+
+    # Create user
+    try:
+        create_user(
+            db,
+            email=user.email,
+            hashed_password=hashed_password,
+            role=user.role,
+            name=user.name
+        )
+    except DuplicateKeyError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+
+    return {
+    "message": "User created successfully",
+    "user": {
+        "email": user.email,
+        "name": user.name,
+        "role": user.role
+    }
+}
+
+
+# =========================
+# 🔵 LOGIN
+# =========================
+@router.post("/login", response_model=LoginResponse)
+def login(user: UserLogin):
+    # Fetch user
+    db_user = get_user_by_email(db, user.email)
+
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+
+    # Verify password
+    if not verify_password(user.password, db_user["password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+
+    # Create token
+    token = create_access_token({
+        "sub": db_user["email"],
+        "role": db_user["role"]
+    })
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "email": db_user["email"],
+            "name": db_user.get("name", ""),
+            "role": db_user["role"]
+        }
+    }
+
+
+# =========================
+# 🟡 GET CURRENT USER
+# =========================
+
+@router.get("/me")
+def get_me(user = Depends(get_current_user)):
+    db_user = get_user_by_email(db, user["sub"])
+
+    if not db_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return {
+        "email": db_user["email"],
+        "name": db_user.get("name", ""),
+        "role": db_user["role"]
+    }
+
+@router.put("/admin/make-admin")
+def make_admin(
+    email: str, 
+    db=Depends(get_db),
+    admin_user=Depends(require_admin) # 🔒 This locks the route!
+):
+    update_user_role(db, email, "admin")
+    return {"message": f"User {email} is now admin"}
