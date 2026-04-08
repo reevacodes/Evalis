@@ -99,6 +99,8 @@ export default function ExamEditor() {
         exam_id: examId,
         section_index: secIdx,
         section_type: sectionType,
+        max_count: exam.sections[secIdx].count,
+        existing_ids: exam.sections[secIdx].questions.map(q => q._id || q.id)
       },
     });
   };

@@ -14,6 +14,9 @@ export default function QuestionBank() {
   const [curriculum, setCurriculum] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [selectedIds, setSelectedIds] = useState([]);
+  const availableSlots = fromPreview ? fromPreview.max_count - (fromPreview.existing_ids?.length || 0) : 0;
+
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
@@ -373,30 +376,21 @@ export default function QuestionBank() {
                   <QuestionList
                     questions={questions}
                     reload={loadQuestions}
+                    pickerMode={!!fromPreview}
+                    existingIds={fromPreview?.existing_ids || []}
+                    selectedIds={selectedIds}
                     onSelect={
                       fromPreview
-                        ? async (q) => {
-                            try {
-                              await fetch(
-                                "http://localhost:8000/exam/add-question",
-                                {
-                                  method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                  },
-                                  body: JSON.stringify({
-                                    exam_id: fromPreview.exam_id,
-                                    question_id: q._id || q.id,
-                                    section_index: fromPreview.section_index,
-                                  }),
-                                },
-                              );
-
-                              alert("✅ Question added");
-                              navigate(`/exam/${fromPreview.exam_id}/paper`);
-                            } catch (err) {
-                              console.error(err);
-                              alert("❌ Failed to add question");
+                        ? (q) => {
+                            const qId = q._id || q.id;
+                            if (selectedIds.includes(qId)) {
+                                setSelectedIds(selectedIds.filter(id => id !== qId));
+                            } else {
+                                if (selectedIds.length >= availableSlots) {
+                                    alert(`⚠️ This section can only hold ${fromPreview.max_count} questions. You've hit the limit!`);
+                                    return;
+                                }
+                                setSelectedIds([...selectedIds, qId]);
                             }
                           }
                         : undefined
@@ -441,6 +435,52 @@ export default function QuestionBank() {
           )}
         </motion.div>
       </AnimatePresence>
+
+      {/* 🛒 FLOATING CART FOR BATCH ADD */}
+      {fromPreview && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-slate-900 border-t border-slate-700 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-50 flex justify-center">
+            <div className="max-w-4xl w-full flex justify-between items-center px-4">
+                <div>
+                    <h3 className="text-lg font-bold text-white">Adding to Section {String.fromCharCode(65 + fromPreview.section_index)}</h3>
+                    <p className="text-sm text-slate-400">Selected: {selectedIds.length} / {availableSlots} available slots</p>
+                </div>
+                <div className="flex gap-4">
+                    <button 
+                        onClick={() => navigate(`/exam/${fromPreview.exam_id}/paper`)}
+                        className="px-6 py-2 rounded-lg font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        disabled={selectedIds.length === 0}
+                        onClick={async () => {
+                            try {
+                                const payload = {
+                                    section_index: fromPreview.section_index,
+                                    question_ids: selectedIds
+                                };
+                                await fetch(`http://localhost:8000/exam/${fromPreview.exam_id}/add-questions`, {
+                                    method: "POST",
+                                    headers: {"Content-Type": "application/json"},
+                                    body: JSON.stringify(payload)
+                                });
+                                navigate(`/exam/${fromPreview.exam_id}/paper`);
+                            } catch (err) {
+                                alert("Failed to batch add questions. Try again.");
+                            }
+                        }}
+                        className={`px-6 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
+                            selectedIds.length > 0 
+                                ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/20" 
+                                : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                        }`}
+                    >
+                        {selectedIds.length > 0 ? "Add to Exam" : "Select Questions"} {selectedIds.length > 0 ? `(${selectedIds.length})` : ''}
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
     </div>
   );
 }

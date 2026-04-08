@@ -3,7 +3,7 @@ import { deleteQuestion } from "../services/api";
 import EditQuestionModal from "./EditQuestionModal";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function QuestionList({ questions, reload, onSelect }) {
+export default function QuestionList({ questions, reload, onSelect, pickerMode, existingIds = [], selectedIds = [] }) {
   const [localQuestions, setLocalQuestions] = useState([]); // 🔥 NEW
   const [showEdit, setShowEdit] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -218,29 +218,52 @@ export default function QuestionList({ questions, reload, onSelect }) {
                     )}
 
                     {/* ACTIONS */}
-                    <div className="flex gap-2 mt-4">
-                      {onSelect && (
-                        <button
+                    <div className="flex gap-2 mt-4 items-center">
+                      {pickerMode && onSelect && (
+                         existingIds.includes(qid) ? (
+                            <span className="text-[11px] px-3 py-1.5 font-bold uppercase tracking-wider bg-slate-800 text-slate-500 rounded border border-slate-700 cursor-not-allowed">
+                                Already in Exam
+                            </span>
+                         ) : (
+                            <button
+                                onClick={() => handleAdd(q)}
+                                className={`text-[11px] uppercase tracking-wider px-4 py-1.5 font-bold rounded transition ${
+                                    selectedIds.includes(qid)
+                                        ? "bg-red-500/20 text-red-400 border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]"
+                                        : "bg-indigo-600 text-white border border-indigo-500 hover:bg-indigo-500"
+                                }`}
+                            >
+                                {selectedIds.includes(qid) ? "− Deselect" : "+ Select Question"}
+                            </button>
+                         )
+                      )}
+                      
+                      {!pickerMode && onSelect && (
+                         <button
                           onClick={() => handleAdd(q)}
-                          className="text-xs px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-500"
+                          className="text-[11px] uppercase tracking-wider px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-500 border border-indigo-500"
                         >
                           Select
                         </button>
                       )}
 
-                      <button
-                        onClick={() => handleEdit(q)}
-                        className="text-xs px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded hover:bg-yellow-500/30"
-                      >
-                        Edit
-                      </button>
+                      {!pickerMode && (
+                        <>
+                          <button
+                            onClick={() => handleEdit(q)}
+                            className="text-xs px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded hover:bg-yellow-500/30"
+                          >
+                            Edit
+                          </button>
 
-                      <button
-                        onClick={() => handleDelete(qid)}
-                        className="text-xs px-3 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30"
-                      >
-                        Delete
-                      </button>
+                          <button
+                            onClick={() => handleDelete(qid)}
+                            className="text-xs px-3 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 )}

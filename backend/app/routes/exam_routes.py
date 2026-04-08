@@ -623,6 +623,63 @@ def start_exam(
     }
 
 # ==========================
+# 🔥 ADD QUESTIONS TO EXAM (BATCH)
+# ==========================
+@router.post("/{exam_id}/add-questions")
+def add_questions_to_exam(
+    exam_id: str,
+    payload: dict,
+    user=Depends(require_role("teacher"))
+):
+    try:
+        section_index = payload.get("section_index")
+        question_ids = payload.get("question_ids", [])
+
+        if section_index is None or not question_ids:
+            raise HTTPException(status_code=400, detail="Missing required parameters")
+
+        exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+        if not exam:
+            raise HTTPException(status_code=404, detail="Exam not found")
+            
+        if exam.get("teacher_name") != user["sub"]:
+            raise HTTPException(status_code=403, detail="Not authorized")
+            
+        if exam.get("status") != "draft":
+            raise HTTPException(status_code=400, detail="Can only add to draft exams")
+
+        sections = exam.get("sections", [])
+        if section_index >= len(sections):
+            raise HTTPException(status_code=400, detail="Invalid section index")
+
+        target_section = sections[section_index]
+        max_count = target_section.get("count", 0)
+        current_questions = target_section.get("questions", [])
+
+        if len(current_questions) + len(question_ids) > max_count:
+            raise HTTPException(status_code=400, detail="Adding these questions exceeds the section limit")
+
+        # Fetch actual question objects from DB
+        questions_to_add = list(question_collection.find({"_id": {"$in": [ObjectId(qid) for qid in question_ids]}}))
+        
+        # Convert ObjectIds to strings
+        for q in questions_to_add:
+            q["_id"] = str(q["_id"])
+                
+        # Push to array
+        sections[section_index]["questions"].extend(questions_to_add)
+
+        exam_collection.update_one(
+            {"_id": ObjectId(exam_id)},
+            {"$set": {"sections": sections}}
+        )
+
+        return {"message": f"Successfully added {len(questions_to_add)} questions."}
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# ==========================
 # 🔥 DELETE QUESTION FROM EXAM (NEW - FIX 404)
 # ==========================
 @router.delete("/{exam_id}/question")
