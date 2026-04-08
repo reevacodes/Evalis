@@ -21,7 +21,11 @@ export default function AllExams() {
 
   const handleExamClick = (exam) => {
     if (exam.status === "draft") {
-      navigate(`/exam/${exam._id}/preview`);
+      if (exam.generated_at) {
+        navigate(`/exam/${exam._id}/edit`);
+      } else {
+        navigate(`/exam/${exam._id}/preview`);
+      }
     } else if (exam.status === "finalized" || exam.status === "scheduled") {
       navigate(`/exam/${exam._id}/finalized`);
     } else if (exam.status === "published") {
@@ -175,11 +179,10 @@ export default function AllExams() {
                 <button
                   onClick={(e) => handleRequestSchedule(e, exam._id)}
                   disabled={exam.status === "scheduled"}
-                  className={`flex-1 text-xs py-2 rounded ${
-                    exam.status === "scheduled"
+                  className={`flex-1 text-xs py-2 rounded ${exam.status === "scheduled"
                       ? "bg-gray-600 cursor-not-allowed"
                       : "bg-blue-600 hover:bg-blue-700"
-                  }`}
+                    }`}
                 >
                   Request Schedule
                 </button>
@@ -187,11 +190,10 @@ export default function AllExams() {
                 <button
                   onClick={(e) => handleRequestUnlock(e, exam._id)}
                   disabled={exam.status === "scheduled"}
-                  className={`flex-1 text-xs py-2 rounded ${
-                    exam.status === "scheduled"
+                  className={`flex-1 text-xs py-2 rounded ${exam.status === "scheduled"
                       ? "bg-gray-600 cursor-not-allowed"
                       : "bg-yellow-500 hover:bg-yellow-600"
-                  }`}
+                    }`}
                 >
                   Request Unlock
                 </button>

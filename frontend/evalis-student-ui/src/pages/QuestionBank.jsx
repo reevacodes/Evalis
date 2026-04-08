@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getQuestions } from "../services/api";
+import API, { getQuestions } from "../services/api";
 import QuestionList from "../components/QuestionList";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, GraduationCap, Layers, ArrowUpDown } from "lucide-react";
@@ -459,11 +459,7 @@ export default function QuestionBank() {
                                     section_index: fromPreview.section_index,
                                     question_ids: selectedIds
                                 };
-                                await fetch(`http://localhost:8000/exam/${fromPreview.exam_id}/add-questions`, {
-                                    method: "POST",
-                                    headers: {"Content-Type": "application/json"},
-                                    body: JSON.stringify(payload)
-                                });
+                                await API.post(`/exam/${fromPreview.exam_id}/add-questions`, payload);
                                 navigate(`/exam/${fromPreview.exam_id}/edit`);
                             } catch (err) {
                                 alert("Failed to batch add questions. Try again.");

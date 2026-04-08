@@ -116,7 +116,11 @@ export default function TeacherExamDashboard() {
   // ================= VIEW =================
   const handleView = (exam) => {
     if (exam.status === "draft") {
-      navigate(`/exam/${exam._id}/preview`);
+      if (exam.generated_at) {
+        navigate(`/exam/${exam._id}/edit`);
+      } else {
+        navigate(`/exam/${exam._id}/preview`);
+      }
     } else if (exam.status === "finalized" || exam.status === "scheduled") {
       navigate(`/exam/${exam._id}/finalized`);
     } else if (exam.status === "published") {
