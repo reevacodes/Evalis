@@ -307,16 +307,20 @@ def delete_exam_api(
         # 👨‍💼 ADMIN RULE
         # ==========================
         elif role == "admin":
-            # Admin can delete anything except maybe active exam (optional)
-            pass
+            current_state = calculate_exam_state(exam)
+            if current_state == "active":
+                raise HTTPException(status_code=400, detail="Cannot remove an exam while it is currently live.")
 
         else:
             raise HTTPException(403, "Not authorized")
 
         # ==========================
-        # 🔥 DELETE
+        # 🔥 SOFT DELETE
         # ==========================
-        exam_collection.delete_one({"_id": ObjectId(exam_id)})
+        exam_collection.update_one(
+            {"_id": ObjectId(exam_id)},
+            {"$set": {"is_deleted": True, "deleted_by": user["sub"], "deleted_at": datetime.utcnow()}}
+        )
 
         return {
             "message": "Exam deleted successfully",
@@ -396,17 +400,17 @@ def get_all_exams_api(user=Depends(get_current_user)):
         role = user.get("role")
 
         if role == "admin":
-            exams = list(exam_collection.find().sort("created_at", -1))
+            exams = list(exam_collection.find({"is_deleted": {"$ne": True}}).sort("created_at", -1))
 
         elif role == "teacher":
             exams = list(
-                exam_collection.find({"teacher_name": user["sub"]})
+                exam_collection.find({"teacher_name": user["sub"], "is_deleted": {"$ne": True}})
                 .sort("created_at", -1)
             )
 
         elif role == "student":   # ✅ ADD THIS BLOCK
             exams = list(
-                exam_collection.find({"status": "published"})
+                exam_collection.find({"status": "published", "is_deleted": {"$ne": True}})
                 .sort("created_at", -1)
             )
 
@@ -449,6 +453,12 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
             status_code=400,
             detail="Only finalized exams can be scheduled"
         )
+        
+    current_state = calculate_exam_state(exam)
+    if current_state == "active":
+        raise HTTPException(status_code=400, detail="Cannot reschedule an active exam.")
+    elif current_state == "expired":
+        raise HTTPException(status_code=400, detail="Cannot reschedule an expired exam. Please duplicate it.")
 
     # ✅ GET DATA
     start_time_str = data.get("start_time")
