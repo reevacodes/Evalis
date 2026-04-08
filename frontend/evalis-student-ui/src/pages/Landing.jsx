@@ -1,10 +1,20 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AuthModal from "../components//AuthModal";
+import { useAuth } from "../context/AuthContext";
 
 export default function Landing() {
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === "admin") navigate("/admin");
+      else if (user.role === "teacher") navigate("/teacher");
+      else navigate("/student");
+    }
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen bg-[#0b0f19] text-white relative overflow-hidden">

@@ -20,7 +20,12 @@ export default function AdminOverview() {
         setStats({
           total: exams.length,
           active: exams.filter((e) => e.time_status === "active").length,
-          requested: exams.filter((e) => e.status === "requested").length,
+          requested: exams.filter(
+            (e) =>
+              e.status === "requested" ||
+              e.schedule_requested ||
+              e.unlock_requested
+          ).length,
           published: exams.filter((e) => e.status === "published").length,
         });
       } catch (err) {

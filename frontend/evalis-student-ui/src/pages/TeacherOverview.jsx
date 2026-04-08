@@ -24,7 +24,12 @@ export default function TeacherOverview() {
           total: exams.length,
           drafts: exams.filter((e) => e.status === "draft").length,
           published: exams.filter((e) => e.status === "published").length,
-          requested: exams.filter((e) => e.status === "requested").length,
+          requested: exams.filter(
+            (e) =>
+              e.status === "requested" ||
+              e.schedule_requested ||
+              e.unlock_requested
+          ).length,
         });
       } catch (err) {
         console.error(err);

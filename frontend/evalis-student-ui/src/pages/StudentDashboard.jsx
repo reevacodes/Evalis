@@ -99,107 +99,92 @@ export default function StudentDashboard() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-5">
-          {exams.map((exam) => (
-            <div
-              key={exam._id}
-              className={`bg-slate-900 border border-slate-800 p-5 rounded-xl transition 
-                hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10
-                ${exam.time_status === "expired" ? "opacity-50" : ""}`}
-            >
-              {/* HEADER */}
-              <div className="flex justify-between items-start mb-2">
-                <h2 className="text-lg font-semibold">{exam.exam_name}</h2>
+          {exams.map((exam) => {
+            const isLive = exam.time_status === "active";
+            const isUpcoming = exam.time_status === "scheduled";
+            const isCompleted = exam.time_status === "expired";
 
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-700">
-                    <p className="text-sm text-gray-400">Total</p>
-                    <h2 className="text-xl font-bold">{stats.total}</h2>
+            return (
+              <div
+                key={exam._id}
+                className={`flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden transition-all duration-300 ${
+                  isLive 
+                    ? "hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20" 
+                    : "hover:border-slate-700"
+                } ${isCompleted ? "opacity-60 grayscale-[30%]" : ""}`}
+              >
+                {/* 🎨 TOP ACCENT */}
+                <div className={`h-1.5 w-full ${isLive ? 'bg-green-500' : isUpcoming ? 'bg-yellow-500' : 'bg-gray-600'}`}></div>
+                
+                <div className="p-6 flex-1 flex flex-col">
+                  {/* 🏷 HEADER */}
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h2 className="text-xl font-bold tracking-wide text-white">{exam.exam_name}</h2>
+                      <p className="text-blue-400 font-medium text-sm mt-1">{exam.subject_code} • Semester {exam.semester}</p>
+                    </div>
+                    <span
+                      className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${getStatusBadge(
+                        exam.time_status,
+                      )}`}
+                    >
+                      {isLive ? "Live" : isUpcoming ? "Upcoming" : "Completed"}
+                    </span>
                   </div>
 
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-700">
-                    <p className="text-sm text-gray-400">Active</p>
-                    <h2 className="text-xl font-bold text-green-400">
-                      {stats.active}
-                    </h2>
+                  {/* 🕒 TIME INFO BOX */}
+                  <div className="bg-slate-950/50 rounded-xl p-4 mb-6 space-y-3 border border-slate-800/50 mt-auto">
+                    <div className="flex items-center text-slate-300 text-sm">
+                      <span className="w-5 font-bold opacity-70">📅</span>
+                      <span>
+                        {exam.start_time 
+                          ? new Date(exam.start_time).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) 
+                          : "TBD"}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-slate-300 text-sm">
+                      <span className="w-5 font-bold opacity-70">⏰</span>
+                      <span>
+                        {exam.start_time 
+                          ? new Date(exam.start_time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) 
+                          : "TBD"}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-slate-300 text-sm">
+                      <span className="w-5 font-bold opacity-70">⏳</span>
+                      <span>{exam.duration_minutes} Minutes</span>
+                    </div>
                   </div>
 
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-700">
-                    <p className="text-sm text-gray-400">Upcoming</p>
-                    <h2 className="text-xl font-bold text-yellow-400">
-                      {stats.upcoming}
-                    </h2>
-                  </div>
-
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-700">
-                    <p className="text-sm text-gray-400">Completed</p>
-                    <h2 className="text-xl font-bold text-red-400">
-                      {stats.completed}
-                    </h2>
+                  {/* 🚀 ACTIONS */}
+                  <div className="mt-auto">
+                    {isLive && (
+                      <button
+                        onClick={() => handleStartClick(exam)}
+                        className="w-full py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                      >
+                       <span className="animate-pulse h-2 w-2 bg-white rounded-full"></span>
+                       Start Exam Now
+                      </button>
+                    )}
+                    {isUpcoming && (
+                      <button
+                        disabled
+                        className="w-full py-3 rounded-xl font-semibold bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50"
+                      >
+                        Not Available Yet
+                      </button>
+                    )}
+                    {isCompleted && (
+                      <button className="w-full py-3 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700">
+                        View Result
+                      </button>
+                    )}
                   </div>
                 </div>
-
-                <span
-                  className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(
-                    exam.time_status,
-                  )}`}
-                >
-                  {exam.time_status.toUpperCase()}
-                </span>
               </div>
-
-              {/* INFO */}
-              <p className="text-sm text-slate-400 mb-2">
-                {exam.subject_code} • Semester {exam.semester}
-              </p>
-
-              <div className="text-sm text-slate-300 space-y-1">
-                <p>Duration: {exam.duration_minutes} min</p>
-                <p>Units: {exam.units?.join(", ")}</p>
-
-                {exam.start_time && (
-                  <p
-                    className={`${
-                      exam.time_status === "scheduled"
-                        ? "text-yellow-400"
-                        : exam.time_status === "active"
-                          ? "text-green-400"
-                          : "text-red-400"
-                    }`}
-                  >
-                    {exam.time_status === "scheduled" && "Starts at: "}
-                    {exam.time_status === "active" && "Started at: "}
-                    {exam.time_status === "expired" && "Started at: "}
-                    {new Date(exam.start_time).toLocaleString()}
-                  </p>
-                )}
-                {exam.time_status === "expired" && (
-                  <p className="text-red-400">Exam has ended</p>
-                )}
-              </div>
-
-              {/* ACTION */}
-              <button
-                onClick={() => handleStartClick(exam)}
-                disabled={exam.time_status !== "active"}
-                className={`mt-4 w-full py-2 rounded-lg font-medium ${
-                  exam.time_status === "active"
-                    ? "bg-blue-500 hover:bg-blue-600"
-                    : "bg-gray-600 cursor-not-allowed"
-                }`}
-              >
-                {exam.time_status === "active"
-                  ? "Start Exam"
-                  : exam.time_status === "scheduled"
-                    ? "Not Started"
-                    : "Expired"}
-              </button>
-              {exam.time_status === "expired" && (
-                <button className="mt-2 w-full py-2 bg-purple-600 rounded">
-                  View Result
-                </button>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

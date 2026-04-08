@@ -3,6 +3,7 @@ import { signup, login } from "../services/api";
 import AuthSuccessModal from "../components/AuthSuccessModal";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function AuthModal({ onClose }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,6 +14,7 @@ export default function AuthModal({ onClose }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successType, setSuccessType] = useState(""); // "login" or "signup"
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,6 +27,7 @@ export default function AuthModal({ onClose }) {
 
         localStorage.setItem("token", res.data.access_token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        setUser(res.data.user); // 🔥 INSTANT STATE UPDATE
 
         // ✅ ADD THIS LINE
         API.defaults.headers.common["Authorization"] =
@@ -39,6 +42,7 @@ export default function AuthModal({ onClose }) {
 
         localStorage.setItem("token", res.data.access_token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        setUser(res.data.user); // 🔥 INSTANT STATE UPDATE
 
         // ✅ ADD THIS LINE
         API.defaults.headers.common["Authorization"] =
