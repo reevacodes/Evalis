@@ -27,6 +27,8 @@ export default function QuestionBank() {
     unit: "",
     topic: "",
     type: "",
+    difficulty: "",
+    tags: "",
   });
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,11 +100,13 @@ export default function QuestionBank() {
       });
 
       const res = await getQuestions({
-        semester: Number(selection.semester), // 🔥 FIX
+        semester: Number(selection.semester),
         subject: selection.subject,
-        unit: Number(selection.unit), // 🔥 FIX
+        unit: Number(selection.unit),
         topic: selection.topic,
         question_type: selection.type,
+        difficulty: selection.difficulty || undefined,
+        tags: selection.tags || undefined,
         page: pagination.page,
         limit: 5,
       });
@@ -234,9 +238,32 @@ export default function QuestionBank() {
         </div>
       </div>
 
-      {/* TYPE SWITCH */}
+      {/* FILTERS */}
       {getView() === "questions" && (
-        <div className="flex justify-end mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 bg-slate-900 border border-slate-700 rounded-xl">
+          <div className="flex items-center flex-wrap gap-3 w-full md:w-auto">
+            {/* TAGS INPUT */}
+            <input
+              type="text"
+              placeholder="Search tags (e.g. CO1, tricky...)"
+              value={selection.tags || ""}
+              onChange={(e) => updateSelection({ tags: e.target.value })}
+              className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500 w-full md:w-64"
+            />
+            {/* DIFFICULTY DROPDOWN */}
+            <select
+              value={selection.difficulty || ""}
+              onChange={(e) => updateSelection({ difficulty: e.target.value })}
+              className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
+            >
+              <option value="">All Difficulties</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+
+          {/* TYPE SWITCH */}
           <button
             onClick={() => {
               const order = ["", "mcq", "coding"];
@@ -244,16 +271,16 @@ export default function QuestionBank() {
               const nextType = order[(currentIndex + 1) % order.length];
               updateSelection({ type: nextType });
             }}
-            className="flex items-center gap-2 bg-slate-900 border border-slate-700 
-            px-3 py-2 rounded-lg hover:bg-slate-800 transition group"
+            className="flex items-center gap-2 bg-slate-950 border border-slate-700 
+            px-3 py-2 rounded-lg hover:bg-slate-800 transition"
           >
-            <ArrowUpDown size={18} />
-            <span className="text-xs text-gray-400">
+            <ArrowUpDown size={16} className="text-gray-400" />
+            <span className="text-sm font-medium">
               {selection.type === ""
-                ? "All"
+                ? "All Types"
                 : selection.type === "mcq"
                   ? "MCQ"
-                  : "Code"}
+                  : "Coding"}
             </span>
           </button>
         </div>

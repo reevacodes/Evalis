@@ -132,6 +132,24 @@ export default function QuestionList({ questions, reload, onSelect }) {
                       </span>
                     </p>
 
+                    {/* TAGS RENDERING */}
+                    {q.tags && q.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {q.tags.map((tag, i) => (
+                          <span
+                            key={i}
+                            className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                              tag.toUpperCase().startsWith("CO") 
+                                ? "bg-green-600/20 text-green-400 border border-green-500/30" 
+                                : "bg-indigo-600/20 text-indigo-300 border border-indigo-500/30"
+                            }`}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
                     {/* MCQ */}
                     {q.question_type === "mcq" && q.options && (
                       <ul className="mb-3 space-y-1 text-gray-300">

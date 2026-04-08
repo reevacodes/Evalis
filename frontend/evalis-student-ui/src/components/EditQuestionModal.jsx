@@ -4,8 +4,9 @@ import { updateQuestion } from "../services/api";
 export default function EditQuestionModal({ question, onClose, onSuccess }) {
   const [form, setForm] = useState({
     topic: question.topic,
-    difficulty: question.difficulty || "easy", // 🔥 ensure exists
-    question_text: question.question_text,
+    difficulty: question.difficulty || "medium", 
+    tags_string: (question.tags || []).join(", "), // 🔥 Support tags editing
+    question_text: question.question_text || question.question || "",
     question_type: question.question_type,
     options: question.options || ["", ""],
     correct_answer: question.correct_answer || "",
@@ -15,18 +16,26 @@ export default function EditQuestionModal({ question, onClose, onSuccess }) {
     try {
       const id = question._id || question.id;
 
+      // 🔥 Split tags precisely
+      const parsedTags = form.tags_string
+        .split(",")
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+
+      const payload = { ...form, tags: parsedTags };
+      delete payload.tags_string; // Remove arbitrary frontend state
+
       await updateQuestion(id, {
         semester: 6,
         unit: 1,
         marks: 2,
-        tags: [],
-        ...form,
+        ...payload,
       });
 
       // 🔥 IMPORTANT: send updated data back
       onSuccess({
         ...question,
-        ...form,
+        ...payload,
         _id: id,
       });
     } catch (err) {
@@ -48,6 +57,14 @@ export default function EditQuestionModal({ question, onClose, onSuccess }) {
           placeholder="Topic"
           className="w-full mb-3 p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
           onChange={(e) => setForm({ ...form, topic: e.target.value })}
+        />
+
+        {/* TAGS (Course Outcomes, etc.) */}
+        <input
+          value={form.tags_string}
+          placeholder="Tags (Comma separated e.g. CO1, sorting)"
+          className="w-full mb-3 p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          onChange={(e) => setForm({ ...form, tags_string: e.target.value })}
         />
 
         {/* DIFFICULTY */}
