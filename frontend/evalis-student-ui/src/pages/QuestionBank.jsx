@@ -446,7 +446,7 @@ export default function QuestionBank() {
                 </div>
                 <div className="flex gap-4">
                     <button 
-                        onClick={() => navigate(`/exam/${fromPreview.exam_id}/paper`)}
+                        onClick={() => navigate(`/exam/${fromPreview.exam_id}/edit`)}
                         className="px-6 py-2 rounded-lg font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition"
                     >
                         Cancel
@@ -464,7 +464,7 @@ export default function QuestionBank() {
                                     headers: {"Content-Type": "application/json"},
                                     body: JSON.stringify(payload)
                                 });
-                                navigate(`/exam/${fromPreview.exam_id}/paper`);
+                                navigate(`/exam/${fromPreview.exam_id}/edit`);
                             } catch (err) {
                                 alert("Failed to batch add questions. Try again.");
                             }
