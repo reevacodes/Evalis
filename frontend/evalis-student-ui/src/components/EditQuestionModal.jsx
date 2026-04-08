@@ -26,9 +26,11 @@ export default function EditQuestionModal({ question, onClose, onSuccess }) {
       delete payload.tags_string; // Remove arbitrary frontend state
 
       await updateQuestion(id, {
-        semester: 6,
-        unit: 1,
-        marks: 2,
+        semester: question.semester,
+        subject_code: question.subject_code,
+        subject_name: question.subject_name,
+        unit: question.unit,
+        marks: question.marks || 2,
         ...payload,
       });
 
@@ -44,92 +46,149 @@ export default function EditQuestionModal({ question, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-      <div className="bg-slate-900/95 border border-slate-700 shadow-2xl rounded-2xl p-6 w-[420px] animate-fadeIn">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl w-full max-w-2xl animate-fadeIn overflow-hidden flex flex-col max-h-[90vh]">
+        
         {/* HEADER */}
-        <h2 className="text-xl font-semibold mb-4 text-blue-400">
-          Edit Question
-        </h2>
-
-        {/* TOPIC */}
-        <input
-          value={form.topic}
-          placeholder="Topic"
-          className="w-full mb-3 p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-          onChange={(e) => setForm({ ...form, topic: e.target.value })}
-        />
-
-        {/* TAGS (Course Outcomes, etc.) */}
-        <input
-          value={form.tags_string}
-          placeholder="Tags (Comma separated e.g. CO1, sorting)"
-          className="w-full mb-3 p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-          onChange={(e) => setForm({ ...form, tags_string: e.target.value })}
-        />
-
-        {/* DIFFICULTY */}
-        <select
-          value={form.difficulty}
-          className="w-full mb-3 p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-          onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
-        >
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
-
-        {/* QUESTION */}
-        <textarea
-          value={form.question_text}
-          placeholder="Question"
-          className="w-full mb-3 p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white min-h-[80px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-          onChange={(e) => setForm({ ...form, question_text: e.target.value })}
-        />
-
-        {/* OPTIONS (only if MCQ) */}
-        {form.question_type === "mcq" &&
-          form.options.map((opt, i) => (
-            <input
-              key={i}
-              value={opt}
-              placeholder={`Option ${i + 1}`}
-              className="w-full mb-3 p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              onChange={(e) => {
-                const newOptions = [...form.options];
-                newOptions[i] = e.target.value;
-                setForm({ ...form, options: newOptions });
-              }}
-            />
-          ))}
-
-        {/* CORRECT ANSWER (only if MCQ) */}
-        {form.question_type === "mcq" && (
-          <input
-            value={form.correct_answer}
-            placeholder="Correct Answer"
-            className="w-full mb-4 p-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            onChange={(e) =>
-              setForm({ ...form, correct_answer: e.target.value })
-            }
-          />
-        )}
-
-        {/* BUTTONS */}
-        <div className="flex gap-3 mt-4">
-          <button
-            onClick={handleSubmit}
-            className="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg text-black font-medium transition"
+        <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-md">
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <span className="text-blue-500">✏️</span> Edit Question
+          </h2>
+          <button 
+            onClick={onClose} 
+            className="text-gray-400 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition"
           >
-            Update
+            ✕
           </button>
+        </div>
 
+        {/* SCROLLABLE FORM */}
+        <div className="p-6 overflow-y-auto space-y-8 flex-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+          
+          {/* Metadata Section */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Metadata</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">Topic</label>
+                <input
+                  value={form.topic}
+                  placeholder="e.g. Recursion"
+                  className="w-full p-2.5 bg-slate-950/50 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500 transition text-sm"
+                  onChange={(e) => setForm({ ...form, topic: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">Difficulty</label>
+                <select
+                  value={form.difficulty}
+                  className="w-full p-2.5 bg-slate-950/50 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500 transition text-sm"
+                  onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
+                >
+                  <option value="easy">🟩 Easy</option>
+                  <option value="medium">🟨 Medium</option>
+                  <option value="hard">🟥 Hard</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Tags & Course Outcomes</label>
+              <input
+                value={form.tags_string}
+                placeholder="Comma separated (e.g. CO1, sorting, arrays)"
+                className="w-full p-2.5 bg-slate-950/50 border border-slate-700 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition text-sm"
+                onChange={(e) => setForm({ ...form, tags_string: e.target.value })}
+              />
+              <p className="text-[11px] text-gray-500 mt-1.5 italic">
+                Separate tags with commas. Tags beginning with "CO" are highlighted automatically.
+              </p>
+            </div>
+          </div>
+
+          <hr className="border-slate-800" />
+
+          {/* Question Section */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Question Content</h3>
+            
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Problem Statement</label>
+              <textarea
+                value={form.question_text}
+                placeholder="Type the question here..."
+                className="w-full p-3 bg-slate-950/50 border border-slate-700 rounded-lg text-white min-h-[140px] focus:outline-none focus:border-blue-500 transition text-sm leading-relaxed block"
+                onChange={(e) => setForm({ ...form, question_text: e.target.value })}
+              />
+            </div>
+          </div>
+
+          {/* MCQ Options */}
+          {form.question_type === "mcq" && (
+            <>
+              <hr className="border-slate-800" />
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">MCQ Options</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {form.options.map((opt, i) => (
+                    <div key={i}>
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                        Option {String.fromCharCode(65 + i)}
+                      </label>
+                      <input
+                        value={opt}
+                        placeholder={`Option ${i + 1}`}
+                        className="w-full p-2.5 bg-slate-950/50 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500 transition text-sm"
+                        onChange={(e) => {
+                          const newOptions = [...form.options];
+                          newOptions[i] = e.target.value;
+                          setForm({ ...form, options: newOptions });
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2">
+                  <label className="block text-xs font-bold text-green-400 mb-1.5">Correct Answer</label>
+                  <select
+                    value={form.correct_answer}
+                    className="w-full p-2.5 bg-green-500/10 border border-green-500/30 rounded-lg text-white focus:outline-none focus:border-green-500 transition text-sm font-medium"
+                    onChange={(e) => setForm({ ...form, correct_answer: e.target.value })}
+                  >
+                    <option value="" disabled>Select the correct answer...</option>
+                    {form.options.map((opt, i) => (
+                      <option key={i} value={opt}>
+                        Option {String.fromCharCode(65 + i)}: {opt || '(empty)'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
+
+        </div>
+
+        {/* FOOTER */}
+        <div className="px-6 py-4 border-t border-slate-800 bg-slate-900/50 backdrop-blur-md flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition"
+            className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition"
           >
             Cancel
           </button>
+          <button
+            onClick={handleSubmit}
+            className="px-6 py-2.5 rounded-lg text-sm font-bold bg-blue-600 text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition flex items-center shadow-md shadow-blue-900/20"
+          >
+            Save Changes
+          </button>
         </div>
+
       </div>
     </div>
   );
