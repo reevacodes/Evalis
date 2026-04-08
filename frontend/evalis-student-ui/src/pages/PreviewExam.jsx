@@ -38,32 +38,9 @@ export default function PreviewExam() {
     if (examId) loadExam();
   }, [examId]);
 
-  // =========================
-  // SECTION HANDLERS
-  // =========================
-  const handleAddSection = () => {
-    const newSection = {
-      type: "mcq",
-      count: 5,
-    };
 
-    setExam({
-      ...exam,
-      sections: [...exam.sections, newSection],
-    });
-  };
 
-  const handleDeleteSection = (index) => {
-    const updated = exam.sections.filter((_, i) => i !== index);
-    setExam({ ...exam, sections: updated });
-  };
 
-  const handleEditSection = (index) => {
-    const updated = [...exam.sections];
-    updated[index].type = updated[index].type === "mcq" ? "coding" : "mcq";
-
-    setExam({ ...exam, sections: updated });
-  };
 
   // =========================
   // GENERATE QUESTIONS
@@ -203,33 +180,11 @@ export default function PreviewExam() {
                   </p>
                 </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEditSection(idx)}
-                    className="bg-indigo-600 px-3 py-1 rounded text-sm"
-                  >
-                    Toggle
-                  </button>
-
-                  <button
-                    onClick={() => handleDeleteSection(idx)}
-                    className="bg-red-600 px-3 py-1 rounded text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
               </div>
             ))
           ) : (
-            <p className="text-slate-400">No sections added yet.</p>
+            <p className="text-slate-400">No sections found.</p>
           )}
-
-          <button
-            onClick={handleAddSection}
-            className="mt-4 bg-green-600 px-4 py-2 rounded"
-          >
-            + Add Section
-          </button>
         </div>
 
         {/* =========================
