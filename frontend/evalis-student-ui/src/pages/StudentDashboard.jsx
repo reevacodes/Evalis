@@ -139,7 +139,14 @@ export default function StudentDashboard() {
                   {/* 🏷 HEADER */}
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h2 className="text-xl font-bold tracking-wide text-white">{exam.exam_name}</h2>
+                      <h2 className="text-xl font-bold tracking-wide text-white flex items-center gap-2">
+                         {exam.exam_name}
+                         {exam.is_rescheduled && (
+                            <span className="px-2 py-0.5 mt-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/20 text-[10px] uppercase font-bold tracking-wider">
+                              Rescheduled
+                            </span>
+                         )}
+                      </h2>
                       <p className="text-blue-400 font-medium text-sm mt-1">{exam.subject_code} • Semester {exam.semester}</p>
                     </div>
                     <span
@@ -194,13 +201,15 @@ export default function StudentDashboard() {
                           >
                             Not Available Yet
                           </button>
-                          <button
-                            onClick={() => openRescheduleModal(exam._id)}
-                            className="px-4 py-3 rounded-xl font-semibold bg-orange-600/20 text-orange-400 hover:bg-orange-600/40 border border-orange-500/30 transition-all"
-                            title="Request Reschedule"
-                          >
-                            Reschedule
-                          </button>
+                          {!exam.is_rescheduled && (
+                            <button
+                              onClick={() => openRescheduleModal(exam._id)}
+                              className="px-4 py-3 rounded-xl font-semibold bg-orange-600/20 text-orange-400 hover:bg-orange-600/40 border border-orange-500/30 transition-all"
+                              title="Request Reschedule"
+                            >
+                              Reschedule
+                            </button>
+                          )}
                       </div>
                     )}
                     {isCompleted && (

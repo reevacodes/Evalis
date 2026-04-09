@@ -419,8 +419,20 @@ def get_all_exams_api(user=Depends(get_current_user)):
 
         for exam in exams:
             exam["_id"] = str(exam["_id"])
+            
+            # Apply student-specific overrides (Reschedules)
+            if role == "student":
+                overrides = exam.get("overrides", [])
+                for ov in overrides:
+                    if ov.get("student_id") == user.get("sub"):
+                        if "new_start_time" in ov:
+                            exam["start_time"] = ov["new_start_time"]
+                            exam["is_rescheduled"] = True
+                        break
+            
             exam["time_status"] = calculate_exam_state(exam)
             exam.pop("sections", None)
+            exam.pop("overrides", None)  # Hide other students' overrides
 
         return {
             "count": len(exams),
