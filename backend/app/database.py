@@ -17,6 +17,7 @@ exam_collection = db["exams"]
 curriculum_collection = db["curriculum"]
 
 user_collection = db["users"]
+reschedule_collection = db["reschedule_requests"]
 
 # Latest submissions (1 per user + question)
 submission_collection = db["submissions"]

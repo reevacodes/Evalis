@@ -1,5 +1,10 @@
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Literal
+from datetime import datetime
+
+class RescheduleRequest(BaseModel):
+    reason: str
+    preferred_time: datetime
 
 class ExamGenerateRequest(BaseModel):
     # REQUIRED FOR UPDATE FLOW

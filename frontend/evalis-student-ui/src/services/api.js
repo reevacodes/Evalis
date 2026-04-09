@@ -103,6 +103,15 @@ export const requestSchedule = (examId) =>
 export const requestUnlock = (examId) =>
   API.put(`/exam/${examId}/request-unlock`);
 
+export const requestReschedule = (examId, payload) =>
+  API.post(`/exam/${examId}/reschedule`, payload);
+
+export const getRescheduleRequests = (status = "pending") =>
+  API.get(`/exam/reschedule-requests/all?status=${status}`);
+
+export const updateRescheduleRequest = (requestId, payload) =>
+  API.put(`/exam/reschedule-requests/${requestId}`, payload);
+
 // =========================
 // 🎓 STUDENT FLOW
 // =========================

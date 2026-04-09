@@ -65,6 +65,24 @@ export default function StudentDashboard() {
     navigate(`/student/exam/${selectedExam._id}`);
   };
 
+  const handleReschedule = async (examId) => {
+    const reason = prompt("Enter reason for reschedule (e.g., Medical clash):");
+    if (!reason?.trim()) return;
+
+    // Default mock to tomorrow for this minimal implementation
+    const preferred_time = new Date(Date.now() + 86400000).toISOString();
+    
+    try {
+      await API.post(`/exam/${examId}/reschedule`, {
+        reason: reason,
+        preferred_time: preferred_time
+      });
+      alert("Reschedule request submitted successfully and is pending admin approval.");
+    } catch (err) {
+      alert(err.response?.data?.detail || "Failed to submit request.");
+    }
+  };
+
   // =========================
   // STATUS UI
   // =========================
@@ -168,12 +186,21 @@ export default function StudentDashboard() {
                       </button>
                     )}
                     {isUpcoming && (
-                      <button
-                        disabled
-                        className="w-full py-3 rounded-xl font-semibold bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50"
-                      >
-                        Not Available Yet
-                      </button>
+                      <div className="flex gap-2">
+                          <button
+                            disabled
+                            className="flex-1 py-3 rounded-xl font-semibold bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50"
+                          >
+                            Not Available Yet
+                          </button>
+                          <button
+                            onClick={() => handleReschedule(exam._id)}
+                            className="px-4 py-3 rounded-xl font-semibold bg-orange-600/20 text-orange-400 hover:bg-orange-600/40 border border-orange-500/30 transition-all"
+                            title="Request Reschedule"
+                          >
+                            Reschedule
+                          </button>
+                      </div>
                     )}
                     {isCompleted && (
                       <button className="w-full py-3 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700">

@@ -3,9 +3,9 @@ from bson import ObjectId
 from datetime import datetime, timedelta,timezone
 from app.services.exam_service import MIET_RULES
 
-from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest
+from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest
 from app.services.exam_service import generate_exam
-from app.database import exam_collection, question_collection
+from app.database import exam_collection, question_collection, reschedule_collection
 from app.models.question_model import question_helper
 from app.services.exam_service import generate_exam
 from fastapi import Depends
@@ -770,3 +770,76 @@ def request_unlock(exam_id: str, user=Depends(require_role("teacher"))):
     )
 
     return {"message": "Unlock request sent"}
+
+# ==========================
+# 🔥 RESCHEDULE REQUESTS
+# ==========================
+
+@router.post("/{exam_id}/reschedule")
+def request_reschedule(
+    exam_id: str, 
+    request: RescheduleRequest, 
+    user=Depends(require_role("student"))
+):
+    exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+    if not exam:
+        raise HTTPException(status_code=404, detail="Exam not found")
+        
+    # Check if a pending request already exists
+    pending_req = reschedule_collection.find_one({
+        "student_id": user["sub"],
+        "exam_id": exam_id,
+        "status": "pending"
+    })
+    
+    if pending_req:
+        raise HTTPException(status_code=400, detail="You already have a pending reschedule request for this exam.")
+        
+    doc = {
+        "student_id": user["sub"],
+        "exam_id": exam_id,
+        "reason": request.reason,
+        "preferred_time": request.preferred_time,
+        "status": "pending",
+        "created_at": datetime.utcnow()
+    }
+    reschedule_collection.insert_one(doc)
+    return {"message": "Reschedule request submitted successfully."}
+
+@router.get("/reschedule-requests/all")
+def get_reschedule_requests(
+    status: str = Query("pending"),
+    user=Depends(require_role("admin"))
+):
+    requests = list(reschedule_collection.find({"status": status}))
+    for req in requests:
+        req["_id"] = str(req["_id"])
+        
+        # Hydrate exam info
+        exam = exam_collection.find_one({"_id": ObjectId(req["exam_id"])})
+        if exam:
+            req["exam_name"] = exam.get("exam_name", "Unknown Exam")
+            req["original_time"] = exam.get("start_time")
+            
+    return {"requests": requests}
+
+@router.put("/reschedule-requests/{request_id}")
+def update_reschedule_request(
+    request_id: str,
+    payload: dict,
+    user=Depends(require_role("admin"))
+):
+    status = payload.get("status")
+    if status not in ["approved", "rejected"]:
+        raise HTTPException(400, "Invalid status")
+        
+    req = reschedule_collection.find_one({"_id": ObjectId(request_id)})
+    if not req:
+        raise HTTPException(404, "Request not found")
+        
+    reschedule_collection.update_one(
+        {"_id": ObjectId(request_id)},
+        {"$set": {"status": status, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {"message": f"Request {status} successfully"}

@@ -1,6 +1,6 @@
 import StatCard from "../components/StatCard";
 import { useEffect, useState } from "react";
-import { getAllExams } from "../services/api";
+import { getAllExams, getRescheduleRequests, updateRescheduleRequest } from "../services/api";
 
 export default function AdminOverview() {
   const [stats, setStats] = useState({
@@ -10,10 +10,24 @@ export default function AdminOverview() {
     published: 0,
   });
 
+  const [rescheduleRequests, setRescheduleRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const fetchReschedules = async () => {
+    try {
+        const reqRes = await getRescheduleRequests("pending");
+        if(reqRes.data?.requests) {
+           setRescheduleRequests(reqRes.data.requests);
+        }
+    } catch(err) {
+        console.error(err);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
+        await fetchReschedules();
         const res = await getAllExams();
         const exams = res.data.exams || [];
 
@@ -92,14 +106,45 @@ export default function AdminOverview() {
           </ul>
         </div>
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-xl">
-          <h3 className="mb-4 font-medium text-lg">Pending Approval</h3>
+          <h3 className="mb-4 font-medium text-lg">Student Reschedule Requests</h3>
 
-          {stats.requested === 0 ? (
-            <p className="text-sm text-gray-400">No exams pending approval</p>
+          {rescheduleRequests.length === 0 ? (
+            <p className="text-sm text-gray-400">No pending requests</p>
           ) : (
-            <p className="text-sm text-yellow-400">
-              {stats.requested} exam(s) waiting for approval
-            </p>
+            <div className="space-y-4 max-h-[300px] overflow-y-auto">
+              {rescheduleRequests.map((req) => (
+                <div key={req._id} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold text-orange-400">{req.exam_name}</p>
+                      <p className="text-xs text-slate-400 mt-1">Student ID: {req.student_id}</p>
+                      <p className="text-sm mt-2 text-slate-300">"{req.reason}"</p>
+                      <p className="text-xs text-slate-400 mt-2">Pref: {new Date(req.preferred_time).toLocaleString()}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                       <button 
+                         onClick={async () => {
+                             await updateRescheduleRequest(req._id, {status: "approved"});
+                             fetchReschedules();
+                         }}
+                         className="px-3 py-1 bg-green-500/20 text-green-400 hover:bg-green-500/40 rounded text-xs"
+                       >
+                         Approve
+                       </button>
+                       <button 
+                         onClick={async () => {
+                             await updateRescheduleRequest(req._id, {status: "rejected"});
+                             fetchReschedules();
+                         }}
+                         className="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/40 rounded text-xs"
+                       >
+                         Reject
+                       </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
