@@ -821,6 +821,12 @@ def get_reschedule_requests(
             req["exam_name"] = exam.get("exam_name", "Unknown Exam")
             req["original_time"] = exam.get("start_time")
             
+        # Fix timezone serialization (MongoDB stores naive datetime, FastAPI serializes without Z)
+        if "preferred_time" in req and isinstance(req["preferred_time"], datetime):
+            req["preferred_time"] = req["preferred_time"].replace(tzinfo=timezone.utc).isoformat()
+        if "original_time" in req and isinstance(req["original_time"], datetime):
+            req["original_time"] = req["original_time"].replace(tzinfo=timezone.utc).isoformat()
+            
     return {"requests": requests}
 
 @router.put("/reschedule-requests/{request_id}")
