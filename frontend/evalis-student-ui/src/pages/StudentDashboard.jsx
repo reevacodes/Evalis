@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
+import RescheduleModal from "../components/RescheduleModal";
 
 export default function StudentDashboard() {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedExam, setSelectedExam] = useState(null); // 🔥 for modal
+  const [rescheduleData, setRescheduleData] = useState({ isOpen: false, examId: null });
   const navigate = useNavigate();
 
   const stats = {
@@ -65,19 +67,18 @@ export default function StudentDashboard() {
     navigate(`/student/exam/${selectedExam._id}`);
   };
 
-  const handleReschedule = async (examId) => {
-    const reason = prompt("Enter reason for reschedule (e.g., Medical clash):");
-    if (!reason?.trim()) return;
+  const openRescheduleModal = (examId) => {
+    setRescheduleData({ isOpen: true, examId });
+  };
 
-    // Default mock to tomorrow for this minimal implementation
-    const preferred_time = new Date(Date.now() + 86400000).toISOString();
-    
+  const handleRescheduleSubmit = async ({ preferred_time, reason }) => {
     try {
-      await API.post(`/exam/${examId}/reschedule`, {
-        reason: reason,
-        preferred_time: preferred_time
+      await API.post(`/exam/${rescheduleData.examId}/reschedule`, {
+        reason,
+        preferred_time
       });
       alert("Reschedule request submitted successfully and is pending admin approval.");
+      setRescheduleData({ isOpen: false, examId: null });
     } catch (err) {
       alert(err.response?.data?.detail || "Failed to submit request.");
     }
@@ -194,7 +195,7 @@ export default function StudentDashboard() {
                             Not Available Yet
                           </button>
                           <button
-                            onClick={() => handleReschedule(exam._id)}
+                            onClick={() => openRescheduleModal(exam._id)}
                             className="px-4 py-3 rounded-xl font-semibold bg-orange-600/20 text-orange-400 hover:bg-orange-600/40 border border-orange-500/30 transition-all"
                             title="Request Reschedule"
                           >
@@ -216,6 +217,13 @@ export default function StudentDashboard() {
       )}
 
       {/* 🔥 GUIDELINES MODAL */}
+      {/* 🔥 RESCHEDULE MODAL */}
+      <RescheduleModal 
+        isOpen={rescheduleData.isOpen}
+        onClose={() => setRescheduleData({ isOpen: false, examId: null })}
+        onSubmit={handleRescheduleSubmit}
+      />
+
       {selectedExam && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-slate-900 p-6 rounded-xl max-w-md w-full border border-slate-700">

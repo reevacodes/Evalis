@@ -842,4 +842,16 @@ def update_reschedule_request(
         {"$set": {"status": status, "updated_at": datetime.utcnow()}}
     )
     
+    # 🔥 Add the override to the exam document if approved
+    if status == "approved":
+        exam_collection.update_one(
+            {"_id": ObjectId(req["exam_id"])},
+            {"$push": {
+                "overrides": {
+                    "student_id": req["student_id"],
+                    "new_start_time": req["preferred_time"]
+                }
+            }}
+        )
+    
     return {"message": f"Request {status} successfully"}
