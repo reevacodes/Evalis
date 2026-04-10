@@ -103,17 +103,6 @@ export default function ExamFinalized() {
             {scheduleRequested ? "Requested" : "Request Schedule"}
           </button>
 
-          <button
-            onClick={handleRequestUnlock}
-            disabled={unlockRequested}
-            className={`px-6 py-3 rounded-lg ${
-              unlockRequested
-                ? "bg-yellow-500 opacity-50 cursor-not-allowed"
-                : "bg-yellow-500 hover:bg-yellow-600"
-            }`}
-          >
-            {unlockRequested ? "Requested" : "Request Unlock"}
-          </button>
         </div>
       </div>
     </div>
