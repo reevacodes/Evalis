@@ -29,9 +29,21 @@ export default function ExamEditor() {
       const data = await fetchExam(examId);
 
       // 🚨 PROTECT ROUTE
+      if (data.status === "published") {
+        navigate(`/exam/${examId}/published`);
+        return;
+      }
       if (data.status !== "draft") {
         navigate(`/exam/${examId}/finalized`);
         return;
+      }
+
+      // Normalize sections to ensure questions array exists
+      if (data.sections) {
+        data.sections = data.sections.map((sec) => ({
+          ...sec,
+          questions: sec.questions || [],
+        }));
       }
 
       setExam(data);
