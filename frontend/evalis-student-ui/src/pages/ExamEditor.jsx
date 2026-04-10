@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchExam, finalizeExam, deleteExamQuestion, generateQuestions } from "../services/api";
+import { fetchExam, finalizeExam, deleteExamQuestion } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
 
 export default function ExamEditor() {
@@ -10,8 +10,6 @@ export default function ExamEditor() {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [activeSet, setActiveSet] = useState("A");
 
   const [lastDeleted, setLastDeleted] = useState(null);
   const [undoTimeout, setUndoTimeout] = useState(null);
@@ -119,33 +117,14 @@ export default function ExamEditor() {
     });
   };
 
-  const handleGenerateSets = async () => {
-    try {
-      setGenerating(true);
-      const payload = {
-        exam_id: examId,
-        subject_code: exam.subject_code,
-        semester: exam.semester,
-        sections: exam.sections,
-        units: exam.units,
-        pattern: exam.pattern,
-      };
-      await generateQuestions(payload);
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        window.location.reload();
-      }, 1500);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to generate smart sets");
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   const handleFinalize = async () => {
     try {
+      if (exam.sections.some(s => s.questions.length === 0)) {
+         if (!window.confirm("You have empty sections in your seed pool. The system will rely purely on random db padding to fill them. Are you sure you want to finalize?")) {
+           return;
+         }
+      }
+      
       await finalizeExam(examId);
 
       // ✅ update UI instantly
@@ -175,27 +154,8 @@ export default function ExamEditor() {
           <p className="text-slate-400 text-sm">Edit Exam Paper</p>
         </div>
 
-        {/* SET SWITCHER (ONLY IF GENERATED) */}
-        {exam.sets && Object.keys(exam.sets).length > 0 && (
-          <div className="mb-6 flex gap-3">
-            {Object.keys(exam.sets).map((setKey) => (
-              <button
-                key={setKey}
-                onClick={() => setActiveSet(setKey)}
-                className={`px-4 py-2 flex-1 rounded-lg border font-semibold transition-all ${
-                  activeSet === setKey
-                    ? "bg-indigo-600 border-indigo-500 text-white"
-                    : "bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700"
-                }`}
-              >
-                Preview Set {setKey}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* SECTIONS */}
-        {(exam.sets ? exam.sets[activeSet] : exam.sections)?.map((section, secIdx) => {
+        {exam.sections?.map((section, secIdx) => {
           const currentCount = section.questions?.length || 0;
           const isFull = currentCount >= section.count;
 
@@ -257,16 +217,12 @@ export default function ExamEditor() {
                     )}
 
                     <div className="flex justify-between mt-4">
-                      {!exam.sets ? (
-                        <button
-                          onClick={() => handleDeleteQuestion(secIdx, qIdx)}
-                          className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
-                        >
-                          Delete
-                        </button>
-                      ) : (
-                        <div />
-                      )}
+                      <button
+                        onClick={() => handleDeleteQuestion(secIdx, qIdx)}
+                        className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
+                      >
+                        Delete
+                      </button>
 
                       {correct && (
                         <span className="text-green-400 text-sm">
@@ -279,46 +235,34 @@ export default function ExamEditor() {
               })}
 
               {/* ADD BUTTON */}
-              {!exam.sets && (
-                <button
-                  onClick={() => {
-                    if (isFull) {
-                      alert("⚠️ Section is already full.");
-                      return;
-                    }
-                    handleAddFromBank(section.type, secIdx);
-                  }}
-                  className={`mt-3 px-4 py-2 rounded text-sm ${
-                    isFull
-                      ? "bg-gray-600 opacity-50 cursor-not-allowed"
-                      : "bg-indigo-600 hover:bg-indigo-700"
-                  }`}
-                >
-                  {isFull ? "Section Full" : "+ Add from Question Bank"}
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  if (isFull) {
+                    alert("⚠️ Section is already full.");
+                    return;
+                  }
+                  handleAddFromBank(section.type, secIdx);
+                }}
+                className={`mt-3 px-4 py-2 rounded text-sm ${
+                  isFull
+                    ? "bg-gray-600 opacity-50 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-700"
+                }`}
+              >
+                {isFull ? "Section Full" : "+ Add from Question Bank"}
+              </button>
             </div>
           );
         })}
 
-        {/* FINALIZE / GENERATE */}
+        {/* FINALIZE */}
         <div className="flex justify-end mt-8">
-          {!exam.sets ? (
-            <button
-              onClick={handleGenerateSets}
-              disabled={generating}
-              className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-6 py-3 rounded-lg font-semibold flex items-center gap-2"
-            >
-              {generating ? "Generating..." : "Generate Smart Sets ⚡"}
-            </button>
-          ) : (
-            <button
-              onClick={handleFinalize}
-              className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold"
-            >
-              Finalize & Lock Exam 🔒
-            </button>
-          )}
+          <button
+            onClick={handleFinalize}
+            className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold"
+          >
+            Finalize & Lock Exam 🔒
+          </button>
         </div>
 
         {/* UNDO */}

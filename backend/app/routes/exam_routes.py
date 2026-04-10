@@ -491,6 +491,17 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
     # ✅ PARSE TIME
     start_time = datetime.fromisoformat(start_time_str).replace(tzinfo=None)
 
+    # ✅ ZERO-TRUST JUST-IN-TIME SET GENERATION
+    # The teacher built the Seed Pool. Now we enforce the Hybrid Engine.
+    generated = generate_exam(
+        subject_code=exam.get("subject_code"),
+        semester=exam.get("semester"),
+        exam_type=exam.get("exam_type", "mst"),
+        pattern=exam.get("pattern"),
+        units=exam.get("units"),
+        seed_sections=exam.get("sections", []),
+    )
+
     # ✅ SAVE
     exam_collection.update_one(
         {"_id": ObjectId(exam_id)},
@@ -500,7 +511,8 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
                 "duration_minutes": duration,
                 "scheduled_at": datetime.now(timezone.utc),
                 "schedule_requested": False,   # reset flag
-                "scheduled_by": user["sub"]    # 🔥 ADD HERE
+                "scheduled_by": user["sub"],    # 🔥 ADD HERE
+                "sets": generated["exam"]["sets"]
             }
         }
     )
@@ -579,6 +591,16 @@ def get_exam_api(
             end = start + timedelta(minutes=exam.get("duration_minutes", 30))
             remaining = (end - now).total_seconds()
             exam["time_left"] = max(0, int(remaining))
+
+    # ==========================
+    # 👨‍🏫 TEACHER / ADMIN RESTRICTIONS
+    # ==========================
+    if role in ["admin", "teacher"]:
+        # ZERO-TRUST POLICY: 
+        # Once finalized, the human interfaces cannot read the questions until unlocked.
+        if exam.get("status") in ["finalized", "published", "scheduled"]:
+            exam.pop("sections", None)
+            exam.pop("sets", None)
 
     return exam
 

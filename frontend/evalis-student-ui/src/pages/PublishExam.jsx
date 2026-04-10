@@ -9,13 +9,7 @@ export default function PublishExam() {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const getQuestionText = (q) => {
-    return q?.question || q?.question_text || q?.q || "⚠️ Question missing";
-  };
 
-  const getCorrectAnswer = (q) => {
-    return q?.answer || q?.correct_answer || null;
-  };
 
   const loadExam = async () => {
     try {
@@ -57,76 +51,18 @@ export default function PublishExam() {
           <p className="text-slate-400 text-sm">Published Exam</p>
         </div>
 
-        {/* SECTIONS */}
-        {exam.sections?.map((section, secIdx) => {
-          return (
-            <div
-              key={secIdx}
-              className="mb-8 bg-slate-900 p-6 rounded-lg border border-slate-800"
-            >
-              <h2 className="text-lg font-semibold mb-4">
-                Section {String.fromCharCode(65 + secIdx)} —{" "}
-                {section.type.toUpperCase()}
-              </h2>
-
-              {section.questions.map((q, qIdx) => {
-                const correct = getCorrectAnswer(q);
-
-                return (
-                  <div
-                    key={qIdx}
-                    className="mb-4 p-4 bg-slate-800 rounded-lg border border-slate-700"
-                  >
-                    <p className="font-medium mb-3">
-                      Q{qIdx + 1}. {getQuestionText(q)}
-                    </p>
-
-                    {section.type === "mcq" && (
-                      <div className="space-y-2 text-sm">
-                        {q.options?.map((opt, i) => {
-                          const isCorrect =
-                            opt === correct ||
-                            String.fromCharCode(65 + i) === correct;
-
-                          return (
-                            <div
-                              key={i}
-                              className={`px-3 py-2 rounded-md border ${
-                                isCorrect
-                                  ? "bg-green-600/20 border-green-500 text-green-300 font-semibold"
-                                  : "bg-slate-900 border-slate-700 text-slate-300"
-                              }`}
-                            >
-                              {String.fromCharCode(65 + i)}. {opt}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {section.type === "coding" && (
-                      <div className="text-sm text-slate-400 space-y-1">
-                        <p>
-                          <strong>Difficulty:</strong>{" "}
-                          {q.difficulty || "Medium"}
-                        </p>
-                        <p>
-                          <strong>Marks:</strong> {q.marks || 5}
-                        </p>
-                      </div>
-                    )}
-
-                    {correct && (
-                      <div className="mt-3 text-green-400 text-sm">
-                        ✔ {correct}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
+        {/* LOCK SCREEN */}
+        <div className="mb-8 bg-slate-900 flex flex-col items-center justify-center p-12 rounded-lg border border-slate-800 text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold mb-2">Exam Content Locked</h2>
+          <p className="text-slate-400 max-w-lg mb-6">
+            For maximum security, this exam operates on a strict Zero-Trust policy. The generated questions cannot be viewed until the students actively begin the test.
+          </p>
+          <div className="bg-slate-800 p-4 rounded-lg inline-block text-sm border border-slate-700">
+            <p><strong>Status:</strong> Published & Scheduled</p>
+            <p className="mt-1 text-green-400"><strong>Sets A/B/C/D Generated</strong> ✅</p>
+          </div>
+        </div>
       </div>
     </div>
   );
