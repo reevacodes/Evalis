@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchExam, finalizeExam, deleteExamQuestion } from "../services/api";
+import { fetchExam, finalizeExam, deleteExamQuestion, generateQuestions } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
 
 export default function ExamEditor() {
@@ -10,6 +10,7 @@ export default function ExamEditor() {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [activeSet, setActiveSet] = useState("A");
 
   const [lastDeleted, setLastDeleted] = useState(null);
@@ -104,6 +105,31 @@ export default function ExamEditor() {
         existing_ids: exam.sections[secIdx].questions.map(q => q._id || q.id)
       },
     });
+  };
+
+  const handleGenerateSets = async () => {
+    try {
+      setGenerating(true);
+      const payload = {
+        exam_id: examId,
+        subject_code: exam.subject_code,
+        semester: exam.semester,
+        sections: exam.sections,
+        units: exam.units,
+        pattern: exam.pattern,
+      };
+      await generateQuestions(payload);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate smart sets");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleFinalize = async () => {
@@ -263,14 +289,24 @@ export default function ExamEditor() {
           );
         })}
 
-        {/* FINALIZE */}
-        <div className="flex justify-end">
-          <button
-            onClick={handleFinalize}
-            className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg"
-          >
-            Finalize Exam
-          </button>
+        {/* FINALIZE / GENERATE */}
+        <div className="flex justify-end mt-8">
+          {!exam.sets ? (
+            <button
+              onClick={handleGenerateSets}
+              disabled={generating}
+              className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-6 py-3 rounded-lg font-semibold flex items-center gap-2"
+            >
+              {generating ? "Generating..." : "Generate Smart Sets ⚡"}
+            </button>
+          ) : (
+            <button
+              onClick={handleFinalize}
+              className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold"
+            >
+              Finalize & Lock Exam 🔒
+            </button>
+          )}
         </div>
 
         {/* UNDO */}

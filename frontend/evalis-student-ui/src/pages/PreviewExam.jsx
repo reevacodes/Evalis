@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchExam, generateQuestions } from "../services/api";
+import { fetchExam } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
 
 export default function PreviewExam() {
@@ -11,8 +11,6 @@ export default function PreviewExam() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ✅ GENERATE STATES
-  const [generating, setGenerating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   // =========================
@@ -41,45 +39,6 @@ export default function PreviewExam() {
 
 
 
-
-  // =========================
-  // GENERATE QUESTIONS
-  // =========================
-  const handleGenerate = async () => {
-    try {
-      if (!exam.sections.length) {
-        alert("Please add at least one section");
-        return;
-      }
-
-      setGenerating(true);
-
-      const payload = {
-        exam_id: examId,
-        subject_code: exam.subject_code, // ✅ ADD THIS
-        semester: exam.semester, // ✅ ADD THIS
-        sections: exam.sections,
-        units: exam.units,
-        pattern: exam.pattern,
-      };
-
-      console.log("GENERATE PAYLOAD:", payload);
-
-      await generateQuestions(payload);
-
-      setShowSuccess(true);
-
-      setTimeout(() => {
-        setShowSuccess(false);
-        navigate(`/exam/${examId}/edit`);
-      }, 1500);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to generate questions");
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   // =========================
   // CHECK IF QUESTIONS EXIST
@@ -192,21 +151,10 @@ export default function PreviewExam() {
         ========================= */}
         <div className="mt-8 flex justify-end">
           <button
-            onClick={() => {
-              if (hasQuestions) {
-                navigate(`/exam/${examId}/edit`);
-              } else {
-                handleGenerate();
-              }
-            }}
-            disabled={generating}
-            className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg disabled:opacity-50"
+            onClick={() => navigate(`/exam/${examId}/edit`)}
+            className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg font-semibold"
           >
-            {generating
-              ? "Generating..."
-              : hasQuestions
-                ? "Next"
-                : "Generate Questions"}
+            Curate Seed Pool & Edit Exam ➔
           </button>
         </div>
 
