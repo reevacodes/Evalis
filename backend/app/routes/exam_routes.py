@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from bson import ObjectId
 from datetime import datetime, timedelta,timezone
+import re
 from app.services.exam_service import MIET_RULES
 
 from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest
@@ -189,8 +190,12 @@ def generate_questions_api(
         # ==========================
         # 🔥 GENERATE QUESTIONS
         # ==========================
-        generated = generate_exam(data)
-        sections = generated["exam"]["sections"]
+        # Hybrid Injection Engine: use existing sections as the seed pool
+        seed_pool = exam.get("sections", [])
+        if data.sections:
+            seed_pool = data.sections
+            
+        generated = generate_exam(data, seed_sections=seed_pool)
 
         # ==========================
         # 🔥 SAVE INTO DB
@@ -199,7 +204,8 @@ def generate_questions_api(
             {"_id": ObjectId(data.exam_id)},
             {
                 "$set": {
-                    "sections": sections,
+                    "sets": generated["exam"]["sets"],
+                    "sections": generated["exam"]["sets"].get("A", []), # default fallback UI
                     "status": "draft",
                     "generated_by": user["sub"],  # 🔥 audit
                     "generated_at": datetime.utcnow()
@@ -521,11 +527,33 @@ def get_exam_api(
     role = user.get("role")
 
     # ==========================
-    # 👨‍🎓 STUDENT RESTRICTIONS
+    # 👨‍🎓 STUDENT RESTRICTIONS + ROUTING
     # ==========================
     if role == "student":
         if exam.get("status") != "published":
             raise HTTPException(403, "Exam not available")
+            
+        # Mathematical Route Distribution
+        sets = exam.get("sets")
+        if sets:
+            # Regex numerical identifier from email/name
+            email = user.get("email") or user.get("sub") or ""
+            match = re.search(r'\d+', email)
+            if match:
+                identifier = int(match.group())
+            else:
+                identifier = len(email)
+            
+            # Modulo 4 routing
+            set_keys = sorted(list(sets.keys())) # Avoid random dict order issue
+            if set_keys:
+                idx = identifier % len(set_keys)
+                assigned_set = set_keys[idx]
+                exam["sections"] = sets[assigned_set]
+                print(f"🔥 STUDENT REGEX MATCH: Modulo ({identifier} % {len(set_keys)} = {idx}) -> Assigned Set {assigned_set}")
+                
+        # Always pop sets for students to prevent massive downloads and cheating
+        exam.pop("sets", None)
 
     # ✅ ALLOW ACCESS IF ACTIVE OR ALREADY STARTED
     if exam["time_status"] == "scheduled":

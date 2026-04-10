@@ -89,24 +89,29 @@ def build_filter(base, data, extra=None):
 # FETCH QUESTIONS
 # ==============================
 
-def get_questions(filter_query: Dict, count: int, used_ids: set):
+def get_questions_smart(filter_query: Dict, count: int, used_ids: set):
+    if count <= 0: return []
     questions = list(question_collection.find(filter_query))
 
-    print("\n🔍 FILTER:", filter_query)
-    print("📊 FOUND:", len(questions))
+    print(f"\n🔍 FILTER: {filter_query}")
+    
+    # Exclude globally used_ids
+    available = [q for q in questions if str(q["_id"]) not in used_ids]
+    print(f"📊 FOUND: {len(questions)} | AVAILABLE: {len(available)} | NEED: {count}")
 
-    random.shuffle(questions)
+    for q in available:
+        score = 0
+        # Penalize usage
+        score -= (q.get("usage_count", 0) * 10)
+        # Randomness factor
+        score += random.uniform(0, 5)
+        q["smart_score"] = score
 
-    selected = []
-    for q in questions:
-        if len(selected) >= count:
-            break
+    available.sort(key=lambda x: x["smart_score"], reverse=True)
 
-        q_id = str(q["_id"])
-
-        if q_id not in used_ids:
-            selected.append(q)
-            used_ids.add(q_id)
+    selected = available[:count]
+    for q in selected:
+        used_ids.add(str(q["_id"]))
 
     return selected
 
@@ -115,7 +120,10 @@ def get_questions(filter_query: Dict, count: int, used_ids: set):
 # MAIN GENERATOR
 # ==============================
 
-def generate_exam(data):
+def generate_exam(data, seed_sections=None):
+    if seed_sections is None:
+        seed_sections = []
+        
     exam_type = data.exam_type.lower()
     pattern = data.pattern.lower()
 
@@ -130,87 +138,114 @@ def generate_exam(data):
     # 🔥 normalized units
     units = normalize_units(data.units)
 
-    used_ids = set()
+    sets_result = {"A": [], "B": [], "C": [], "D": []}
+    
+    # 1. Distribute Teacher's Seed Pool
+    flattened_seed = []
+    for sec in seed_sections:
+        if "questions" in sec:
+            flattened_seed.extend(sec["questions"])
+            
+    random.shuffle(flattened_seed)
+    num_sets = 4
+    set_keys = ["A", "B", "C", "D"]
+    
+    if flattened_seed:
+        share = len(flattened_seed) // num_sets
+        for i, key in enumerate(set_keys):
+            st = i * share
+            en = st + share
+            if i == num_sets - 1:
+                sets_result[key].extend(flattened_seed[st:])
+            else:
+                sets_result[key].extend(flattened_seed[st:en])
+                
+    # Keep track of globally used IDs to avoid cross-contamination from DB padding
+    global_used_ids = set([str(q["_id"]) for q in flattened_seed])
+    
+    final_sets = {}
 
-    result = {
-        "exam_type": exam_type,
-        "pattern": pattern,
-        "total_marks": MIET_RULES[exam_type]["total_marks"],
-        "sections": []
-    }
+    # 2. Procedural Padding for each Set
+    for key in set_keys:
+        current_seed_questions = sets_result[key]
+        result_sections = []
 
-    # ==========================
-    # MCQ
-    # ==========================
-    if "mcq_count" in rules:
-        mcq_filter = build_filter(
-            {
-                "unit": {"$in": units},
-                "question_type": "mcq"
-            },
-            data
-        )
+        # ==========================
+        # MCQ
+        # ==========================
+        if "mcq_count" in rules:
+            target_mcq = rules["mcq_count"]
+            current_mcq = [q for q in current_seed_questions if q.get("question_type") == "mcq" or q.get("type") == "mcq"]
+            
+            mcqs = []
+            # Inject seeds
+            mcqs.extend([question_helper(q) for q in current_mcq])
+            
+            deficiency = target_mcq - len(mcqs)
+            if deficiency > 0:
+                mcq_filter = build_filter({"unit": {"$in": units}, "question_type": "mcq"}, data)
+                new_mcqs_raw = get_questions_smart(mcq_filter, deficiency, global_used_ids)
+                mcqs.extend([question_helper(q) for q in new_mcqs_raw])
 
-        mcqs_raw = get_questions(mcq_filter, rules["mcq_count"], used_ids)
-        mcqs = [question_helper(q) for q in mcqs_raw]
+            if mcqs:
+                result_sections.append({
+                    "type": "mcq",
+                    "count": len(mcqs),
+                    "marks_per_question": 1,
+                    "questions": mcqs
+                })
 
-        result["sections"].append({
-            "type": "mcq",
-            "count": len(mcqs),
-            "marks_per_question": 1,
-            "questions": mcqs
-        })
+        # ==========================
+        # CODING
+        # ==========================
+        coding_questions = []
+        current_coding = [q for q in current_seed_questions if q.get("question_type") == "coding" or q.get("type") == "coding"]
+        coding_questions.extend([question_helper(q) for q in current_coding])
 
-    # ==========================
-    # CODING
-    # ==========================
-    coding_questions = []
+        if "coding_distribution" in rules:
+            for difficulty, count in rules["coding_distribution"].items():
+                current_diff = [q for q in current_coding if q.get("difficulty") == difficulty]
+                deficiency = count - len(current_diff)
+                
+                if deficiency > 0:
+                    coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding", "difficulty": difficulty}, data)
+                    new_qs_raw = get_questions_smart(coding_filter, deficiency, global_used_ids)
+                    coding_questions.extend([question_helper(q) for q in new_qs_raw])
+                    
+        elif "coding_total" in rules:
+            deficiency = rules["coding_total"] - len(current_coding)
+            if deficiency > 0:
+                coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding"}, data)
+                new_qs_raw = get_questions_smart(coding_filter, deficiency, global_used_ids)
+                coding_questions.extend([question_helper(q) for q in new_qs_raw])
 
-    if "coding_distribution" in rules:
-        for difficulty, count in rules["coding_distribution"].items():
+        seen = set()
+        dedup_coding = []
+        for cq in coding_questions:
+            c_id = str(cq["_id"])
+            if c_id not in seen:
+                seen.add(c_id)
+                dedup_coding.append(cq)
 
-            coding_filter = build_filter(
-                {
-                    "unit": {"$in": units},
-                    "question_type": "coding",
-                    "difficulty": difficulty
-                },
-                data
-            )
+        if dedup_coding:
+            result_sections.append({
+                "type": "coding",
+                "count": len(dedup_coding),
+                "questions": dedup_coding
+            })
 
-            qs_raw = get_questions(coding_filter, count, used_ids)
-            qs = [question_helper(q) for q in qs_raw]
+        final_sets[key] = result_sections
 
-            coding_questions.extend(qs)
-
-    elif "coding_total" in rules:
-        coding_filter = build_filter(
-            {
-                "unit": {"$in": units},
-                "question_type": "coding"
-            },
-            data
-        )
-
-        qs_raw = get_questions(coding_filter, rules["coding_total"], used_ids)
-        qs = [question_helper(q) for q in qs_raw]
-
-        coding_questions.extend(qs)
-
-    if coding_questions:
-        result["sections"].append({
-            "type": "coding",
-            "count": len(coding_questions),
-            "questions": coding_questions
-        })
-
-    # ==========================
-    # FINAL RESPONSE
-    # ==========================
-    total_questions = sum(s["count"] for s in result["sections"])
+    # Count total from Set A just as a baseline
+    total_questions = sum(s["count"] for s in final_sets["A"])
 
     return {
         "message": "Questions generated successfully",
         "question_count": total_questions,
-        "exam": result
+        "exam": {
+            "exam_type": exam_type,
+            "pattern": pattern,
+            "total_marks": MIET_RULES[exam_type]["total_marks"],
+            "sets": final_sets
+        }
     }

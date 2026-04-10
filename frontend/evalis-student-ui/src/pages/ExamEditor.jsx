@@ -10,6 +10,7 @@ export default function ExamEditor() {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [activeSet, setActiveSet] = useState("A");
 
   const [lastDeleted, setLastDeleted] = useState(null);
   const [undoTimeout, setUndoTimeout] = useState(null);
@@ -136,8 +137,27 @@ export default function ExamEditor() {
           <p className="text-slate-400 text-sm">Edit Exam Paper</p>
         </div>
 
+        {/* SET SWITCHER (ONLY IF GENERATED) */}
+        {exam.sets && Object.keys(exam.sets).length > 0 && (
+          <div className="mb-6 flex gap-3">
+            {Object.keys(exam.sets).map((setKey) => (
+              <button
+                key={setKey}
+                onClick={() => setActiveSet(setKey)}
+                className={`px-4 py-2 flex-1 rounded-lg border font-semibold transition-all ${
+                  activeSet === setKey
+                    ? "bg-indigo-600 border-indigo-500 text-white"
+                    : "bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700"
+                }`}
+              >
+                Preview Set {setKey}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* SECTIONS */}
-        {exam.sections?.map((section, secIdx) => {
+        {(exam.sets ? exam.sets[activeSet] : exam.sections)?.map((section, secIdx) => {
           const currentCount = section.questions?.length || 0;
           const isFull = currentCount >= section.count;
 
@@ -199,12 +219,16 @@ export default function ExamEditor() {
                     )}
 
                     <div className="flex justify-between mt-4">
-                      <button
-                        onClick={() => handleDeleteQuestion(secIdx, qIdx)}
-                        className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
-                      >
-                        Delete
-                      </button>
+                      {!exam.sets ? (
+                        <button
+                          onClick={() => handleDeleteQuestion(secIdx, qIdx)}
+                          className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
+                        >
+                          Delete
+                        </button>
+                      ) : (
+                        <div />
+                      )}
 
                       {correct && (
                         <span className="text-green-400 text-sm">
@@ -217,22 +241,24 @@ export default function ExamEditor() {
               })}
 
               {/* ADD BUTTON */}
-              <button
-                onClick={() => {
-                  if (isFull) {
-                    alert("⚠️ Section is already full.");
-                    return;
-                  }
-                  handleAddFromBank(section.type, secIdx);
-                }}
-                className={`mt-3 px-4 py-2 rounded text-sm ${
-                  isFull
-                    ? "bg-gray-600 opacity-50 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-700"
-                }`}
-              >
-                {isFull ? "Section Full" : "+ Add from Question Bank"}
-              </button>
+              {!exam.sets && (
+                <button
+                  onClick={() => {
+                    if (isFull) {
+                      alert("⚠️ Section is already full.");
+                      return;
+                    }
+                    handleAddFromBank(section.type, secIdx);
+                  }}
+                  className={`mt-3 px-4 py-2 rounded text-sm ${
+                    isFull
+                      ? "bg-gray-600 opacity-50 cursor-not-allowed"
+                      : "bg-indigo-600 hover:bg-indigo-700"
+                  }`}
+                >
+                  {isFull ? "Section Full" : "+ Add from Question Bank"}
+                </button>
+              )}
             </div>
           );
         })}
