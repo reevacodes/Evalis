@@ -706,7 +706,10 @@ def add_questions_to_exam(
         for q in questions_to_add:
             q["_id"] = str(q["_id"])
                 
-        # Push to array
+        # Push to array safely
+        if "questions" not in sections[section_index]:
+            sections[section_index]["questions"] = []
+            
         sections[section_index]["questions"].extend(questions_to_add)
 
         exam_collection.update_one(
@@ -750,11 +753,14 @@ def delete_exam_question(
         if section_index >= len(sections):
             raise HTTPException(status_code=400, detail="Invalid section index")
 
-        if question_index >= len(sections[section_index]["questions"]):
+        section_questions = sections[section_index].get("questions", [])
+
+        if question_index >= len(section_questions):
             raise HTTPException(status_code=400, detail="Invalid question index")
 
         # 🔥 REMOVE QUESTION
-        sections[section_index]["questions"].pop(question_index)
+        section_questions.pop(question_index)
+        sections[section_index]["questions"] = section_questions
 
         # 🔥 UPDATE DB
         exam_collection.update_one(
