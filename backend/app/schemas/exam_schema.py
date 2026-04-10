@@ -36,3 +36,11 @@ class ExamCreateRequest(BaseModel):
     units: List[str]
 
     duration_minutes: int
+
+class AddQuestionsRequest(BaseModel):
+    section_index: int
+    question_ids: List[str]
+
+class DeleteQuestionRequest(BaseModel):
+    section_index: int
+    question_index: int

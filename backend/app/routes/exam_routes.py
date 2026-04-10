@@ -4,7 +4,7 @@ from datetime import datetime, timedelta,timezone
 import re
 from app.services.exam_service import MIET_RULES
 
-from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest
+from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest, AddQuestionsRequest, DeleteQuestionRequest
 from app.services.exam_service import generate_exam
 from app.database import exam_collection, question_collection, reschedule_collection
 from app.models.question_model import question_helper
@@ -668,12 +668,12 @@ def start_exam(
 @router.post("/{exam_id}/add-questions")
 def add_questions_to_exam(
     exam_id: str,
-    payload: dict,
+    payload: AddQuestionsRequest,
     user=Depends(require_role("teacher"))
 ):
     try:
-        section_index = payload.get("section_index")
-        question_ids = payload.get("question_ids", [])
+        section_index = payload.section_index
+        question_ids = payload.question_ids
 
         if section_index is None or not question_ids:
             raise HTTPException(status_code=400, detail="Missing required parameters")
@@ -728,12 +728,12 @@ def add_questions_to_exam(
 @router.delete("/{exam_id}/question")
 def delete_exam_question(
     exam_id: str,
-    payload: dict,
+    payload: DeleteQuestionRequest,
     user=Depends(require_role("teacher"))
 ):
     try:
-        section_index = payload.get("section_index")
-        question_index = payload.get("question_index")
+        section_index = payload.section_index
+        question_index = payload.question_index
 
         # 🔍 FETCH EXAM
         exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
