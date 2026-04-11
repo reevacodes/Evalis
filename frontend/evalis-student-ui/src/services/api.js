@@ -116,8 +116,8 @@ export const updateRescheduleRequest = (requestId, payload) =>
 // 🎓 STUDENT FLOW
 // =========================
 
-export const submitExam = (payload) =>
-  API.post("/submit-exam", payload);
+export const submitExam = ({ examId, ...payload }) =>
+  API.post(`/exam/${examId}/submit`, payload);
 
 export const getResults = (email) =>
   API.get(`/results/${email}`);

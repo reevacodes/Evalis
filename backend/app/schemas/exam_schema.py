@@ -44,3 +44,7 @@ class AddQuestionsRequest(BaseModel):
 class DeleteQuestionRequest(BaseModel):
     section_index: int
     question_index: int
+
+class SubmissionRequest(BaseModel):
+    mcq_answers: Dict[str, str] = {}
+    coding_answers: Dict[str, str] = {}

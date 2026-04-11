@@ -4,9 +4,9 @@ from datetime import datetime, timedelta,timezone
 import re
 from app.services.exam_service import MIET_RULES
 
-from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest, AddQuestionsRequest, DeleteQuestionRequest
+from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest, AddQuestionsRequest, DeleteQuestionRequest, SubmissionRequest
 from app.services.exam_service import generate_exam
-from app.database import exam_collection, question_collection, reschedule_collection
+from app.database import exam_collection, question_collection, reschedule_collection, submission_collection
 from app.models.question_model import question_helper
 from app.services.exam_service import generate_exam
 from fastapi import Depends
@@ -604,6 +604,79 @@ def get_exam_api(
             exam.pop("sets", None)
 
     return exam
+
+
+# ==========================
+# 🔥 SUBMIT EXAM
+# ==========================
+@router.post("/{exam_id}/submit")
+def submit_exam_api(
+    exam_id: str,
+    payload: SubmissionRequest,
+    user=Depends(require_role("student"))
+):
+    try:
+        exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+        if not exam:
+            raise HTTPException(404, "Exam not found")
+
+        sets = exam.get("sets")
+        if not sets:
+            raise HTTPException(400, "Exam sets unavailable")
+
+        # Reconstruct Mathematical Route Distribution to find Set
+        email = user.get("email") or user.get("sub") or ""
+        match = re.search(r'\d+', email)
+        if match:
+            identifier = int(match.group())
+        else:
+            identifier = len(email)
+        
+        set_keys = sorted(list(sets.keys()))
+        idx = identifier % len(set_keys)
+        assigned_set = set_keys[idx]
+        assigned_sections = sets[assigned_set]
+
+        # Check if already submitted
+        existing = submission_collection.find_one({
+            "exam_id": exam_id,
+            "student_id": user.get("sub")
+        })
+        if existing:
+            raise HTTPException(400, "Exam already submitted")
+
+        # Auto grade MCQs
+        mcq_section = next((s for s in assigned_sections if s["type"] == "mcq"), None)
+        mcq_score = 0
+        if mcq_section:
+            for q in mcq_section.get("questions", []):
+                q_id = str(q.get("id") or q.get("_id"))
+                correct = q.get("correct_answer")
+                student_answer = payload.mcq_answers.get(q_id)
+                if student_answer and correct and student_answer.strip().lower() == correct.strip().lower():
+                    mcq_score += mcq_section.get("marks_per_question", 1)
+
+        doc = {
+            "student_id": user.get("sub"),
+            "student_email": user.get("email"),
+            "exam_id": exam_id,
+            "assigned_set": assigned_set,
+            "mcq_answers": payload.mcq_answers,
+            "coding_answers": payload.coding_answers,
+            "mcq_score": mcq_score,
+            "total_score": mcq_score, # Pending coding manual grade
+            "pending_manual_review": len(payload.coding_answers) > 0,
+            "submitted_at": datetime.now(timezone.utc)
+        }
+        
+        submission_collection.insert_one(doc)
+        return {"message": "Exam submitted successfully", "mcq_score": mcq_score}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("🔥 SUBMIT EXAM ERROR:", str(e))
+        raise HTTPException(status_code=400, detail="Failed to submit exam")
 
 
 # ==========================
