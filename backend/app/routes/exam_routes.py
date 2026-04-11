@@ -438,6 +438,7 @@ def get_all_exams_api(user=Depends(get_current_user)):
             
             exam["time_status"] = calculate_exam_state(exam)
             exam.pop("sections", None)
+            exam.pop("sets", None)       # 🔥 Enforce Zero-Trust globally across dashboard
             exam.pop("overrides", None)  # Hide other students' overrides
 
         return {

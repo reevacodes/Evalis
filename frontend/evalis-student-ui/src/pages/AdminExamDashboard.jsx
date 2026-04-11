@@ -123,29 +123,6 @@ export default function AdminExamDashboard() {
     }
   };
 
-  // =========================
-  // UNLOCK
-  // =========================
-  const handleUnlock = async (examId) => {
-    try {
-      await API.put(`/exam/${examId}/unlock`);
-
-      setExams((prev) =>
-        prev.map((e) =>
-          e._id === examId
-            ? {
-                ...e,
-                status: "draft",
-                unlock_requested: false, // 🔥 REMOVE REQUEST
-              }
-            : e,
-        ),
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Failed to unlock exam");
-    }
-  };
 
   // =========================
   // STATUS BADGE
@@ -234,12 +211,9 @@ export default function AdminExamDashboard() {
                     </p>
                   )}
                 </div>
-                {(exam.schedule_requested || exam.unlock_requested) && (
+                {exam.schedule_requested && (
                   <div className="mt-2 text-xs text-purple-400 flex gap-3">
-                    {exam.schedule_requested && (
-                      <span>📩 Schedule Requested</span>
-                    )}
-                    {exam.unlock_requested && <span>🔓 Unlock Requested</span>}
+                    <span>📩 Schedule Requested</span>
                   </div>
                 )}
 
@@ -248,7 +222,11 @@ export default function AdminExamDashboard() {
 
                 {/* ✅ BEFORE PUBLISH → ONLY IF REQUESTED */}
                 {exam.status === "finalized" && exam.schedule_requested && (
-                  <div className="mt-4 flex gap-2 flex-wrap">
+                  <div className="mt-4 p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <p className="text-xs text-indigo-400 font-semibold mb-3 flex items-center gap-1.5 whitespace-nowrap">
+                      <span>⚡</span> Sets A/B/C/D will be dynamically generated upon scheduling.
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
                     <input
                       type="datetime-local"
                       onChange={(e) =>
@@ -282,8 +260,9 @@ export default function AdminExamDashboard() {
                       onClick={() => handleSchedule(exam._id)}
                       className="px-3 py-1 text-sm rounded bg-blue-600 hover:bg-blue-700"
                     >
-                      Schedule
+                      Schedule & Map Sets
                     </button>
+                  </div>
                   </div>
                 )}
 
@@ -335,20 +314,6 @@ export default function AdminExamDashboard() {
                       className="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded text-sm"
                     >
                       Publish
-                    </button>
-                  )}
-
-                  {exam.status === "finalized" && (
-                    <button
-                      onClick={() => handleUnlock(exam._id)}
-                      disabled={!exam.unlock_requested}
-                      className={`px-4 py-2 rounded text-sm ${
-                        exam.unlock_requested
-                          ? "bg-amber-500 hover:bg-amber-600"
-                          : "bg-amber-500 opacity-40 cursor-not-allowed"
-                      }`}
-                    >
-                      {exam.unlock_requested ? "Unlock" : "No Request"}
                     </button>
                   )}
 
