@@ -3,10 +3,15 @@ import MCQSection from "../components/MCQSection";
 import CodingSection from "../components/CodingSection";
 import ExamHeader from "../components/ExamHeader";
 import { fetchExam, submitExam } from "../services/api";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import SuccessModal from "../components/SuccessModal";
 
 export default function ExamPage() {
   const { examId } = useParams();
+  const navigate = useNavigate();
+  
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [activeSection, setActiveSection] = useState("");
   const [answers, setAnswers] = useState({});
@@ -150,9 +155,14 @@ export default function ExamPage() {
         coding_answers: codingAnswers,
       });
 
-      alert("✅ Exam Submitted Successfully!");
+      setSuccessMessage("Your exam data has been securely recorded.");
+      setShowSuccessModal(true);
       localStorage.removeItem(storageKey);
-      window.location.reload();
+
+      setTimeout(() => {
+        navigate("/student");
+      }, 2500);
+      
     } catch {
       alert("❌ Submission failed");
     }
@@ -171,9 +181,14 @@ export default function ExamPage() {
         coding_answers: codingAnswers,
       });
 
-      alert("⏰ Time is over! Exam auto-submitted.");
+      setSuccessMessage("Time expired! Your exam was auto-submitted.");
+      setShowSuccessModal(true);
       localStorage.removeItem(storageKey);
-      window.location.reload();
+
+      setTimeout(() => {
+        navigate("/student");
+      }, 2500);
+      
     } catch {
       alert("Auto submission failed");
     }
@@ -319,6 +334,11 @@ export default function ExamPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ✅ SUCCESS MODAL */}
+      {showSuccessModal && (
+        <SuccessModal title="Exam Submitted!" message={successMessage} />
       )}
     </div>
   );
