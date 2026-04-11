@@ -65,16 +65,12 @@ def normalize_subject(value):
 # BUILD FILTER
 # ==============================
 
-def build_filter(base, data, extra=None):
+def build_filter(base, subject_code, extra=None):
     query = base.copy()
 
     # ✅ SUBJECT (case-insensitive via normalization)
-    if getattr(data, "subject_code", None):
-        query["subject_code"] = normalize_subject(data.subject_code)
-
-    # ✅ QUESTION TYPE
-    if getattr(data, "question_type", None):
-        query["question_type"] = normalize_text(data.question_type)
+    if subject_code:
+        query["subject_code"] = normalize_subject(subject_code)
 
     if extra:
         # normalize difficulty if present
@@ -120,12 +116,12 @@ def get_questions_smart(filter_query: Dict, count: int, used_ids: set):
 # MAIN GENERATOR
 # ==============================
 
-def generate_exam(data, seed_sections=None):
+def generate_exam(subject_code, semester, exam_type, pattern, units, seed_sections=None):
     if seed_sections is None:
         seed_sections = []
         
-    exam_type = data.exam_type.lower()
-    pattern = data.pattern.lower()
+    exam_type = exam_type.lower()
+    pattern = pattern.lower()
 
     if exam_type not in MIET_RULES:
         raise ValueError("Invalid exam type")
@@ -136,7 +132,7 @@ def generate_exam(data, seed_sections=None):
     rules = MIET_RULES[exam_type][pattern]
 
     # 🔥 normalized units
-    units = normalize_units(data.units)
+    units = normalize_units(units)
 
     sets_result = {"A": [], "B": [], "C": [], "D": []}
     
@@ -183,7 +179,7 @@ def generate_exam(data, seed_sections=None):
             
             deficiency = target_mcq - len(mcqs)
             if deficiency > 0:
-                mcq_filter = build_filter({"unit": {"$in": units}, "question_type": "mcq"}, data)
+                mcq_filter = build_filter({"unit": {"$in": units}, "question_type": "mcq"}, subject_code)
                 new_mcqs_raw = get_questions_smart(mcq_filter, deficiency, global_used_ids)
                 mcqs.extend([question_helper(q) for q in new_mcqs_raw])
 
@@ -208,24 +204,25 @@ def generate_exam(data, seed_sections=None):
                 deficiency = count - len(current_diff)
                 
                 if deficiency > 0:
-                    coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding", "difficulty": difficulty}, data)
+                    coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding", "difficulty": difficulty}, subject_code)
                     new_qs_raw = get_questions_smart(coding_filter, deficiency, global_used_ids)
                     coding_questions.extend([question_helper(q) for q in new_qs_raw])
                     
         elif "coding_total" in rules:
             deficiency = rules["coding_total"] - len(current_coding)
             if deficiency > 0:
-                coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding"}, data)
+                coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding"}, subject_code)
                 new_qs_raw = get_questions_smart(coding_filter, deficiency, global_used_ids)
                 coding_questions.extend([question_helper(q) for q in new_qs_raw])
 
         seen = set()
         dedup_coding = []
         for cq in coding_questions:
-            c_id = str(cq["_id"])
-            if c_id not in seen:
-                seen.add(c_id)
-                dedup_coding.append(cq)
+            if isinstance(cq, dict):
+                c_id = str(cq.get("id") or cq.get("_id"))
+                if c_id not in seen:
+                    seen.add(c_id)
+                    dedup_coding.append(cq)
 
         if dedup_coding:
             result_sections.append({
