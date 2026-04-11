@@ -282,8 +282,8 @@ export default function AdminExamDashboard() {
                   </div>
                 )}
 
-                {/* ✅ AFTER PUBLISH → ALWAYS ALLOW RESCHEDULE */}
-                {exam.status === "published" && (
+                {/* ✅ AFTER PUBLISH → ALLOW RESCHEDULE IF NOT EXPIRED */}
+                {exam.status === "published" && timeStatus !== "expired" && (
                   <div className="mt-4 flex gap-2 flex-wrap">
                     <input
                       type="datetime-local"
