@@ -93,18 +93,18 @@ export default function ExamPage() {
       const now = new Date();
       const remaining = Math.floor((endTime - now) / 1000);
 
-      if (remaining <= 0 && !submittedRef.current) {
-        submittedRef.current = true;
-        handleAutoSubmit();
-        setTimeLeft(0);
-        return;
-      }
-
-      setTimeLeft(remaining);
+      setTimeLeft(remaining > 0 ? remaining : 0);
     }, 1000);
 
     return () => clearInterval(interval);
   }, [endTime]);
+
+  // ✅ Trigger submit sequentially on standard render loop to avoid Stale Closures
+  useEffect(() => {
+    if (timeLeft === 0 && !submittedRef.current) {
+      handleAutoSubmit();
+    }
+  }, [timeLeft]);
 
   useEffect(() => {
     const data = {
