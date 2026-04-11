@@ -122,8 +122,24 @@ export default function AdminExamDashboard() {
       alert("Failed to publish exam");
     }
   };
-
-
+  // =========================
+  // ARCHIVE (SOFT DELETE)
+  // =========================
+  const handleArchive = async (examId) => {
+    if (!window.confirm("Are you sure you want to archive this expired exam? It will be permanently hidden from this dashboard.")) {
+      return;
+    }
+    
+    try {
+      await API.delete(`/exam/${examId}`);
+      
+      // Remove it locally from the UI
+      setExams((prev) => prev.filter((e) => e._id !== examId));
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.detail || "Failed to archive exam");
+    }
+  };
   // =========================
   // STATUS BADGE
   // =========================
@@ -324,9 +340,19 @@ export default function AdminExamDashboard() {
                   )}
 
                   {exam.status === "draft" && (
-                    <span className="text-slate-400 text-sm">
+                    <span className="text-slate-400 text-sm flex items-center">
                       Editable by teacher
                     </span>
+                  )}
+
+                  {/* ✅ ARCHIVE BUTTON FOR EXPIRED EXAMS */}
+                  {timeStatus === "expired" && (
+                    <button
+                      onClick={() => handleArchive(exam._id)}
+                      className="ml-auto bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 px-4 py-2 rounded text-sm transition-colors flex items-center gap-2"
+                    >
+                      Archive Exam
+                    </button>
                   )}
                 </div>
               </div>
