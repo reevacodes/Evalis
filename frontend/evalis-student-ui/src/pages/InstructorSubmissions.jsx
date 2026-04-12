@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchExamSubmissions } from "../services/api";
+import { fetchExamSubmissions, applyGraceMarks } from "../services/api";
 
 export default function InstructorSubmissions() {
   const { examId } = useParams();
@@ -27,6 +27,19 @@ export default function InstructorSubmissions() {
 
     loadLedger();
   }, [examId]);
+
+  const handleGraceMark = async (questionId, marksToAdd) => {
+    try {
+      if (!confirm(`WARNING: You are about to blanket cascade +${marksToAdd} points mathematically across all students who encountered broken Question UUID: ${questionId}.\n\nProceed with Grace Marking?`)) return;
+      
+      const res = await applyGraceMarks(examId, { question_id: questionId, marks_to_add: marksToAdd });
+      alert(`✅ Success: ${res.data.total_students_updated} specific target records successfully updated across Set loops: [${res.data.affected_sets.join(", ")}].`);
+      
+      loadLedger(); // Refresh
+    } catch (err) {
+      alert(err.response?.data?.detail || "Failed to execute Grace Mark override sequence.");
+    }
+  };
 
   if (loading) {
     return (
@@ -55,9 +68,23 @@ export default function InstructorSubmissions() {
               Tracking <span className="text-emerald-400 font-bold">{submissions.length}</span> recorded submissions for <span className="text-blue-200">{examTitle}</span>
             </p>
           </div>
-          <div className="bg-slate-900 border border-slate-800 px-5 py-3 rounded-xl">
-             <span className="block text-xs uppercase text-slate-500 font-bold tracking-wider mb-1 text-right">Max Exam Payload</span>
-             <span className="text-xl font-bold text-white tracking-widest">{totalMarks} PTS</span>
+          <div className="flex flex-col md:flex-row items-end gap-3">
+            <button 
+              onClick={() => {
+                const qid = prompt("Identify the natively generated broken Question ID (UUID):");
+                if (!qid) return;
+                const points = prompt("Specify explicit numerical Grace Override points to cascade mathematically:", "1");
+                if (!points) return;
+                handleGraceMark(qid, parseFloat(points));
+              }}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl font-bold text-sm shadow-xl transition-all border border-indigo-500"
+            >
+              ⚡ Issue Grace Override
+            </button>
+            <div className="bg-slate-900 border border-slate-800 px-5 py-3 rounded-xl">
+               <span className="block text-xs uppercase text-slate-500 font-bold tracking-wider mb-1 text-right">Max Exam Payload</span>
+               <span className="text-xl font-bold text-white tracking-widest">{totalMarks} PTS</span>
+            </div>
           </div>
         </div>
 

@@ -112,6 +112,9 @@ export const getRescheduleRequests = (status = "pending") =>
 export const updateRescheduleRequest = (requestId, payload) =>
   API.put(`/exam/reschedule-requests/${requestId}`, payload);
 
+export const applyGraceMarks = (examId, payload) =>
+  API.put(`/exam/${examId}/grace-mark`, payload);
+
 // =========================
 // 🎓 STUDENT FLOW
 // =========================

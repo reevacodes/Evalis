@@ -6,6 +6,10 @@ class RescheduleRequest(BaseModel):
     reason: str
     preferred_time: datetime
 
+class GraceMarkRequest(BaseModel):
+    question_id: str
+    marks_to_add: float = 1.0
+
 class ExamGenerateRequest(BaseModel):
     # REQUIRED FOR UPDATE FLOW
     exam_id: str

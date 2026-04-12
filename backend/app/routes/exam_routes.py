@@ -4,7 +4,7 @@ from datetime import datetime, timedelta,timezone
 import re
 from app.services.exam_service import MIET_RULES
 
-from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest, AddQuestionsRequest, DeleteQuestionRequest, SubmissionRequest
+from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest, AddQuestionsRequest, DeleteQuestionRequest, SubmissionRequest, GraceMarkRequest
 from app.services.exam_service import generate_exam
 from app.database import (
     exam_collection,
@@ -1178,3 +1178,71 @@ def update_reschedule_request(
         )
     
     return {"message": f"Request {status} successfully"}
+
+
+# ==========================
+# 🔥 PHASE 6.4: GRACE MARKING OVEERRIDE
+# ==========================
+@router.put("/{exam_id}/grace-mark")
+def apply_grace_marks(
+    exam_id: str,
+    payload: GraceMarkRequest,
+    user=Depends(require_role("admin"))
+):
+    try:
+        exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+        if not exam:
+            raise HTTPException(404, "Exam not found")
+
+        sets = exam.get("sets", {})
+        if not sets:
+            raise HTTPException(400, "No randomized sets mapped to this exam")
+
+        # 1. Isolate WHICH Sets physically contained the broken Question ID
+        affected_sets = []
+        for set_label, sections in sets.items():
+            for sec in sections:
+                for q in sec.get("questions", []):
+                    if str(q.get("_id")) == payload.question_id or str(q.get("id")) == payload.question_id:
+                        affected_sets.append(set_label)
+                        break
+
+        if not affected_sets:
+            raise HTTPException(404, f"Question {payload.question_id} was not generated inside any Set loops for Exam {exam_id}.")
+
+        # 2. Iterate through specific submissions mathematically matching the affected Sets
+        submissions = list(exam_submission_collection.find({"exam_id": exam_id, "assigned_set": {"$in": affected_sets}}))
+        
+        if not submissions:
+            return {"message": "No submissions found resolving to the affected sets.", "updated_count": 0}
+
+        updated_count = 0
+        for sub in submissions:
+            # Current Tracking
+            current_total = sub.get("total_score", 0)
+            current_grace = sub.get("grace_marks_awarded", 0)
+
+            # Assign points purely over the limits (+X)
+            new_grace = current_grace + payload.marks_to_add
+            new_total = current_total + payload.marks_to_add
+
+            exam_submission_collection.update_one(
+                {"_id": ObjectId(sub["_id"])},
+                {
+                    "$set": {
+                        "grace_marks_awarded": new_grace,
+                        "total_score": new_total
+                    }
+                }
+            )
+            updated_count += 1
+            
+        return {
+            "message": "Grace marking systematically resolved",
+            "affected_sets": affected_sets,
+            "bonus_points_awarded": payload.marks_to_add,
+            "total_students_updated": updated_count
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
