@@ -5,7 +5,8 @@ import { runCode, submitCode } from "../services/api";
 
 const languageTemplates = {
   python: "# Write your code here\n",
-  cpp: "#include <bits/stdc++.h>\nusing namespace std;\n\nint main(){\n\n}",
+  cpp: "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    return 0;\n}",
+  c: "#include <stdio.h>\n\nint main() {\n    return 0;\n}",
 };
 
 export default function CodingSection({
@@ -321,6 +322,7 @@ export default function CodingSection({
               >
                 <option value="python">Python</option>
                 <option value="cpp">C++</option>
+                <option value="c">C</option>
               </select>
 
               <button
