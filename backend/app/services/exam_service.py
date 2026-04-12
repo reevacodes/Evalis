@@ -199,6 +199,7 @@ def generate_exam(subject_code, semester, exam_type, pattern, units, seed_sectio
         coding_questions.extend([question_helper(q) for q in current_coding])
 
         if "coding_distribution" in rules:
+            total_target = sum(rules["coding_distribution"].values())
             for difficulty, count in rules["coding_distribution"].items():
                 current_diff = [q for q in current_coding if q.get("difficulty") == difficulty]
                 deficiency = count - len(current_diff)
@@ -207,6 +208,13 @@ def generate_exam(subject_code, semester, exam_type, pattern, units, seed_sectio
                     coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding", "difficulty": difficulty}, subject_code)
                     new_qs_raw = get_questions_smart(coding_filter, deficiency, global_used_ids)
                     coding_questions.extend([question_helper(q) for q in new_qs_raw])
+            
+            # 🔥 FALLBACK PADDING
+            if len(coding_questions) < total_target:
+                fallback_deficiency = total_target - len(coding_questions)
+                coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding"}, subject_code)
+                new_qs_raw = get_questions_smart(coding_filter, fallback_deficiency, global_used_ids)
+                coding_questions.extend([question_helper(q) for q in new_qs_raw])
                     
         elif "coding_total" in rules:
             deficiency = rules["coding_total"] - len(current_coding)

@@ -180,19 +180,7 @@ export const deleteExamQuestion = (examId, secIdx, qIdx) =>
     },
   });
 
-// =========================
-// 🚀 SANDBOX & CODE EXECUTION
-// =========================
 
-export const runCode = async (payload) => {
-  const { data } = await API.post('/code/run', payload);
-  return data;
-};
-
-export const submitCode = async (payload) => {
-  const { data } = await API.post('/code/submit', payload);
-  return data;
-};
 
 // =========================
 // 🔐 AUTH APIs
