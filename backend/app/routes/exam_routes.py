@@ -15,7 +15,8 @@ from app.database import (
 )
 from app.models.question_model import question_helper
 from app.services.exam_service import generate_exam
-from fastapi import Depends
+from app.services.evaluation_service import async_evaluate_submission
+from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
 
 router = APIRouter()
@@ -626,6 +627,7 @@ def get_exam_api(
 def submit_exam_api(
     exam_id: str,
     payload: SubmissionRequest,
+    background_tasks: BackgroundTasks,
     user=Depends(require_role("student"))
 ):
     try:
@@ -720,11 +722,23 @@ def submit_exam_api(
             "pending_manual_review": len(payload.coding_answers) > 0,
             "submitted_at": datetime.now(timezone.utc)
         }
-        exam_submission_collection.update_one(
+        doc_info = exam_submission_collection.update_one(
             {"exam_id": exam_id, "student_id": user.get("sub")},
             {"$set": doc},
             upsert=True
         )
+        
+        submission_id = doc_info.upserted_id or (existing.get("_id") if existing else None)
+        
+        # If there's an insert instead of upsert fallback:
+        if not submission_id:
+             new_doc = exam_submission_collection.find_one({"exam_id": exam_id, "student_id": user.get("sub")})
+             submission_id = new_doc["_id"]
+
+        # FIRE BACKGROUND WORKER 
+        if submission_id:
+            background_tasks.add_task(async_evaluate_submission, str(submission_id))
+
         return {"message": "Exam submitted successfully", "mcq_score": mcq_score}
 
     except HTTPException:

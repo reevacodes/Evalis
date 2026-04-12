@@ -93,7 +93,7 @@ export default function InstructorSubmissions() {
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-lg font-bold font-mono text-emerald-400 drop-shadow-md">
-                            {sub.mcq_score}
+                            {sub.total_score ?? sub.mcq_score}
                           </span>
                         </td>
                         <td className="px-6 py-4">
