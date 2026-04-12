@@ -87,6 +87,18 @@ export default function CodingSection({
     }
   }, [code, language]);
 
+  const handleLanguageChange = (e) => {
+    const newLang = e.target.value;
+    
+    if (code.trim() !== languageTemplates[language].trim() && code.trim() !== "") {
+      const confirmSwitch = window.confirm("Switching languages will reset your code progress to the default template. Are you sure?");
+      if (!confirmSwitch) return;
+    }
+
+    setLanguage(newLang);
+    setCode(languageTemplates[newLang]);
+  };
+
   useEffect(() => {
     if (problem.test_cases.length > 0) {
       setCustomInput(problem.test_cases[0].input);
@@ -304,7 +316,7 @@ export default function CodingSection({
             <div className="p-2 flex gap-2 border-b border-slate-800">
               <select
                 value={language}
-                onChange={(e) => setLanguage(e.target.value)}
+                onChange={handleLanguageChange}
                 className="bg-slate-700 px-2 py-1 text-sm"
               >
                 <option value="python">Python</option>
