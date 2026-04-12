@@ -69,7 +69,7 @@ function AppContent() {
         {/* <Route path="/exams" element={<ExamDashboard />} /> */}
         {/* <Route path="/teacher-view" element={<TeacherView />} /> */}
         <Route path="/exam/:examId/preview" element={<PreviewExam />} />
-        <Route path="/exam/:examId/paper" element={<ExamPaper />} /> */}
+        {/* <Route path="/exam/:examId/paper" element={<ExamPaper />} />  */}
         <Route path="/exams" element={<AllExams />} />
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/student/results/:examId" element={<StudentResults />} />

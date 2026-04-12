@@ -637,13 +637,8 @@ def submit_exam_api(
         assigned_set = set_keys[idx]
         assigned_sections = sets[assigned_set]
 
-        # Check if already submitted
-        existing = submission_collection.find_one({
-            "exam_id": exam_id,
-            "student_id": user.get("sub")
-        })
-        if existing:
-            raise HTTPException(400, "Exam already submitted")
+        # Check if already submitted (Allow Overwrite for Testing)
+        # We will use upsert instead of rejecting
 
         # Auto grade MCQs & Analytics Aggregation
         mcq_section = next((s for s in assigned_sections if s["type"] == "mcq"), None)
@@ -708,8 +703,11 @@ def submit_exam_api(
             "pending_manual_review": len(payload.coding_answers) > 0,
             "submitted_at": datetime.now(timezone.utc)
         }
-        
-        submission_collection.insert_one(doc)
+        submission_collection.update_one(
+            {"exam_id": exam_id, "student_id": user.get("sub")},
+            {"$set": doc},
+            upsert=True
+        )
         return {"message": "Exam submitted successfully", "mcq_score": mcq_score}
 
     except HTTPException:
