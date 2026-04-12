@@ -425,6 +425,9 @@ def get_all_exams_api(user=Depends(get_current_user)):
                 exam_collection.find({"status": "published", "is_deleted": {"$ne": True}})
                 .sort("created_at", -1)
             )
+            
+            my_subs = list(exam_submission_collection.find({"student_id": user.get("sub")}))
+            my_sub_exam_ids = [str(s.get("exam_id")) for s in my_subs]
 
         else:
             raise HTTPException(403, "Not authorized")
@@ -434,6 +437,8 @@ def get_all_exams_api(user=Depends(get_current_user)):
             
             # Apply student-specific overrides (Reschedules)
             if role == "student":
+                exam["has_submitted"] = exam["_id"] in my_sub_exam_ids
+                
                 overrides = exam.get("overrides", [])
                 for ov in overrides:
                     if ov.get("student_id") == user.get("sub"):

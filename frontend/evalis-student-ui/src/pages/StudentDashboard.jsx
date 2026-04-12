@@ -119,9 +119,9 @@ export default function StudentDashboard() {
       ) : (
         <div className="grid md:grid-cols-2 gap-5">
           {exams.map((exam) => {
-            const isLive = exam.time_status === "active";
-            const isUpcoming = exam.time_status === "scheduled";
-            const isCompleted = exam.time_status === "expired";
+            const isCompleted = exam.time_status === "expired" || exam.has_submitted;
+            const isLive = exam.time_status === "active" && !exam.has_submitted;
+            const isUpcoming = exam.time_status === "scheduled" && !exam.has_submitted;
 
             return (
               <div

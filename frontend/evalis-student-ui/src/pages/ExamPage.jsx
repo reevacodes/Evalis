@@ -166,7 +166,7 @@ export default function ExamPage() {
       localStorage.removeItem(storageKey);
 
       setTimeout(() => {
-        navigate("/student");
+        navigate(`/student/results/${examId}`);
       }, 2500);
       
     } catch {
@@ -192,7 +192,7 @@ export default function ExamPage() {
       localStorage.removeItem(storageKey);
 
       setTimeout(() => {
-        navigate("/student");
+        navigate(`/student/results/${examId}`);
       }, 2500);
       
     } catch {
