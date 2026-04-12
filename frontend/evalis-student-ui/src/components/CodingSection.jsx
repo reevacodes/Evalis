@@ -8,7 +8,11 @@ const languageTemplates = {
   cpp: "#include <bits/stdc++.h>\nusing namespace std;\n\nint main(){\n\n}",
 };
 
-export default function CodingSection({ problems = [] }) {
+export default function CodingSection({
+  problems = [],
+  codingAnswers,
+  setCodingAnswers,
+}) {
   const [currentProblem, setCurrentProblem] = useState(0);
   const [language, setLanguage] = useState("python");
   const [code, setCode] = useState(languageTemplates["python"]);
@@ -51,29 +55,37 @@ export default function CodingSection({ problems = [] }) {
 
   const problem = normalizeProblem(problems[currentProblem]);
 
-  // ================= AUTO LOAD CODE =================
+  // ================= LOAD GLOBALLY SAVED CODE =================
   useEffect(() => {
-    const saved = localStorage.getItem(`code-${currentProblem}-${language}`);
+    const saved = codingAnswers?.[currentProblem];
     if (saved) {
-      setCode(saved);
+      setCode(saved.code || languageTemplates[language]);
+      setLanguage(saved.language || language);
     } else {
       setCode(languageTemplates[language]);
     }
     resetStates();
-  }, [currentProblem, language]);
+  }, [currentProblem]);
 
-  // ================= AUTO SAVE CODE =================
+  // ================= AUTO SAVE GLOBALLY =================
   useEffect(() => {
-    localStorage.setItem(`code-${currentProblem}-${language}`, code);
+    if (!setCodingAnswers) return;
 
-    // mark attempted if user typed anything meaningful
+    setCodingAnswers((prev) => ({
+      ...prev,
+      [currentProblem]: {
+        code,
+        language,
+      },
+    }));
+
     if (code && code.trim() !== languageTemplates[language].trim()) {
       setAttemptedMap((prev) => ({
         ...prev,
         [currentProblem]: true,
       }));
     }
-  }, [code]);
+  }, [code, language]);
 
   useEffect(() => {
     if (problem.test_cases.length > 0) {
