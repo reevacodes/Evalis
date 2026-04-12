@@ -73,7 +73,8 @@ def create_exam_api(
         exam = {
             "exam_name": data.exam_name,
             "subject_code": data.subject_code,
-            "teacher_name": user["sub"],  
+            "instructor_email": data.instructor_email,
+            "teacher_name": user["sub"],
             "semester": int(data.semester),
             "exam_type": exam_type,
             "pattern": pattern,

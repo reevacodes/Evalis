@@ -27,7 +27,7 @@ class ExamGenerateRequest(BaseModel):
 class ExamCreateRequest(BaseModel):
     exam_name: str
     subject_code: str
-    teacher_name: str
+    instructor_email: str
     semester: int
 
     exam_type: Literal["mst", "final"]

@@ -10,13 +10,15 @@ export default function CreateExam() {
   const editData = location.state;
   const isEdit = !!editData;
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
   // =========================
   // STATE
   // =========================
   const [form, setForm] = useState({
     exam_name: editData?.exam_name || "",
     subject_code: editData?.subject_code || "",
-    teacher_name: editData?.teacher_name || "",
+    instructor_email: editData?.instructor_email || user?.email || "",
     semester: editData?.semester || "",
     exam_type: editData?.exam_type || "",
     pattern: editData?.pattern || "",
@@ -65,7 +67,7 @@ export default function CreateExam() {
     if (
       !form.exam_name ||
       !form.subject_code ||
-      !form.teacher_name ||
+      !form.instructor_email ||
       !form.exam_type ||
       !form.pattern ||
       form.units.length === 0
@@ -142,10 +144,12 @@ export default function CreateExam() {
               onChange={handleChange}
             />
             <Input
-              label="Teacher Name"
-              name="teacher_name"
-              value={form.teacher_name}
+              label="Instructor Email (Auto-filled)"
+              name="instructor_email"
+              value={form.instructor_email}
+              disabled
               onChange={handleChange}
+              className="opacity-70 bg-slate-800/50 cursor-not-allowed"
             />
             <Input
               label="Semester"
@@ -187,14 +191,26 @@ export default function CreateExam() {
             />
 
             <div>
-              <label className="text-sm text-slate-400">Units</label>
+              <label className="text-sm text-slate-400">Target Units (Comma Separated)</label>
               <input
                 value={unitsInput}
                 onChange={handleUnitsChange}
-                placeholder="e.g. 1,2,3"
+                placeholder="e.g. 1, 2, 3"
                 className="input-dark mt-1"
               />
             </div>
+
+            {/* REAL-TIME MATH FEEDBACK */}
+            {form.exam_type && (
+              <div className="bg-slate-800/40 border border-slate-700 p-4 rounded-xl mt-6">
+                <span className="block text-xs uppercase font-bold text-slate-500 tracking-wider mb-1">
+                  System Policy Locked
+                </span>
+                <span className="text-xl font-bold flex items-center gap-2">
+                  Total Marks: <span className="text-blue-400">{form.exam_type === "mst" ? "50" : "100"}</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
