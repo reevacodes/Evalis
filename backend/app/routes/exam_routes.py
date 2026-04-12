@@ -645,16 +645,55 @@ def submit_exam_api(
         if existing:
             raise HTTPException(400, "Exam already submitted")
 
-        # Auto grade MCQs
+        # Auto grade MCQs & Analytics Aggregation
         mcq_section = next((s for s in assigned_sections if s["type"] == "mcq"), None)
         mcq_score = 0
+        correct_count = 0
+        topic_stats = {}
+        total_mcqs = 0
+        attempted_mcqs = 0
+
         if mcq_section:
             for q in mcq_section.get("questions", []):
+                total_mcqs += 1
                 q_id = str(q.get("id") or q.get("_id"))
                 correct = q.get("correct_answer")
+                topic = q.get("topic", "General")
+                
+                if topic not in topic_stats:
+                    topic_stats[topic] = {"total": 0, "correct": 0}
+                
+                topic_stats[topic]["total"] += 1
+                
                 student_answer = payload.mcq_answers.get(q_id)
+                if student_answer:
+                    attempted_mcqs += 1
+                    
                 if student_answer and correct and student_answer.strip().lower() == correct.strip().lower():
                     mcq_score += mcq_section.get("marks_per_question", 1)
+                    correct_count += 1
+                    topic_stats[topic]["correct"] += 1
+                    
+        accuracy = (correct_count / total_mcqs * 100) if total_mcqs > 0 else 0
+        
+        strong_topics = []
+        weak_topics = []
+        for topic, stat in topic_stats.items():
+            hit_rate = stat["correct"] / stat["total"] if stat["total"] > 0 else 0
+            if hit_rate >= 0.7:
+                strong_topics.append(topic)
+            elif hit_rate <= 0.4:  
+                weak_topics.append(topic)
+                
+        analytics = {
+            "accuracy": round(accuracy, 2),
+            "total_mcqs": total_mcqs,
+            "attempted_mcqs": attempted_mcqs,
+            "correct_mcqs": correct_count,
+            "strong_topics": strong_topics,
+            "weak_topics": weak_topics,
+            "topic_breakdown": topic_stats
+        }
 
         doc = {
             "student_id": user.get("sub"),
@@ -664,7 +703,8 @@ def submit_exam_api(
             "mcq_answers": payload.mcq_answers,
             "coding_answers": payload.coding_answers,
             "mcq_score": mcq_score,
-            "total_score": mcq_score, # Pending coding manual grade
+            "total_score": mcq_score, 
+            "analytics": analytics,
             "pending_manual_review": len(payload.coding_answers) > 0,
             "submitted_at": datetime.now(timezone.utc)
         }
@@ -678,9 +718,82 @@ def submit_exam_api(
         print("🔥 SUBMIT EXAM ERROR:", str(e))
         raise HTTPException(status_code=400, detail="Failed to submit exam")
 
+# ==========================
+# 📊 GET SUBMISSION RESULTS (STUDENT)
+# ==========================
+@router.get("/submissions/{exam_id}/me")
+def get_my_submission_results(
+    exam_id: str,
+    user=Depends(require_role("student"))
+):
+    try:
+        exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+        if not exam:
+            raise HTTPException(404, "Exam not found")
+
+        is_published = exam.get("is_results_published", False)
+
+        submission = submission_collection.find_one({
+            "exam_id": exam_id,
+            "student_id": user.get("sub")
+        })
+
+        if not submission:
+            raise HTTPException(404, "Submission not found")
+
+        # Clean ObjectIds
+        submission["_id"] = str(submission["_id"])
+
+        if not is_published:
+            return {
+                "status": "submitted",
+                "is_published": False,
+                "message": "Results are currently being evaluated and will be published by the Instructor shortly."
+            }
+
+        return {
+            "status": "submitted",
+            "is_published": True,
+            "submission": submission,
+            "exam_title": exam.get("title"),
+            "total_marks": exam.get("total_marks", 0)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("🔥 GET RESULTS ERROR:", str(e))
+        raise HTTPException(status_code=500, detail="Internal error retrieving results")
+
 
 # ==========================
-# 🔥 PUBLISH
+# ==========================
+# 🔥 PUBLISH RESULTS (ADMIN)
+# ==========================
+@router.put("/{exam_id}/publish-results")
+def publish_results_api(
+    exam_id: str,
+    user=Depends(require_role("admin"))
+):
+    try:
+        exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+        if not exam:
+            raise HTTPException(404, "Exam not found")
+
+        current_val = exam.get("is_results_published", False)
+        
+        exam_collection.update_one(
+            {"_id": ObjectId(exam_id)},
+            {"$set": {"is_results_published": not current_val}}
+        )
+        
+        return {"message": "Results visibility toggled", "is_results_published": not current_val}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to publish results")
+
+# ==========================
+# 🔥 PUBLISH EXAM TO STUDENTS
 # ==========================
 @router.put("/{exam_id}/publish")
 def publish_exam_api(

@@ -213,8 +213,11 @@ export default function StudentDashboard() {
                       </div>
                     )}
                     {isCompleted && (
-                      <button className="w-full py-3 rounded-xl font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700">
-                        View Result
+                      <button 
+                         onClick={() => navigate(`/student/results/${exam._id}`)}
+                         className="w-full py-3 rounded-xl font-semibold bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 transition border border-purple-500/30 flex items-center justify-center gap-2"
+                      >
+                         <span className="text-lg">📊</span> View Analytics
                       </button>
                     )}
                   </div>

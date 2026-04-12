@@ -123,6 +123,25 @@ export default function AdminExamDashboard() {
     }
   };
   // =========================
+  // PUBLISH RESULTS (PHASE 6)
+  // =========================
+  const handlePublishResults = async (examId) => {
+    try {
+      const res = await API.put(`/exam/${examId}/publish-results`);
+      
+      setExams((prev) =>
+        prev.map((e) =>
+          e._id === examId
+            ? { ...e, is_results_published: res.data.is_results_published }
+            : e,
+        ),
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Failed to toggle results visibility");
+    }
+  };
+  // =========================
   // ARCHIVE (SOFT DELETE)
   // =========================
   const handleArchive = async (examId) => {
@@ -334,9 +353,22 @@ export default function AdminExamDashboard() {
                   )}
 
                   {exam.status === "published" && (
-                    <span className="text-emerald-400 text-sm">
-                      Live for students
-                    </span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-emerald-400 text-sm">
+                        Live for students
+                      </span>
+                      
+                      <button
+                        onClick={() => handlePublishResults(exam._id)}
+                        className={`text-sm px-4 py-2 rounded transition-colors ${
+                          exam.is_results_published
+                            ? "bg-purple-600/30 text-purple-400 hover:bg-purple-600/50"
+                            : "bg-slate-700 hover:bg-slate-600"
+                        }`}
+                      >
+                        {exam.is_results_published ? "Results Public" : "Release Results"}
+                      </button>
+                    </div>
                   )}
 
                   {exam.status === "draft" && (

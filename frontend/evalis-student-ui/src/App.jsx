@@ -20,6 +20,7 @@ import ExamEditor from "./pages/ExamEditor";
 import ExamFinalized from "./pages/ExamFinalized";
 import PublishExam from "./pages/PublishExam";
 import Landing from "./pages/Landing";
+import StudentResults from "./pages/StudentResults";
 import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
 import AdminLayout from "./components/AdminLayout";
@@ -68,9 +69,10 @@ function AppContent() {
         {/* <Route path="/exams" element={<ExamDashboard />} /> */}
         {/* <Route path="/teacher-view" element={<TeacherView />} /> */}
         <Route path="/exam/:examId/preview" element={<PreviewExam />} />
-        {/* <Route path="/exam/:examId/paper" element={<ExamPaper />} /> */}
+        <Route path="/exam/:examId/paper" element={<ExamPaper />} /> */}
         <Route path="/exams" element={<AllExams />} />
         <Route path="/student" element={<StudentDashboard />} />
+        <Route path="/student/results/:examId" element={<StudentResults />} />
         <Route path="/exam/:examId/edit" element={<ExamEditor />} />
         <Route path="/exam/:examId/finalized" element={<ExamFinalized />} />
         <Route path="/exam/:examId/published" element={<PublishExam />} />

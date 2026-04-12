@@ -119,8 +119,11 @@ export const updateRescheduleRequest = (requestId, payload) =>
 export const submitExam = ({ examId, ...payload }) =>
   API.post(`/exam/${examId}/submit`, payload);
 
-export const getResults = (email) =>
-  API.get(`/results/${email}`);
+export const fetchUserExamResults = (examId) =>
+  API.get(`/exam/submissions/${examId}/me`);
+
+export const publishExamResults = (examId) =>
+  API.put(`/exam/${examId}/publish-results`);
 
 // =========================
 // 📚 QUESTION BANK
