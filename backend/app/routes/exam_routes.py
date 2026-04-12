@@ -780,6 +780,39 @@ def get_my_submission_results(
         print("🔥 GET RESULTS ERROR:", str(e))
         raise HTTPException(status_code=500, detail="Internal error retrieving results")
 
+# ==========================
+# 📊 GET EXAM SUBMISSIONS (INSTRUCTORS)
+# ==========================
+@router.get("/{exam_id}/submissions")
+def get_all_submissions_for_exam(
+    exam_id: str,
+    user=Depends(require_role("admin")) # Can also add teacher if hybrid RBAC exists
+):
+    try:
+        exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+        if not exam:
+            raise HTTPException(404, "Exam not found")
+
+        submissions = list(exam_submission_collection.find({"exam_id": exam_id}))
+        
+        # Strip massive payloads (like coding_answers chunks) and just return the high level metadata
+        for sub in submissions:
+            sub["_id"] = str(sub["_id"])
+            if "coding_answers" in sub:
+                sub["coding_answers_count"] = len(sub["coding_answers"])
+                del sub["coding_answers"]
+            if "mcq_answers" in sub:
+                del sub["mcq_answers"]
+
+        return {
+            "exam_title": exam.get("title", exam.get("exam_name", "Exam")),
+            "total_marks": exam.get("total_marks", 100),
+            "submissions": submissions
+        }
+
+    except Exception as e:
+        print("🔥 GET LEDGER ERROR:", str(e))
+        raise HTTPException(status_code=500, detail="Internal error retrieving ledger")
 
 # ==========================
 # ==========================

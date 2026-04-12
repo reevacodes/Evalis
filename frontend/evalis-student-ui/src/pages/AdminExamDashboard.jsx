@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 
 export default function AdminExamDashboard() {
+  const navigate = useNavigate();
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -367,6 +369,13 @@ export default function AdminExamDashboard() {
                         }`}
                       >
                         {exam.is_results_published ? "Results Public" : "Release Results"}
+                      </button>
+
+                      <button
+                        onClick={() => navigate(`/admin/exam/${exam._id}/submissions`)}
+                        className="text-sm px-4 py-2 rounded transition-colors bg-blue-600 hover:bg-blue-500 font-semibold"
+                      >
+                         📋 View Ledger
                       </button>
                     </div>
                   )}

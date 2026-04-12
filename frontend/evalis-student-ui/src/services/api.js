@@ -125,6 +125,9 @@ export const fetchUserExamResults = (examId) =>
 export const publishExamResults = (examId) =>
   API.put(`/exam/${examId}/publish-results`);
 
+export const fetchExamSubmissions = (examId) =>
+  API.get(`/exam/${examId}/submissions`);
+
 // =========================
 // 📚 QUESTION BANK
 // =========================

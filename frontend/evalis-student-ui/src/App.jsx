@@ -25,6 +25,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
 import AdminLayout from "./components/AdminLayout";
 import AdminOverview from "./pages/AdminOverview";
+import InstructorSubmissions from "./pages/InstructorSubmissions";
 import TeacherLayout from "./components/TeacherLayout";
 import TeacherOverview from "./pages/TeacherOverview";
 import TeacherExamDashboard from "./pages/TeacherExamDashboard";
@@ -94,6 +95,17 @@ function AppContent() {
             <RoleRoute role="admin">
               <AdminLayout>
                 <AdminExamDashboard />
+              </AdminLayout>
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/admin/exam/:examId/submissions"
+          element={
+            <RoleRoute role="admin">
+              <AdminLayout>
+                <InstructorSubmissions />
               </AdminLayout>
             </RoleRoute>
           }
