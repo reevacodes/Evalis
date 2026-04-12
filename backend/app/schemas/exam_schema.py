@@ -47,4 +47,4 @@ class DeleteQuestionRequest(BaseModel):
 
 class SubmissionRequest(BaseModel):
     mcq_answers: Dict[str, str] = {}
-    coding_answers: Dict[str, str] = {}
+    coding_answers: Dict[str, dict] = {}
