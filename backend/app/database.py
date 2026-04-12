@@ -22,6 +22,9 @@ reschedule_collection = db["reschedule_requests"]
 # Latest submissions (1 per user + question)
 submission_collection = db["submissions"]
 
+# Exam Submissions (Entire student test papers & analytics)
+exam_submission_collection = db["exam_submissions"]
+
 # Full history (multiple entries)
 submission_history_collection = db["submission_history"]
 

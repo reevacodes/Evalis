@@ -6,7 +6,13 @@ from app.services.exam_service import MIET_RULES
 
 from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest, AddQuestionsRequest, DeleteQuestionRequest, SubmissionRequest
 from app.services.exam_service import generate_exam
-from app.database import exam_collection, question_collection, reschedule_collection, submission_collection
+from app.database import (
+    exam_collection,
+    question_collection,
+    user_collection,
+    reschedule_collection,
+    exam_submission_collection
+)
 from app.models.question_model import question_helper
 from app.services.exam_service import generate_exam
 from fastapi import Depends
@@ -638,6 +644,10 @@ def submit_exam_api(
         assigned_sections = sets[assigned_set]
 
         # Check if already submitted (Allow Overwrite for Testing)
+        existing = exam_submission_collection.find_one({
+            "exam_id": exam_id,
+            "student_id": user.get("sub")
+        })
         # We will use upsert instead of rejecting
 
         # Auto grade MCQs & Analytics Aggregation
@@ -703,7 +713,7 @@ def submit_exam_api(
             "pending_manual_review": len(payload.coding_answers) > 0,
             "submitted_at": datetime.now(timezone.utc)
         }
-        submission_collection.update_one(
+        exam_submission_collection.update_one(
             {"exam_id": exam_id, "student_id": user.get("sub")},
             {"$set": doc},
             upsert=True
@@ -731,7 +741,7 @@ def get_my_submission_results(
 
         is_published = exam.get("is_results_published", False)
 
-        submission = submission_collection.find_one({
+        submission = exam_submission_collection.find_one({
             "exam_id": exam_id,
             "student_id": user.get("sub")
         })
