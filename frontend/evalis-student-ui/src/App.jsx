@@ -144,6 +144,17 @@ function AppContent() {
             </RoleRoute>
           }
         />
+
+        <Route
+          path="/teacher/exam/:examId/submissions"
+          element={
+            <RoleRoute role="teacher">
+              <TeacherLayout>
+                <InstructorSubmissions />
+              </TeacherLayout>
+            </RoleRoute>
+          }
+        />
       </Routes>
     </>
   );

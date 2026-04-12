@@ -230,6 +230,15 @@ export default function TeacherExamDashboard() {
                   View
                 </button>
 
+                {exam.status !== "draft" && (
+                  <button
+                    onClick={() => navigate(`/teacher/exam/${exam._id}/submissions`)}
+                    className="bg-indigo-600 px-4 py-1 rounded hover:bg-indigo-500 font-semibold"
+                  >
+                    📋 Ledger
+                  </button>
+                )}
+
                 {canEdit && (
                   <button
                     onClick={() => handleEdit(exam)}

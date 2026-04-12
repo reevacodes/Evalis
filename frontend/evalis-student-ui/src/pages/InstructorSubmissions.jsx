@@ -40,7 +40,7 @@ export default function InstructorSubmissions() {
     <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 font-sans">
       <div className="max-w-7xl mx-auto">
         <button 
-          onClick={() => navigate("/admin/exams")}
+          onClick={() => navigate(-1)}
           className="text-sm font-semibold text-blue-400 hover:text-blue-300 mb-6 flex items-center gap-1 transition-colors"
         >
           ← Back to Exams
