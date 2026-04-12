@@ -31,20 +31,21 @@ export default function ExamPage() {
   const [confirmText, setConfirmText] = useState("");
 
   const submittedRef = useRef(false);
+  const isLoadedRef = useRef(false);
   const storageKey = `exam_${examId}_answers`;
 
   // ================= LOAD EXAM =================
   useEffect(() => {
     const loadExam = async () => {
       try {
-        const res = await fetchExam(examId);
         const saved = localStorage.getItem(storageKey);
-
         if (saved) {
           const parsed = JSON.parse(saved);
           setAnswers(parsed.mcq || {});
           setCodingAnswers(parsed.coding || {});
         }
+
+        const res = await fetchExam(examId);
         const data = res;
 
         console.log("FULL DATA:", data); // 🔥 add this
@@ -78,6 +79,9 @@ export default function ExamPage() {
         setExamExists(false);
       } finally {
         setLoading(false);
+        setTimeout(() => {
+            isLoadedRef.current = true;
+        }, 500); 
       }
     };
 
@@ -112,6 +116,8 @@ export default function ExamPage() {
   }, [timeLeft]);
 
   useEffect(() => {
+    if (!isLoadedRef.current) return;
+    
     const data = {
       mcq: answers,
       coding: codingAnswers,
