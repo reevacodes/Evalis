@@ -17,45 +17,35 @@ export default function Landing() {
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-white relative overflow-hidden">
+    <div className="min-h-screen bg-[#0b0f19] text-white relative overflow-hidden flex items-center justify-center">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-purple-600/10" />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col justify-center min-h-screen px-6 md:px-20">
-        <h2 className="text-lg md:text-xl font-medium text-white/80 mb-6 tracking-wide">
-          Evalis
-        </h2>
-        {/* Heading */}
-        <h1 className="text-5xl md:text-7xl font-semibold leading-tight max-w-4xl">
-          Build and evaluate exams
-          <span className="block text-gray-400">
-            with intelligence and control
-          </span>
-        </h1>
+      <div className="relative z-10 w-full max-w-7xl px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        {/* Left Side: Marketing Context */}
+        <div className="flex flex-col justify-center">
+          <h2 className="text-lg md:text-xl font-medium text-white/80 mb-6 tracking-wide">
+            Evalis
+          </h2>
+          <h1 className="text-4xl md:text-6xl font-semibold leading-tight max-w-2xl">
+            Build and evaluate exams
+            <span className="block text-gray-400 mt-2">
+              with intelligence and control
+            </span>
+          </h1>
+          <p className="mt-6 text-lg text-gray-400 max-w-md">
+            A unified platform for creating structured exams, managing question
+            banks, and executing code securely in real time.
+          </p>
+        </div>
 
-        {/* Subtext */}
-        <p className="mt-6 text-lg text-gray-400 max-w-xl">
-          A unified platform for creating structured exams, managing question
-          banks, and executing code securely in real time.
-        </p>
-
-        {/* Actions */}
-        <div className="mt-10 flex gap-4">
-          <button
-            onClick={() => setShowAuth(true)}
-            className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:opacity-90 transition"
-          >
-            Get started
-          </button>
+        {/* Right Side: AuthModal Injected Natively */}
+        <div className="flex items-center justify-center w-full lg:justify-end">
+          <div className="w-full max-w-md">
+            <AuthModal onClose={() => {}} hideClose={true} isInline={true} />
+          </div>
         </div>
       </div>
-
-      {/* Right side subtle visual */}
-      <div className="absolute right-0 top-0 h-full w-1/2 hidden md:flex items-center justify-center">
-        <div className="w-[400px] h-[400px] bg-gradient-to-br from-blue-500/20 to-purple-500/20 blur-3xl rounded-full" />
-      </div>
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </div>
   );
 }

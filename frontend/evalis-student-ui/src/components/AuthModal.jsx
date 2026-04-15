@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
-export default function AuthModal({ onClose }) {
+export default function AuthModal({ onClose, hideClose = false, isInline = false }) {
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState("student");
   const [email, setEmail] = useState("");
@@ -57,17 +57,23 @@ export default function AuthModal({ onClose }) {
     }
   };
 
+  const containerClasses = isInline 
+    ? "w-full max-w-md" 
+    : "fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50";
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className={containerClasses}>
       {/* Modal */}
-      <div className="bg-[#0b0f19] border border-white/10 rounded-2xl p-8 w-full max-w-md shadow-2xl relative">
+      <div className="bg-[#0b0f19] border border-white/10 rounded-2xl p-8 w-full shadow-2xl relative">
         {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-white/60 hover:text-white"
-        >
-          ✕
-        </button>
+        {!hideClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white/60 hover:text-white"
+          >
+            ✕
+          </button>
+        )}
 
         {/* Title */}
         <h2 className="text-2xl font-semibold mb-6 text-center">
