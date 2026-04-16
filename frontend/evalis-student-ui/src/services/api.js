@@ -148,6 +148,9 @@ export const getQuestions = (params = {}) => {
 export const addQuestion = (payload) =>
   API.post("/questions/questions", payload);
 
+export const addBulkQuestions = (payload) =>
+  API.post("/questions/questions/bulk", payload);
+
 export const deleteQuestion = (id) =>
   API.delete(`/questions/questions/${id}`);
 
@@ -189,7 +192,8 @@ export const deleteExamQuestion = (examId, secIdx, qIdx) =>
     },
   });
 
-
+export const addQuestionsToExam = (examId, payload) =>
+  API.post(`/exam/${examId}/add-questions`, payload);
 
 // =========================
 // 🔐 AUTH APIs

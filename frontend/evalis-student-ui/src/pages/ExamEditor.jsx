@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchExam, finalizeExam, deleteExamQuestion } from "../services/api";
+import { fetchExam, finalizeExam, deleteExamQuestion, addBulkQuestions, addQuestionsToExam } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
+import * as XLSX from "xlsx";
 
 export default function ExamEditor() {
   const { examId } = useParams();
@@ -116,6 +117,113 @@ export default function ExamEditor() {
       },
     });
   };
+
+  const handleExcelUpload = async (e, sectionType, secIdx) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const targetSection = exam.sections[secIdx];
+      const maxAllowed = targetSection.count - (targetSection.questions?.length || 0);
+
+      if (maxAllowed <= 0) {
+        alert("⚠️ Section is already full.");
+        return;
+      }
+
+      setLoading(true);
+
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+      if (!jsonData || jsonData.length === 0) {
+        alert("The Excel file is empty!");
+        return;
+      }
+
+      // Map to strict Question schema
+      const mappedQuestions = jsonData.map((row) => {
+        let optionsList = [];
+        let correctAnswer = row.correct_answer || row.answer || null;
+        
+        if (sectionType === "mcq") {
+          if (row.options) {
+             optionsList = String(row.options).split(",").map(o => o.trim()).filter(o => o);
+          } else {
+             optionsList = ["Option A", "Option B", "Option C", "Option D"];
+          }
+          if (!correctAnswer && optionsList.length > 0) correctAnswer = optionsList[0];
+        }
+
+        let codingExtras = {};
+        if (sectionType === "coding") {
+             codingExtras = {
+                language: row.language || "python",
+                sample_test_cases: [
+                   { input: String(row.input || row.sample_input || "1"), expected_output: String(row.output || row.expected_output || row.sample_output || "1") }
+                ]
+             };
+        }
+
+        // Get units value correctly
+        let fallbackUnit = 1;
+        if (Array.isArray(exam.units) && exam.units.length > 0) {
+          // Parse number if it's like "Unit 1"
+          const match = String(exam.units[0]).match(/\d+/);
+          if (match) fallbackUnit = parseInt(match[0]);
+        }
+
+        return {
+          semester: exam.semester || 1,
+          subject_code: exam.subject_code || "UNKNOWN",
+          subject_name: exam.subject_name || exam.subject_code || "Unknown Subject",
+          unit: fallbackUnit,
+          topic: row.topic || "General",
+          
+          question_text: row.question_text || row.question || "Untitled Question",
+          question_type: sectionType,
+          marks: Number(row.marks) || (sectionType === "mcq" ? 1 : 5),
+          difficulty: (row.difficulty || "medium").toLowerCase(),
+          tags: row.tags ? String(row.tags).split(",").map(t=>t.trim()) : [],
+
+          ...(sectionType === "mcq" && {
+             options: optionsList,
+             correct_answer: String(correctAnswer)
+          }),
+          ...(sectionType === "coding" && codingExtras),
+        };
+      });
+
+      // Slice the questions to respect section limits
+      const questionsToUpload = mappedQuestions.slice(0, maxAllowed);
+
+      // POST /questions/bulk
+      const bulkRes = await addBulkQuestions(questionsToUpload);
+      const insertedIds = bulkRes?.inserted_ids || [];
+
+      if (insertedIds.length > 0) {
+        // POST /exam/{examId}/add-questions
+        await addQuestionsToExam(examId, {
+           section_index: secIdx,
+           question_ids: insertedIds
+        });
+        alert(`Successfully imported ${insertedIds.length} question(s) from Excel!`);
+      } else {
+        alert("No valid new questions were uploaded (perhaps duplicates or schema mismatch).");
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to process the Excel file.");
+    } finally {
+      await loadExam();
+      if (e.target) e.target.value = null; // Clear input
+    }
+  };
+
 
   const handleFinalize = async () => {
     try {
@@ -234,23 +342,42 @@ export default function ExamEditor() {
                 );
               })}
 
-              {/* ADD BUTTON */}
-              <button
-                onClick={() => {
-                  if (isFull) {
-                    alert("⚠️ Section is already full.");
-                    return;
-                  }
-                  handleAddFromBank(section.type, secIdx);
-                }}
-                className={`mt-3 px-4 py-2 rounded text-sm ${
-                  isFull
-                    ? "bg-gray-600 opacity-50 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-700"
-                }`}
-              >
-                {isFull ? "Section Full" : "+ Add from Question Bank"}
-              </button>
+              {/* ACTIONS */}
+              <div className="flex gap-3 mt-3">
+                <button
+                  onClick={() => {
+                    if (isFull) {
+                      alert("⚠️ Section is already full.");
+                      return;
+                    }
+                    handleAddFromBank(section.type, secIdx);
+                  }}
+                  className={`px-4 py-2 rounded text-sm ${
+                    isFull
+                      ? "bg-gray-600 opacity-50 cursor-not-allowed"
+                      : "bg-indigo-600 hover:bg-indigo-700"
+                  }`}
+                >
+                  {isFull ? "Section Full" : "+ Add from Question Bank"}
+                </button>
+
+                <label
+                  className={`flex items-center justify-center px-4 py-2 rounded text-sm transition-colors cursor-pointer ${
+                    isFull
+                      ? "bg-gray-600 opacity-50 cursor-not-allowed"
+                      : "bg-emerald-600 hover:bg-emerald-700"
+                  }`}
+                >
+                  {isFull ? "Section Full" : "📥 Import from Excel"}
+                  <input
+                    type="file"
+                    accept=".xlsx, .xls"
+                    className="hidden"
+                    disabled={isFull}
+                    onChange={(e) => handleExcelUpload(e, section.type, secIdx)}
+                  />
+                </label>
+              </div>
             </div>
           );
         })}
