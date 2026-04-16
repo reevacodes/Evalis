@@ -11,6 +11,7 @@ export default function ExamEditor() {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [uploadModal, setUploadModal] = useState({ show: false, title: "", message: "", isError: false });
 
   const [lastDeleted, setLastDeleted] = useState(null);
   const [undoTimeout, setUndoTimeout] = useState(null);
@@ -161,11 +162,28 @@ export default function ExamEditor() {
         let codingExtras = {};
         if (sectionType === "coding") {
              codingExtras = {
-                language: row.language || "python",
+                language: row.language || "c",
+                input_format: row.input_format || "Single input",
+                output_format: row.output_format || "Single output",
+                constraints: row.constraints || "None",
+                time_limit: Number(row.time_limit) || 2.0,
+                memory_limit: Number(row.memory_limit) || 256,
                 sample_test_cases: [
-                   { input: String(row.input || row.sample_input || "1"), expected_output: String(row.output || row.expected_output || row.sample_output || "1") }
+                   { 
+                      input: String(row.sample_input || "1"), 
+                      expected_output: String(row.sample_output || "1") 
+                   }
+                ],
+                hidden_test_cases: [
+                   { 
+                      input: String(row.hidden_input || "2"), 
+                      expected_output: String(row.hidden_output || "2") 
+                   }
                 ]
              };
+             if (row.starter_code) {
+                 codingExtras.starter_code = { [codingExtras.language]: String(row.starter_code) };
+             }
         }
 
         // Get units value correctly
@@ -202,7 +220,7 @@ export default function ExamEditor() {
 
       // POST /questions/bulk
       const bulkRes = await addBulkQuestions(questionsToUpload);
-      const insertedIds = bulkRes?.inserted_ids || [];
+      const insertedIds = bulkRes?.data?.inserted_ids || bulkRes?.inserted_ids || [];
 
       if (insertedIds.length > 0) {
         // POST /exam/{examId}/add-questions
@@ -210,14 +228,29 @@ export default function ExamEditor() {
            section_index: secIdx,
            question_ids: insertedIds
         });
-        alert(`Successfully imported ${insertedIds.length} question(s) from Excel!`);
+        setUploadModal({
+           show: true,
+           title: "Import Successful! 🎉",
+           message: `Successfully mapped and attached ${insertedIds.length} question(s) to this section!`,
+           isError: false
+        });
       } else {
-        alert("No valid new questions were uploaded (perhaps duplicates or schema mismatch).");
+        setUploadModal({
+           show: true,
+           title: "Import Skipped ⚠️",
+           message: "No valid new questions were uploaded.",
+           isError: true
+        });
       }
 
     } catch (err) {
       console.error(err);
-      alert("Failed to process the Excel file.");
+      setUploadModal({
+         show: true,
+         title: "Upload Failed ❌",
+         message: "Failed to parse or map the Excel file.",
+         isError: true
+      });
     } finally {
       await loadExam();
       if (e.target) e.target.value = null; // Clear input
@@ -410,6 +443,31 @@ export default function ExamEditor() {
             title="Exam Finalized 🎯"
             message="Your exam is now locked and ready."
           />
+        )}
+
+        {/* EXCEL UPLOAD MODAL */}
+        {uploadModal.show && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
+            <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center transform scale-100 flex flex-col items-center animate-in fade-in zoom-in duration-200">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${uploadModal.isError ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'} text-3xl shadow-inner`}>
+                {uploadModal.isError ? '⚠️' : '🎉'}
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2 tracking-wide">{uploadModal.title}</h3>
+              <p className="text-slate-400 text-sm mb-6 leading-relaxed bg-slate-950/50 p-4 rounded-xl w-full border border-slate-800 font-medium">
+                {uploadModal.message}
+              </p>
+              <button 
+                onClick={() => setUploadModal({ show: false, title: "", message: "", isError: false })}
+                className={`w-full py-3 rounded-xl font-bold transition-all duration-300 ${
+                   uploadModal.isError 
+                     ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700' 
+                     : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-600/30'
+                }`}
+              >
+                 {uploadModal.isError ? "Dismiss" : "Awesome"}
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

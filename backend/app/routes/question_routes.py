@@ -95,6 +95,7 @@ def add_bulk_questions(questions: List[Question]):
 
         if existing:
             skipped += 1
+            inserted_ids.append(str(existing["_id"]))
             continue
 
         result = question_collection.insert_one(data)
