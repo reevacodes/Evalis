@@ -21,6 +21,7 @@
     "react-resizable-panels": "^4.7.3",
     "react-router-dom": "^7.13.1",
     "react-split": "^2.0.14",
+    "recharts": "^3.8.1",
     "tailwindcss": "^4.2.1",
     "vite": "^7.3.1",
     "xlsx": "^0.18.5"

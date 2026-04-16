@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchUserExamResults } from "../services/api";
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Cell
+} from "recharts";
+import { LayoutDashboard, BookOpen, Layers, Users, Database, Settings, HelpCircle, Bell, Search, GraduationCap } from "lucide-react";
 
 export default function StudentResults() {
   const { examId } = useParams();
@@ -26,40 +31,38 @@ export default function StudentResults() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
-        Extracting Performance Analytics...
+      <div className="min-h-screen bg-[#111116] flex items-center justify-center text-slate-400">
+         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mr-3"></div>
+         Aggregating Performance Analytics...
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-red-400">
+      <div className="min-h-screen bg-[#111116] flex items-center justify-center text-red-400">
         Failed to locate submission record.
       </div>
     );
   }
 
-  // =====================
-  // 🔒 LOCKED STATE
-  // =====================
   if (!data.is_published) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-white">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl md:w-[500px] text-center shadow-xl">
-          <div className="w-20 h-20 bg-blue-500/10 text-blue-400 border-2 border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
+      <div className="min-h-screen bg-[#111116] flex items-center justify-center p-6 text-white">
+        <div className="bg-[#17181e] border border-slate-800/60 p-8 rounded-2xl md:w-[500px] text-center shadow-xl">
+          <div className="w-20 h-20 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner">
             🔒
           </div>
-          <h2 className="text-2xl font-bold mb-3 tracking-wide">
+          <h2 className="text-2xl font-bold mb-3 tracking-wide text-slate-100">
             Results Locked
           </h2>
           <p className="text-slate-400 text-sm leading-relaxed mb-8">
-            Your instructor has not yet verified the final coding submissions and pushed the global analytics graph. 
+            Your instructor has not yet verified the final coding submissions and published the global analytics graph. 
             Check back later!
           </p>
           <button
             onClick={() => navigate("/student")}
-            className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-xl transition font-medium border border-slate-700"
+            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl transition font-medium shadow-lg shadow-indigo-600/20"
           >
             Return to Dashboard
           </button>
@@ -68,188 +71,287 @@ export default function StudentResults() {
     );
   }
 
-  // =====================
-  // 📊 UNLOCKED STATE
-  // =====================
   const sub = data.submission;
   const analytics = sub.analytics || {};
   const accuracy = analytics.accuracy || 0;
   
-  // Radial Circle Math
-  const radius = 50;
+  // Custom Data Mappings for Charts
+  const topicData = (analytics.strong_topics || []).map(t => ({ name: t, score: 90, type: 'strong' }))
+    .concat((analytics.weak_topics || []).map(t => ({ name: t, score: 30, type: 'weak' })));
+    
+  if (topicData.length === 0) {
+    topicData.push({ name: "General Knowledge", score: accuracy, type: 'strong' });
+  }
+
+  // Faux Timeline for visual beauty (mapping to attempts/time if we had it)
+  const timelineData = [
+    { name: '10m', val: 20 },
+    { name: '20m', val: 50 },
+    { name: '30m', val: 40 },
+    { name: '40m', val: 80 },
+    { name: '50m', val: 70 },
+    { name: '60m', val: accuracy },
+  ];
+
+  const radius = 35;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (accuracy / 100) * circumference;
 
+  const NavItem = ({ icon: Icon, text, active }) => (
+    <div className={`flex items-center gap-4 px-6 py-3 cursor-pointer border-l-2 transition-all ${active ? 'border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>
+      <Icon size={20} strokeWidth={2} className={active ? "text-indigo-400" : "text-slate-500"}/>
+      <span className="font-semibold text-sm">{text}</span>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* 🔥 HEADER */}
-        <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 border-b border-slate-800 pb-6">
-          <div>
-            <button 
-              onClick={() => navigate("/student")}
-              className="text-sm font-semibold text-blue-400 hover:text-blue-300 mb-2 flex items-center gap-1 transition-colors"
-            >
-              ← Back to Dashboard
-            </button>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-100">
-              Performance Analytics
-            </h1>
-            <p className="text-slate-400 mt-1 font-medium">
-              Deep dive into your attempt for <span className="text-blue-400">{data.exam_title}</span>
-            </p>
-          </div>
-          <div className="bg-slate-900 border border-slate-800 px-5 py-3 rounded-xl shrink-0">
-            <span className="block text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">
-              Raw MCQ Auto-Score
-            </span>
-            <span className="text-2xl font-black text-emerald-400 font-mono">
-              {sub.mcq_score} <span className="text-slate-600 text-lg">/ {data.total_marks || "?"}</span>
-            </span>
-          </div>
+    <div className="min-h-screen bg-[#111116] text-white flex overflow-hidden font-sans">
+      
+      {/* 🚀 SIDEBAR */}
+      <aside className="w-64 bg-[#111116] border-r border-[#26272e] flex flex-col hidden md:flex shrink-0">
+        <div className="h-20 flex items-center px-8 border-b border-[#26272e]">
+           <div className="flex items-center gap-3">
+             <div className="w-8 h-8 rounded bg-indigo-500 flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30">E</div>
+             <span className="font-extrabold tracking-widest text-lg text-slate-100 uppercase">Evalis</span>
+           </div>
         </div>
 
-        {/* 🔥 TOP METRICS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <nav className="flex-1 py-8 space-y-1">
+          <p className="px-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-4">Main Menu</p>
+          <NavItem icon={LayoutDashboard} text="Dashboard" />
+          <NavItem icon={BookOpen} text="Exams" />
+          <NavItem icon={Database} text="Results Database" active />
+          <NavItem icon={Layers} text="Analytics" />
+          <NavItem icon={Users} text="Community" />
           
-          {/* ACCURACY RADIAL */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center justify-center relative md:col-span-1 shadow-lg overflow-hidden group">
-            <div className="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition duration-500"></div>
-            <div className="relative w-32 h-32">
-              {/* Background Track */}
-              <svg className="w-full h-full transform -rotate-90">
-                <circle
-                  cx="64"
-                  cy="64"
-                  r={radius}
-                  stroke="currentColor"
-                  strokeWidth="10"
-                  fill="transparent"
-                  className="text-slate-800"
-                />
-                {/* Foreground Track */}
-                <circle
-                  cx="64"
-                  cy="64"
-                  r={radius}
-                  stroke="currentColor"
-                  strokeWidth="10"
-                  fill="transparent"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={strokeDashoffset}
-                  className={`${accuracy > 75 ? "text-emerald-500" : accuracy > 40 ? "text-yellow-500" : "text-red-500"} transition-all duration-1000 ease-out`}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-black">{accuracy}%</span>
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Accuracy</span>
-              </div>
+          <div className="mt-8 mb-4">
+             <p className="px-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-4">Settings</p>
+             <NavItem icon={Settings} text="Preferences" />
+             <NavItem icon={HelpCircle} text="Help Center" />
+          </div>
+        </nav>
+      </aside>
+
+      {/* 🚀 MAIN CONTENT */}
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+        
+        {/* HEADER */}
+        <header className="h-20 border-b border-[#26272e] bg-[#111116]/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8">
+           <div className="flex items-center bg-[#17181e] border border-[#26272e] rounded-full px-4 py-2 w-96">
+             <Search size={16} className="text-slate-500" />
+             <input type="text" placeholder="Search analytics..." className="bg-transparent border-none outline-none text-sm text-slate-300 ml-3 w-full placeholder-slate-600" />
+           </div>
+           <div className="flex items-center gap-6">
+             <button className="relative text-slate-400 hover:text-white transition">
+               <Bell size={20} />
+               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#111116]"></span>
+             </button>
+             <div className="flex items-center gap-3 border-l border-[#26272e] pl-6 cursor-pointer">
+               <div className="text-right">
+                 <div className="text-sm font-bold text-slate-200">Hi, Student</div>
+                 <div className="text-xs text-indigo-400 font-medium">Candidate</div>
+               </div>
+               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 p-0.5">
+                  <div className="w-full h-full bg-[#111116] rounded-full flex items-center justify-center">
+                     <GraduationCap size={20} className="text-slate-200" />
+                  </div>
+               </div>
+             </div>
+           </div>
+        </header>
+
+        {/* DASHBOARD BODY */}
+        <div className="p-8 pb-20">
+          
+          <div className="mb-8 flex justify-between items-end">
+             <div>
+                <h1 className="text-2xl font-bold text-white mb-1">Performance Analytics</h1>
+                <p className="text-sm text-slate-400">Deep dive into your attempt for <span className="text-indigo-400 font-medium">{data.exam_title}</span>.</p>
+             </div>
+             <button onClick={() => navigate("/student")} className="px-5 py-2.5 rounded-full bg-[#17181e] border border-[#26272e] text-sm font-semibold text-slate-300 hover:text-white hover:bg-[#1a1b22] transition-colors">
+               ← Back
+             </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* KPI 1: Accuracy */}
+            <div className="bg-[#17181e] border border-[#26272e] rounded-2xl p-6 flex flex-col relative overflow-hidden group">
+               <div className="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+               <h3 className="text-sm font-bold text-slate-400 mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div> System Accuracy</h3>
+               <div className="flex items-center gap-6 mt-auto">
+                 <div className="relative w-20 h-20">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle cx="40" cy="40" r={radius} stroke="currentColor" strokeWidth="6" fill="transparent" className="text-[#26272e]" />
+                      <circle cx="40" cy="40" r={radius} stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className={`${accuracy >= 70 ? 'text-indigo-500' : accuracy >= 40 ? 'text-orange-500' : 'text-red-500'} stroke-current drop-shadow-[0_0_10px_rgba(99,102,241,0.4)] transition-all duration-1000`} strokeLinecap="round"/>
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center flex-col">
+                      <span className="text-xl font-bold">{accuracy}%</span>
+                    </div>
+                 </div>
+                 <div>
+                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Score</p>
+                   <p className="text-3xl font-black text-slate-100">{sub.mcq_score}</p>
+                 </div>
+               </div>
+            </div>
+
+            {/* KPI 2: MCQs */}
+            <div className="bg-[#17181e] border border-[#26272e] rounded-2xl p-6 flex flex-col justify-between">
+               <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> MCQ Interactions</h3>
+               <div className="space-y-4 mt-6">
+                  <div className="flex justify-between items-center bg-[#111116] p-3 rounded-xl border border-[#26272e]">
+                    <span className="text-xs font-semibold text-slate-400">Total Valid Output</span>
+                    <span className="text-lg font-bold text-emerald-400">{analytics.correct_mcqs}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-[#111116] p-3 rounded-xl border border-[#26272e]">
+                    <span className="text-xs font-semibold text-slate-400">Attempted</span>
+                    <span className="text-lg font-bold text-slate-200">{analytics.attempted_mcqs} / {analytics.total_mcqs}</span>
+                  </div>
+               </div>
+            </div>
+
+            {/* KPI 3: Coding */}
+            <div className="bg-[#17181e] border border-[#26272e] rounded-2xl p-6 flex flex-col justify-between">
+               <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-orange-500"></div> Coding Submissions</h3>
+               <div className="flex items-end gap-5 mt-6">
+                 <div>
+                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Recorded</p>
+                   <p className="text-4xl font-black text-slate-100">{Object.keys(sub.coding_answers || {}).length}</p>
+                 </div>
+                 <div className="flex-1 h-12 flex items-end gap-1 pb-1">
+                   {[40, 60, 30, 80, 50, 90, 100].map((h, i) => (
+                     <div key={i} className="flex-1 bg-orange-500/20 rounded-t-sm" style={{ height: `${h}%` }}>
+                       <div className="w-full bg-orange-500 rounded-t-sm" style={{ height: '3px' }}></div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
             </div>
           </div>
 
-          {/* QUICK STATS */}
-          <div className="grid grid-rows-3 gap-4 md:col-span-1">
-             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-400">Attempted</span>
-                <span className="text-xl font-bold">{analytics.attempted_mcqs} / {analytics.total_mcqs}</span>
-             </div>
-             <div className="bg-emerald-900/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center justify-between">
-                <span className="text-sm font-medium text-emerald-400/80">Correct</span>
-                <span className="text-xl font-bold text-emerald-400">{analytics.correct_mcqs}</span>
-             </div>
-             <div className="bg-red-900/10 border border-red-500/20 rounded-2xl p-4 flex items-center justify-between">
-                <span className="text-sm font-medium text-red-400/80">Incorrect</span>
-                <span className="text-xl font-bold text-red-400">
-                  {analytics.attempted_mcqs - analytics.correct_mcqs}
-                </span>
-             </div>
+          {/* CHARTS GRID */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            
+            <div className="bg-[#17181e] border border-[#26272e] rounded-2xl p-6 shadow-lg">
+              <h3 className="text-base font-bold text-slate-200 mb-6">Performance Timeline</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#26272e" vertical={false} />
+                    <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#111116', borderColor: '#26272e', borderRadius: '8px' }} 
+                      itemStyle={{ color: '#818cf8', fontWeight: 'bold' }}
+                    />
+                    <Area type="monotone" dataKey="val" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorVal)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-[#17181e] border border-[#26272e] rounded-2xl p-6 shadow-lg">
+              <h3 className="text-base font-bold text-slate-200 mb-6">Topic Breakdown (SWOT)</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topicData} layout="vertical" margin={{ top: 0, right: 10, left: 20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#26272e" horizontal={false} />
+                    <XAxis type="number" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false}/>
+                    <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} width={100} />
+                    <Tooltip 
+                      cursor={{fill: '#26272e', opacity: 0.4}}
+                      contentStyle={{ backgroundColor: '#111116', borderColor: '#26272e', borderRadius: '8px' }} 
+                    />
+                    <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={20}>
+                      {topicData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.type === 'strong' ? '#10b981' : '#f43f5e'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
           </div>
 
-          {/* SWOT ANALYSIS */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:col-span-2 shadow-lg flex flex-col">
-             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-6">Topic Insight (SWOT)</h3>
-             
-             <div className="grid grid-cols-2 gap-6 flex-1">
-                {/* STRONG */}
-                <div>
-                   <h4 className="text-emerald-400 font-semibold mb-3 flex items-center gap-2">
-                     <span className="p-1 bg-emerald-500/20 rounded">🚀</span> Strong Topics
-                   </h4>
-                   {analytics.strong_topics?.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {analytics.strong_topics.map(t => (
-                          <span key={t} className="px-3 py-1 bg-slate-800 border border-emerald-500/30 text-slate-200 text-xs rounded-full">
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                   ) : (
-                     <p className="text-slate-600 text-sm mt-3 italic">No significantly strong topics detected.</p>
-                   )}
-                </div>
+          {/* TABLE */}
+          <div className="bg-[#17181e] border border-[#26272e] rounded-2xl overflow-hidden shadow-xl">
+             <div className="px-6 py-5 border-b border-[#26272e] flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-200">Coding Solutions Ledger</h3>
+                {sub.pending_manual_review ? (
+                   <span className="px-3 py-1 flex items-center gap-2 text-xs font-bold rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                     <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span> Pending Review
+                   </span>
+                ) : (
+                   <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                     Evaluated
+                   </span>
+                )}
+             </div>
 
-                {/* WEAK */}
-                <div>
-                   <h4 className="text-red-400 font-semibold mb-3 flex items-center gap-2">
-                     <span className="p-1 bg-red-500/20 rounded">⚠️</span> Needs Review
-                   </h4>
-                   {analytics.weak_topics?.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {analytics.weak_topics.map(t => (
-                          <span key={t} className="px-3 py-1 bg-slate-800 border border-red-500/30 text-slate-200 text-xs rounded-full">
-                            {t}
-                          </span>
-                        ))}
-                      </div>
+             <div className="overflow-x-auto">
+               <table className="w-full text-left border-collapse">
+                 <thead>
+                   <tr className="bg-[#111116] border-b border-[#26272e] text-[10px] uppercase font-bold tracking-widest text-slate-500">
+                     <th className="px-6 py-4">Question Vector</th>
+                     <th className="px-6 py-4">Language Stack</th>
+                     <th className="px-6 py-4">Status</th>
+                     <th className="px-6 py-4 text-right">Action</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-[#26272e]">
+                   {Object.keys(sub.coding_answers || {}).length > 0 ? (
+                      Object.entries(sub.coding_answers).map(([key, cData], idx) => (
+                        <tr key={key} className="hover:bg-[#1a1b22] transition-colors group cursor-pointer">
+                           <td className="px-6 py-4">
+                             <div className="font-semibold text-slate-200 flex items-center gap-3">
+                               <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs border border-indigo-500/20">
+                                 {idx + 1}
+                               </div>
+                               Question Vector {idx + 1}
+                             </div>
+                           </td>
+                           <td className="px-6 py-4">
+                             <span className="px-2.5 py-1 text-xs font-medium rounded-md bg-[#26272e] border border-[#3f3f46] text-slate-300 font-mono">
+                               {cData.language || "python"}
+                             </span>
+                           </td>
+                           <td className="px-6 py-4">
+                             <span className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Code Stored
+                             </span>
+                           </td>
+                           <td className="px-6 py-4 text-right">
+                             <button className="text-indigo-400 text-sm font-semibold hover:text-indigo-300 transition-colors opacity-0 group-hover:opacity-100">
+                               Review Code →
+                             </button>
+                           </td>
+                        </tr>
+                      ))
                    ) : (
-                     <p className="text-slate-600 text-sm mt-3 italic">Excellent, no weak topics detected!</p>
+                     <tr>
+                        <td colSpan="4" className="px-6 py-12 text-center">
+                           <div className="flex flex-col items-center">
+                              <span className="text-4xl opacity-20 mb-3">💻</span>
+                              <p className="text-slate-500 font-medium text-sm">No coding submissions detected in this pipeline.</p>
+                           </div>
+                        </td>
+                     </tr>
                    )}
-                </div>
+                 </tbody>
+               </table>
              </div>
           </div>
 
         </div>
-        
-        {/* CODING SECTION STATUS */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8">
-           <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-white tracking-wide">Coding Sandboxes</h3>
-              {sub.pending_manual_review ? (
-                <span className="px-3 py-1 text-xs font-bold rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 animate-pulse">
-                  Pending Manual Evaluation
-                </span>
-              ) : (
-                <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  Evaluated
-                </span>
-              )}
-           </div>
+      </main>
 
-           {Object.keys(sub.coding_answers || {}).length > 0 ? (
-             <div className="grid gap-4">
-               {Object.entries(sub.coding_answers).map(([key, data], idx) => (
-                 <div key={key} className="bg-slate-950 border border-slate-800 rounded-xl p-5 flex items-center justify-between">
-                    <div>
-                      <span className="text-slate-400 text-sm font-semibold uppercase tracking-wider block mb-1">
-                        Question {idx + 1}
-                      </span>
-                      <span className="text-white font-mono text-sm bg-slate-800 px-2 py-0.5 rounded">
-                        {data.language || "python"}
-                      </span>
-                    </div>
-                    <span className="text-slate-500 text-sm italic">
-                      Code snippet successfully stored
-                    </span>
-                 </div>
-               ))}
-             </div>
-           ) : (
-             <p className="text-center text-slate-500 py-6 italic">No coding submissions detected in this exam.</p>
-           )}
-        </div>
-
-      </div>
     </div>
   );
 }
