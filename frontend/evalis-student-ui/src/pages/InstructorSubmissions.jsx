@@ -1,6 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchExamSubmissions, applyGraceMarks } from "../services/api";
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Cell
+} from "recharts";
+import { LayoutDashboard, BookOpen, Layers, Users, Database, Settings, HelpCircle, Bell, Search, GraduationCap } from "lucide-react";
 
 export default function InstructorSubmissions() {
   const { examId } = useParams();
@@ -30,141 +35,367 @@ export default function InstructorSubmissions() {
 
   const handleGraceMark = async (questionId, marksToAdd) => {
     try {
-      if (!confirm(`WARNING: You are about to blanket cascade +${marksToAdd} points mathematically across all students who encountered broken Question UUID: ${questionId}.\n\nProceed with Grace Marking?`)) return;
+      if (!window.confirm(`WARNING: You are about to blanket cascade +${marksToAdd} points mathematically across all students who encountered broken Question UUID: ${questionId}.\n\nProceed with Grace Marking?`)) return;
       
       const res = await applyGraceMarks(examId, { question_id: questionId, marks_to_add: marksToAdd });
       alert(`✅ Success: ${res.data.total_students_updated} specific target records successfully updated across Set loops: [${res.data.affected_sets.join(", ")}].`);
       
-      loadLedger(); // Refresh
+      const refresh = await fetchExamSubmissions(examId);
+      setSubmissions(refresh.data.submissions);
     } catch (err) {
       alert(err.response?.data?.detail || "Failed to execute Grace Mark override sequence.");
     }
   };
 
+  const NavItem = ({ icon: Icon, text, active }) => (
+    <div className={`flex items-center gap-4 px-6 py-3 cursor-pointer border-l-2 transition-all ${active ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>
+      <Icon size={20} strokeWidth={2} className={active ? "text-blue-400" : "text-slate-500"}/>
+      <span className="font-semibold text-sm">{text}</span>
+    </div>
+  );
+
+  // Derived KPI variables
+  const totalSubmissions = submissions.length;
+  const pendingReviewCount = submissions.filter(s => s.pending_manual_review).length;
+  const gradingCompletePercentage = totalSubmissions > 0 
+    ? Math.round(((totalSubmissions - pendingReviewCount) / totalSubmissions) * 100) 
+    : 100;
+
+  // Chart 1: Timeline (Cumulative submissions)
+  const timelineData = useMemo(() => {
+    if (totalSubmissions === 0) return [{ name: '0m', val: 0 }, { name: '10m', val: 0 }];
+    
+    const sorted = [...submissions].sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
+    let cumulative = 0;
+    
+    return sorted.map(sub => {
+       cumulative++;
+       const d = new Date(sub.submitted_at);
+       const label = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+       return { name: label, val: cumulative };
+    });
+  }, [submissions, totalSubmissions]);
+
+  // Chart 2: Score Distribution Array
+  const scoreDistribution = useMemo(() => {
+     let ranges = { weak: 0, mid: 0, strong: 0, excellent: 0 };
+     submissions.forEach(sub => {
+        const acc = sub.analytics?.accuracy || 0;
+        if (acc <= 40) ranges.weak++;
+        else if (acc <= 70) ranges.mid++;
+        else if (acc <= 90) ranges.strong++;
+        else ranges.excellent++;
+     });
+     
+     if (totalSubmissions === 0) {
+        return [
+           { name: "0-40%", score: 5, type: "weak" },
+           { name: "41-70%", score: 20, type: "mid" },
+           { name: "71-90%", score: 45, type: "strong" },
+           { name: "91-100%", score: 30, type: "strong" },
+        ];
+     }
+     return [
+       { name: "0-40%", score: ranges.weak, type: "weak" },
+       { name: "41-70%", score: ranges.mid, type: "mid" },
+       { name: "71-90%", score: ranges.strong, type: "strong" },
+       { name: "91-100%", score: ranges.excellent, type: "strong" },
+     ];
+  }, [submissions, totalSubmissions]);
+
+  const radius = 35;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (gradingCompletePercentage / 100) * circumference;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
-        Aggregating Submissions Matrix...
+         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
+         Aggregating Instructor Dashboard...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 font-sans">
-      <div className="max-w-7xl mx-auto">
-        <button 
-          onClick={() => navigate(-1)}
-          className="text-sm font-semibold text-blue-400 hover:text-blue-300 mb-6 flex items-center gap-1 transition-colors"
-        >
-          ← Back to Exams
-        </button>
-
-        <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-100 flex items-center gap-3">
-              📋 Administrator Ledger
-            </h1>
-            <p className="text-slate-400 mt-2 font-medium">
-              Tracking <span className="text-emerald-400 font-bold">{submissions.length}</span> recorded submissions for <span className="text-blue-200">{examTitle}</span>
-            </p>
-          </div>
-          <div className="flex flex-col md:flex-row items-end gap-3">
-            <button 
-              onClick={() => {
-                const qid = prompt("Identify the natively generated broken Question ID (UUID):");
-                if (!qid) return;
-                const points = prompt("Specify explicit numerical Grace Override points to cascade mathematically:", "1");
-                if (!points) return;
-                handleGraceMark(qid, parseFloat(points));
-              }}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl font-bold text-sm shadow-xl transition-all border border-indigo-500"
-            >
-              ⚡ Issue Grace Override
-            </button>
-            <div className="bg-slate-900 border border-slate-800 px-5 py-3 rounded-xl">
-               <span className="block text-xs uppercase text-slate-500 font-bold tracking-wider mb-1 text-right">Max Exam Payload</span>
-               <span className="text-xl font-bold text-white tracking-widest">{totalMarks} PTS</span>
-            </div>
-          </div>
+    <div className="min-h-screen bg-slate-950 text-white flex overflow-hidden font-sans">
+      
+      {/* 🚀 SIDEBAR */}
+      <aside className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col hidden md:flex shrink-0">
+        <div className="h-20 flex items-center px-8 border-b border-slate-800">
+           <div className="flex items-center gap-3">
+             <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center font-bold shadow-lg shadow-blue-500/30">E</div>
+             <span className="font-extrabold tracking-widest text-lg text-slate-100 uppercase">Evalis</span>
+           </div>
         </div>
 
-        {submissions.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center shadow-xl">
-            <span className="text-5xl opacity-40 block mb-4">🗂️</span>
-            <h3 className="text-lg font-bold text-slate-200 mb-1">No Submissions Found</h3>
-            <p className="text-slate-500 text-sm">Students have not pushed any payloads into the database for this exam yet.</p>
+        <nav className="flex-1 py-8 space-y-1">
+          <p className="px-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-4">Instructor</p>
+          <NavItem icon={LayoutDashboard} text="Dashboard" />
+          <NavItem icon={BookOpen} text="Exams" />
+          <NavItem icon={Database} text="Ledgers" active />
+          <NavItem icon={Layers} text="Analytics" />
+          <NavItem icon={Users} text="Students" />
+          
+          <div className="mt-8 mb-4">
+             <p className="px-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-4">Settings</p>
+             <NavItem icon={Settings} text="Preferences" />
+             <NavItem icon={HelpCircle} text="Help Center" />
           </div>
-        ) : (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-950 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
-                    <th className="px-6 py-5 font-bold">Student Identity</th>
-                    <th className="px-6 py-5 font-bold tracking-wide">Sys. Score</th>
-                    <th className="px-6 py-5 font-bold tracking-wide">Accuracy</th>
-                    <th className="px-6 py-5 font-bold tracking-wide">Submission Time</th>
-                    <th className="px-6 py-5 font-bold tracking-wide text-right">Evaluation Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {submissions.map((sub) => {
-                    const analytics = sub.analytics || {};
-                    const acc = analytics.accuracy || 0;
-                    
-                    return (
-                      <tr key={sub._id} className="hover:bg-slate-800/30 transition-colors group">
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-slate-200">{sub.student_email}</div>
-                          <div className="text-xs text-slate-500 font-mono mt-0.5">{sub.student_id}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-lg font-bold font-mono text-emerald-400 drop-shadow-md">
-                            {sub.total_score ?? sub.mcq_score}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                             <div className="w-12 bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                               <div 
-                                 className={`h-full ${acc > 70 ? 'bg-emerald-500' : acc > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                 style={{ width: `${acc}%` }}
-                               ></div>
-                             </div>
-                             <span className="text-sm font-semibold text-slate-300">{acc}%</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-slate-400">
-                            {new Date(sub.submitted_at).toLocaleString(undefined, {
-                              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                            })}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          {sub.pending_manual_review ? (
-                            <button className="flex items-center justify-end gap-2 w-full text-xs font-bold text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 px-3 py-1.5 rounded-lg border border-orange-500/20 transition cursor-pointer">
-                              <span className="relative flex h-2 w-2 mr-1">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-                              </span>
-                              Needs Review ({sub.coding_answers_count})
-                            </button>
-                          ) : (
-                            <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
-                              ✓ Evaluated
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+        </nav>
+      </aside>
+
+      {/* 🚀 MAIN CONTENT */}
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+        
+        {/* HEADER */}
+        <header className="h-20 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8">
+           <div className="flex items-center bg-slate-900 border border-slate-800 rounded-full px-4 py-2 w-96">
+             <Search size={16} className="text-slate-500" />
+             <input type="text" placeholder="Search students..." className="bg-transparent border-none outline-none text-sm text-slate-300 ml-3 w-full placeholder-slate-600" />
+           </div>
+           <div className="flex items-center gap-6">
+             <button className="relative text-slate-400 hover:text-white transition">
+               <Bell size={20} />
+               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-950"></span>
+             </button>
+             <div className="flex items-center gap-3 border-l border-slate-800 pl-6 cursor-pointer">
+               <div className="text-right">
+                 <div className="text-sm font-bold text-slate-200">Instructor Admin</div>
+                 <div className="text-xs text-blue-400 font-medium">Administrator</div>
+               </div>
+               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-0.5">
+                  <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
+                     <GraduationCap size={20} className="text-slate-200" />
+                  </div>
+               </div>
+             </div>
+           </div>
+        </header>
+
+        {/* DASHBOARD BODY */}
+        <div className="p-8 pb-20">
+          
+          <div className="mb-8 flex justify-between items-end">
+             <div>
+                <h1 className="text-2xl font-bold text-white mb-1">Instructor Ledger Dashboard</h1>
+                <p className="text-sm text-slate-400">Tracking aggregate cohort analytics for <span className="text-blue-400 font-medium">{examTitle}</span>.</p>
+             </div>
+             <div className="flex gap-3">
+                 <button 
+                   onClick={() => {
+                     const qid = prompt("Identify the natively generated broken Question ID (UUID):");
+                     if (!qid) return;
+                     const points = prompt("Specify explicit numerical Grace Override points to cascade mathematically:", "1");
+                     if (!points) return;
+                     handleGraceMark(qid, parseFloat(points));
+                   }}
+                   className="px-5 py-2.5 rounded-full bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-sm font-bold hover:bg-indigo-600/30 transition-colors flex items-center gap-2"
+                 >
+                   ⚡ Issue Grace Override
+                 </button>
+                 <button onClick={() => navigate(-1)} className="px-5 py-2.5 rounded-full bg-slate-900 border border-slate-800 text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+                   ← Back to Exams
+                 </button>
+             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* KPI 1: Needs Grading */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
+               <div className="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+               <h3 className="text-sm font-bold text-slate-400 mb-6 flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-blue-500"></div> Need to Grade
+               </h3>
+               <div className="flex items-center gap-6 mt-auto">
+                 <div className="relative w-20 h-20">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle cx="40" cy="40" r={radius} stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-800" />
+                      <circle cx="40" cy="40" r={radius} stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className={`${gradingCompletePercentage === 100 ? 'text-emerald-500' : 'text-blue-500'} stroke-current drop-shadow-[0_0_8px_rgba(59,130,246,0.5)] transition-all duration-1000`} strokeLinecap="round"/>
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center flex-col">
+                      <span className="text-lg font-bold">{gradingCompletePercentage}%</span>
+                    </div>
+                 </div>
+                 <div>
+                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Graded</p>
+                   <p className="text-3xl font-black text-slate-100">{totalSubmissions - pendingReviewCount}</p>
+                 </div>
+               </div>
+            </div>
+
+            {/* KPI 2: Active Students */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+               <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Active Students
+               </h3>
+               <div className="space-y-4 mt-6">
+                  <div className="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span className="text-xs font-semibold text-slate-400">Total Submissions</span>
+                    <span className="text-xl font-bold text-emerald-400">{totalSubmissions}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span className="text-xs font-semibold text-slate-400">Pending Review</span>
+                    <span className="text-xl font-bold text-orange-400">{pendingReviewCount}</span>
+                  </div>
+               </div>
+            </div>
+
+            {/* KPI 3: Max Payload */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+               <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-purple-500"></div> Max Exam Payload
+               </h3>
+               <div className="flex items-end gap-5 mt-6">
+                 <div>
+                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Points</p>
+                   <p className="text-5xl font-black text-slate-100">{totalMarks}</p>
+                 </div>
+                 <div className="flex-1 h-12 flex items-end gap-1 pb-1">
+                   {[40, 60, 30, 80, 50, 90, 100].map((h, i) => (
+                     <div key={i} className="flex-1 bg-purple-500/20 rounded-t-sm" style={{ height: `${h}%` }}>
+                       <div className="w-full bg-purple-500 rounded-t-sm" style={{ height: '3px' }}></div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* CHARTS GRID */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+              <h3 className="text-base font-bold text-slate-200 mb-6 font-sans">Exam Taken Times</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                    <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b', borderRadius: '8px' }} 
+                      itemStyle={{ color: '#60a5fa', fontWeight: 'bold' }}
+                    />
+                    <Area type="monotone" dataKey="val" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVal)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+              <h3 className="text-base font-bold text-slate-200 mb-6">Average Results Distribution</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={scoreDistribution} layout="vertical" margin={{ top: 0, right: 10, left: 20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+                    <XAxis type="number" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false}/>
+                    <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} width={80} />
+                    <Tooltip 
+                      cursor={{fill: '#1e293b', opacity: 0.4}}
+                      contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b', borderRadius: '8px' }} 
+                    />
+                    <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={20}>
+                      {scoreDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.type === 'strong' ? '#10b981' : entry.type === 'mid' ? '#eab308' : '#f43f5e'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
+
+          {/* TABLE */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+             <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-200">Browse test results</h3>
+             </div>
+
+             <div className="overflow-x-auto">
+               <table className="w-full text-left border-collapse">
+                 <thead>
+                   <tr className="bg-slate-950 border-b border-slate-800 text-[10px] uppercase font-bold tracking-widest text-slate-500">
+                     <th className="px-6 py-4">Student Identity</th>
+                     <th className="px-6 py-4">Total Score</th>
+                     <th className="px-6 py-4">Score Analytics</th>
+                     <th className="px-6 py-4">Status & Time</th>
+                     <th className="px-6 py-4 text-right">Action</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-slate-800/60">
+                   {submissions.length > 0 ? (
+                      submissions.map((sub, idx) => {
+                        const acc = sub.analytics?.accuracy || 0;
+                        return (
+                        <tr key={idx} className="hover:bg-slate-800/40 transition-colors group cursor-pointer">
+                           <td className="px-6 py-4">
+                             <div className="font-semibold text-slate-200 flex items-center gap-3">
+                               <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20 uppercase">
+                                 {sub.student_email ? sub.student_email[0] : "S"}
+                               </div>
+                               <div>
+                                  <div className="text-sm font-semibold">{sub.student_email || "Anonymous"}</div>
+                                  <div className="text-[10px] text-slate-500 font-mono mt-0.5 max-w-[150px] truncate">{sub.student_id || sub._id}</div>
+                               </div>
+                             </div>
+                           </td>
+                           <td className="px-6 py-4">
+                             <span className="text-lg font-black text-slate-200">
+                               {sub.total_score ?? sub.mcq_score}
+                             </span>
+                           </td>
+                           <td className="px-6 py-4">
+                              <div className="w-32 bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div 
+                                  className={`h-full ${acc > 70 ? 'bg-emerald-500' : acc > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                  style={{ width: `${acc}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-[10px] mt-1 font-semibold text-slate-400 block">{acc}% Accuracy</span>
+                           </td>
+                           <td className="px-6 py-4">
+                              <div className="text-sm font-medium text-slate-300">
+                                {sub.pending_manual_review 
+                                   ? <span className="text-orange-400 font-bold text-xs bg-orange-500/10 px-2 py-1 rounded">Needs Review</span> 
+                                   : <span className="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-1 rounded">Validated</span>
+                                }
+                              </div>
+                              <div className="text-xs text-slate-500 mt-1">
+                                {new Date(sub.submitted_at).toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}
+                              </div>
+                           </td>
+                           <td className="px-6 py-4 text-right">
+                             <button className="text-blue-400 text-sm font-semibold hover:text-blue-300 transition-colors opacity-0 group-hover:opacity-100 flex items-center justify-end gap-1 w-full border border-blue-500/20 bg-blue-500/10 px-3 py-1.5 rounded-lg">
+                               Open <span className="text-xs">↗</span>
+                             </button>
+                           </td>
+                        </tr>
+                      )})
+                   ) : (
+                     <tr>
+                        <td colSpan="5" className="px-6 py-12 text-center">
+                           <div className="flex flex-col items-center">
+                              <span className="text-4xl opacity-20 mb-3">🗂️</span>
+                              <p className="text-slate-500 font-medium text-sm">No submissions have been aggregated yet.</p>
+                           </div>
+                        </td>
+                     </tr>
+                   )}
+                 </tbody>
+               </table>
+             </div>
+          </div>
+
+        </div>
+      </main>
+
     </div>
   );
 }
