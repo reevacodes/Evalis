@@ -830,6 +830,58 @@ def get_all_submissions_for_exam(
 
 # ==========================
 # ==========================
+# 🔥 ISSUE GRACE MARKS (TEACHER/ADMIN)
+# ==========================
+@router.put("/{exam_id}/grace-mark")
+def apply_grace_marks_api(
+    exam_id: str,
+    payload: GraceMarkRequest,
+    user=Depends(get_current_user)
+):
+    try:
+        exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+        if not exam:
+            raise HTTPException(404, "Exam not found")
+            
+        role = user.get("role")
+        if role == "teacher" and exam.get("teacher_name") != user["sub"]:
+            raise HTTPException(403, "Not authorized to issue grace marks for this exam")
+        elif role not in ["admin", "teacher"]:
+            raise HTTPException(403, "Not authorized")
+            
+        # 1. Update the Exam Configuration globally
+        exam_collection.update_one(
+            {"_id": ObjectId(exam_id)},
+            {"$set": {
+                "grace_marks": payload.marks,
+                "grace_notes": payload.notes,
+                "grace_issued_by": user.get("sub"),
+                "grace_issued_at": datetime.utcnow()
+            }}
+        )
+        
+        # 2. Aggregation Pipeline to retroactively bulk-update ALL Submissions
+        # We add the marks natively via MongoDB vector addition
+        result = exam_submission_collection.update_many(
+            {"exam_id": exam_id},
+            [{"$set": {
+                "grace_marks": payload.marks,
+                "total_score": {"$add": [{"$ifNull": ["$mcq_score", 0]}, {"$ifNull": ["$coding_score", 0]}, payload.marks]}
+            }}]
+        )
+        
+        print(f"🔥 GRACE MARK CASCADED to {result.modified_count} SUBMISSIONS!")
+        
+        return {
+            "message": f"Successfully applied {payload.marks} Grace Marks across the roster.",
+            "modified_submissions": result.modified_count
+        }
+        
+    except Exception as e:
+        print("🔥 GRACE MARK ERROR:", str(e))
+        raise HTTPException(status_code=500, detail="Failed to cascade Grace Marks")
+
+# ==========================
 # 🔥 PUBLISH RESULTS (ADMIN)
 # ==========================
 @router.put("/{exam_id}/publish-results")

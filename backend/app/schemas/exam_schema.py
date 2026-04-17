@@ -7,8 +7,8 @@ class RescheduleRequest(BaseModel):
     preferred_time: datetime
 
 class GraceMarkRequest(BaseModel):
-    question_id: str
-    marks_to_add: float = 1.0
+    marks: float
+    notes: Optional[str] = None
 
 class ExamGenerateRequest(BaseModel):
     # REQUIRED FOR UPDATE FLOW

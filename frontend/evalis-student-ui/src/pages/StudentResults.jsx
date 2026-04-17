@@ -105,60 +105,10 @@ export default function StudentResults() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex overflow-hidden font-sans">
-      
-      {/* 🚀 SIDEBAR */}
-      <aside className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col hidden md:flex shrink-0">
-        <div className="h-20 flex items-center px-8 border-b border-slate-800">
-           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 rounded bg-indigo-500 flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30">E</div>
-             <span className="font-extrabold tracking-widest text-lg text-slate-100 uppercase">Evalis</span>
-           </div>
-        </div>
-
-        <nav className="flex-1 py-8 space-y-1">
-          <p className="px-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-4">Main Menu</p>
-          <NavItem icon={LayoutDashboard} text="Dashboard" />
-          <NavItem icon={BookOpen} text="Exams" />
-          <NavItem icon={Database} text="Results Database" active />
-          <NavItem icon={Layers} text="Analytics" />
-          <NavItem icon={Users} text="Community" />
-          
-          <div className="mt-8 mb-4">
-             <p className="px-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-4">Settings</p>
-             <NavItem icon={Settings} text="Preferences" />
-             <NavItem icon={HelpCircle} text="Help Center" />
-          </div>
-        </nav>
-      </aside>
-
+    <div className="bg-[#0b0f19] text-white flex font-sans">
       {/* 🚀 MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
-        
-        {/* HEADER */}
-        <header className="h-20 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8">
-           <div className="flex items-center bg-slate-900 border border-slate-800 rounded-full px-4 py-2 w-96">
-             <Search size={16} className="text-slate-500" />
-             <input type="text" placeholder="Search analytics..." className="bg-transparent border-none outline-none text-sm text-slate-300 ml-3 w-full placeholder-slate-600" />
-           </div>
-           <div className="flex items-center gap-6">
-             <button className="relative text-slate-400 hover:text-white transition">
-               <Bell size={20} />
-               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#020617]"></span>
-             </button>
-             <div className="flex items-center gap-3 border-l border-slate-800 pl-6 cursor-pointer">
-               <div className="text-right">
-                 <div className="text-sm font-bold text-slate-200">Hi, Student</div>
-                 <div className="text-xs text-indigo-400 font-medium">Candidate</div>
-               </div>
-               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 p-0.5">
-                  <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
-                     <GraduationCap size={20} className="text-slate-200" />
-                  </div>
-               </div>
-             </div>
-           </div>
-        </header>
+      <main className="flex-1 flex flex-col min-h-screen overflow-y-auto w-full">
+        {/* HEADER MOVED TO GLOBAL NAVBAR */}
 
         {/* DASHBOARD BODY */}
         <div className="p-8 pb-20">
@@ -168,14 +118,14 @@ export default function StudentResults() {
                 <h1 className="text-2xl font-bold text-white mb-1">Performance Analytics</h1>
                 <p className="text-sm text-slate-400">Deep dive into your attempt for <span className="text-indigo-400 font-medium">{data.exam_title}</span>.</p>
              </div>
-             <button onClick={() => navigate("/student")} className="px-5 py-2.5 rounded-full bg-slate-900 border border-slate-800 text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+             <button onClick={() => navigate("/student")} className="px-5 py-2.5 rounded-full bg-[#151c2c] border border-white/10 text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
                ← Back
              </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* KPI 1: Accuracy */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
+            <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
                <div className="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
                <h3 className="text-sm font-bold text-slate-400 mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div> System Accuracy</h3>
                <div className="flex items-center gap-6 mt-auto">
@@ -196,14 +146,14 @@ export default function StudentResults() {
             </div>
 
             {/* KPI 2: MCQs */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+            <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
                <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> MCQ Interactions</h3>
                <div className="space-y-4 mt-6">
-                  <div className="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/10">
                     <span className="text-xs font-semibold text-slate-400">Total Valid Output</span>
                     <span className="text-lg font-bold text-emerald-400">{analytics.correct_mcqs}</span>
                   </div>
-                  <div className="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/10">
                     <span className="text-xs font-semibold text-slate-400">Attempted</span>
                     <span className="text-lg font-bold text-slate-200">{analytics.attempted_mcqs} / {analytics.total_mcqs}</span>
                   </div>
@@ -211,7 +161,7 @@ export default function StudentResults() {
             </div>
 
             {/* KPI 3: Coding */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+            <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
                <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-orange-500"></div> Coding Submissions</h3>
                <div className="flex items-end gap-5 mt-6">
                  <div>
@@ -232,7 +182,7 @@ export default function StudentResults() {
           {/* CHARTS GRID */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+            <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 shadow-lg">
               <h3 className="text-base font-bold text-slate-200 mb-6">Performance Timeline</h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -256,14 +206,14 @@ export default function StudentResults() {
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+            <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 shadow-lg">
               <h3 className="text-base font-bold text-slate-200 mb-6">Topic Breakdown (SWOT)</h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={topicData} layout="vertical" margin={{ top: 0, right: 10, left: 20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
                     <XAxis type="number" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false}/>
-                    <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} width={100} />
+                    <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} width={130} tickFormatter={(val) => val.length > 18 ? val.substring(0, 18) + "..." : val} />
                     <Tooltip 
                       cursor={{fill: '#1e293b', opacity: 0.4}}
                       contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b', borderRadius: '8px' }} 
@@ -281,8 +231,8 @@ export default function StudentResults() {
           </div>
 
           {/* TABLE */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-             <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-[#151c2c] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+             <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-200">Coding Solutions Ledger</h3>
                 {sub.pending_manual_review ? (
                    <span className="px-3 py-1 flex items-center gap-2 text-xs font-bold rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
@@ -298,7 +248,7 @@ export default function StudentResults() {
              <div className="overflow-x-auto">
                <table className="w-full text-left border-collapse">
                  <thead>
-                   <tr className="bg-slate-950 border-b border-slate-800 text-[10px] uppercase font-bold tracking-widest text-slate-500">
+                   <tr className="bg-white/5 border-b border-white/10 text-[10px] uppercase font-bold tracking-widest text-slate-500">
                      <th className="px-6 py-4">Question Vector</th>
                      <th className="px-6 py-4">Language Stack</th>
                      <th className="px-6 py-4">Status</th>

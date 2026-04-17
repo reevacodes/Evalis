@@ -117,60 +117,11 @@ export default function InstructorSubmissions() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex overflow-hidden font-sans">
-      
-      {/* 🚀 SIDEBAR */}
-      <aside className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col hidden md:flex shrink-0">
-        <div className="h-20 flex items-center px-8 border-b border-slate-800">
-           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center font-bold shadow-lg shadow-blue-500/30">E</div>
-             <span className="font-extrabold tracking-widest text-lg text-slate-100 uppercase">Evalis</span>
-           </div>
-        </div>
-
-        <nav className="flex-1 py-8 space-y-1">
-          <p className="px-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-4">Instructor</p>
-          <NavItem icon={LayoutDashboard} text="Dashboard" />
-          <NavItem icon={BookOpen} text="Exams" />
-          <NavItem icon={Database} text="Ledgers" active />
-          <NavItem icon={Layers} text="Analytics" />
-          <NavItem icon={Users} text="Students" />
-          
-          <div className="mt-8 mb-4">
-             <p className="px-6 text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-4">Settings</p>
-             <NavItem icon={Settings} text="Preferences" />
-             <NavItem icon={HelpCircle} text="Help Center" />
-          </div>
-        </nav>
-      </aside>
-
+    <div className="bg-[#0b0f19] text-white flex font-sans">
       {/* 🚀 MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+      <main className="flex-1 flex flex-col min-h-screen overflow-y-auto w-full">
         
-        {/* HEADER */}
-        <header className="h-20 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-8">
-           <div className="flex items-center bg-slate-900 border border-slate-800 rounded-full px-4 py-2 w-96">
-             <Search size={16} className="text-slate-500" />
-             <input type="text" placeholder="Search students..." className="bg-transparent border-none outline-none text-sm text-slate-300 ml-3 w-full placeholder-slate-600" />
-           </div>
-           <div className="flex items-center gap-6">
-             <button className="relative text-slate-400 hover:text-white transition">
-               <Bell size={20} />
-               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-950"></span>
-             </button>
-             <div className="flex items-center gap-3 border-l border-slate-800 pl-6 cursor-pointer">
-               <div className="text-right">
-                 <div className="text-sm font-bold text-slate-200">Instructor Admin</div>
-                 <div className="text-xs text-blue-400 font-medium">Administrator</div>
-               </div>
-               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-0.5">
-                  <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
-                     <GraduationCap size={20} className="text-slate-200" />
-                  </div>
-               </div>
-             </div>
-           </div>
-        </header>
+        {/* HEADER MOVED TO GLOBAL NAVBAR */}
 
         {/* DASHBOARD BODY */}
         <div className="p-8 pb-20">
@@ -193,7 +144,7 @@ export default function InstructorSubmissions() {
                  >
                    ⚡ Issue Grace Override
                  </button>
-                 <button onClick={() => navigate(-1)} className="px-5 py-2.5 rounded-full bg-slate-900 border border-slate-800 text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+                 <button onClick={() => navigate(-1)} className="px-5 py-2.5 rounded-full bg-[#151c2c] border border-slate-800 text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
                    ← Back to Exams
                  </button>
              </div>
@@ -201,7 +152,7 @@ export default function InstructorSubmissions() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* KPI 1: Needs Grading */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
+            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
                <div className="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
                <h3 className="text-sm font-bold text-slate-400 mb-6 flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-blue-500"></div> Need to Grade
@@ -224,7 +175,7 @@ export default function InstructorSubmissions() {
             </div>
 
             {/* KPI 2: Active Students */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
                <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Active Students
                </h3>
@@ -241,7 +192,7 @@ export default function InstructorSubmissions() {
             </div>
 
             {/* KPI 3: Max Payload */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
                <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-purple-500"></div> Max Exam Payload
                </h3>
@@ -264,7 +215,7 @@ export default function InstructorSubmissions() {
           {/* CHARTS GRID */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 shadow-lg">
               <h3 className="text-base font-bold text-slate-200 mb-6 font-sans">Exam Taken Times</h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -288,7 +239,7 @@ export default function InstructorSubmissions() {
               </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 shadow-lg">
               <h3 className="text-base font-bold text-slate-200 mb-6">Average Results Distribution</h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -313,7 +264,7 @@ export default function InstructorSubmissions() {
           </div>
 
           {/* TABLE */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="bg-[#151c2c] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
              <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-200">Browse test results</h3>
              </div>
