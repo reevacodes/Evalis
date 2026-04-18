@@ -2,11 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import MCQSection from "../components/MCQSection";
 import CodingSection from "../components/CodingSection";
 import ExamHeader from "../components/ExamHeader";
-import { fetchExam, submitExam } from "../services/api";
+import { fetchExam, fetchPastPaper, submitExam, submitPractice } from "../services/api";
 import { useParams, useNavigate } from "react-router-dom";
 import SuccessModal from "../components/SuccessModal";
 
-export default function ExamPage() {
+export default function ExamPage({ isPractice = false }) {
   const { examId } = useParams();
   const navigate = useNavigate();
   
@@ -45,7 +45,7 @@ export default function ExamPage() {
           setCodingAnswers(parsed.coding || {});
         }
 
-        const res = await fetchExam(examId);
+        const res = isPractice ? await fetchPastPaper(examId) : await fetchExam(examId);
         const data = res;
 
         console.log("FULL DATA:", data); // 🔥 add this
@@ -58,11 +58,13 @@ export default function ExamPage() {
         }
 
         // ✅ NEW: time status from backend
-        setTimeStatus(data.time_status || "scheduled");
-        // ✅ NEW: calculate start & end time
-        if (data.start_time) {
-          const start = new Date(data.start_time);
-          const end = new Date(start.getTime() + data.duration_minutes * 60000);
+        // Bypass time constraints entirely for practice mode.
+        setTimeStatus(isPractice || data.mode === "practice" ? "active" : (data.time_status || "scheduled"));
+        
+        // ✅ NEW: calculate start & end time (Past papers optionally have a duration_minutes)
+        if (data.start_time || isPractice) {
+          const start = data.start_time ? new Date(data.start_time) : new Date();
+          const end = new Date(start.getTime() + (data.duration_minutes || 60) * 60000);
 
           setStartTime(start);
           setEndTime(end);
@@ -155,19 +157,35 @@ export default function ExamPage() {
     submittedRef.current = true;
 
     try {
-      await submitExam({
-        examId,
-        mcq_answers: answers,
-        coding_answers: codingAnswers,
-      });
+      if (isPractice) {
+          const res = await submitPractice(examId, {
+              mcq_answers: answers,
+              coding_answers: codingAnswers
+          });
+          
+          setSuccessMessage("Practice Exam Finished! Analytics Generated.");
+          setShowSuccessModal(true);
+          localStorage.removeItem(storageKey);
+          
+          setTimeout(() => {
+              navigate(`/student/practice-result/${examId}`, { state: res.data });
+          }, 2500);
 
-      setSuccessMessage("Your exam data has been securely recorded.");
-      setShowSuccessModal(true);
-      localStorage.removeItem(storageKey);
+      } else {
+          await submitExam({
+            examId,
+            mcq_answers: answers,
+            coding_answers: codingAnswers,
+          });
 
-      setTimeout(() => {
-        navigate(`/student/results/${examId}`);
-      }, 2500);
+          setSuccessMessage("Your exam data has been securely recorded.");
+          setShowSuccessModal(true);
+          localStorage.removeItem(storageKey);
+
+          setTimeout(() => {
+            navigate(`/student/results/${examId}`);
+          }, 2500);
+      }
       
     } catch {
       alert("❌ Submission failed");
@@ -181,19 +199,33 @@ export default function ExamPage() {
     submittedRef.current = true;
 
     try {
-      await submitExam({
-        examId,
-        mcq_answers: answers,
-        coding_answers: codingAnswers,
-      });
+      if (isPractice) {
+          const res = await submitPractice(examId, {
+            mcq_answers: answers,
+            coding_answers: codingAnswers,
+          });
+          setSuccessMessage("Time expired! Practice Exam Finished.");
+          setShowSuccessModal(true);
+          localStorage.removeItem(storageKey);
 
-      setSuccessMessage("Time expired! Your exam was auto-submitted.");
-      setShowSuccessModal(true);
-      localStorage.removeItem(storageKey);
+          setTimeout(() => {
+            navigate(`/student/practice-result/${examId}`, { state: res.data });
+          }, 2500);
+      } else {
+          await submitExam({
+            examId,
+            mcq_answers: answers,
+            coding_answers: codingAnswers,
+          });
 
-      setTimeout(() => {
-        navigate(`/student/results/${examId}`);
-      }, 2500);
+          setSuccessMessage("Time expired! Your exam was auto-submitted.");
+          setShowSuccessModal(true);
+          localStorage.removeItem(storageKey);
+
+          setTimeout(() => {
+            navigate(`/student/results/${examId}`);
+          }, 2500);
+      }
       
     } catch {
       alert("Auto submission failed");
@@ -218,8 +250,8 @@ export default function ExamPage() {
     return <div className="text-white p-6">Loading exam status...</div>;
   }
 
-  // ⏳ NOT STARTED
-  if (timeStatus === "scheduled") {
+  // ⏳ NOT STARTED (Only if NOT practice mode)
+  if (timeStatus === "scheduled" && !isPractice) {
     return (
       <div className="h-screen flex items-center justify-center text-white flex-col gap-2">
         <p className="text-lg text-blue-400">Exam not started yet</p>

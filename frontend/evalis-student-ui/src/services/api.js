@@ -132,6 +132,26 @@ export const fetchExamSubmissions = (examId) =>
   API.get(`/exam/${examId}/submissions`);
 
 // =========================
+// 📚 PAST PAPERS & PRACTICE
+// =========================
+
+export const getPastPapers = () =>
+  API.get("/past-papers");
+
+export const fetchPastPaper = (paperId) =>
+  API.get(`/past-papers/${paperId}`);
+
+export const submitPractice = (paperId, payload) =>
+  API.post(`/past-papers/${paperId}/practice-attempts`, payload);
+
+// =========================
+// 🌐 CURRICULUM
+// =========================
+
+export const fetchCurriculum = (semester) =>
+  API.get(`/curriculum/${semester}`);
+
+// =========================
 // 📚 QUESTION BANK
 // =========================
 

@@ -1,11 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../services/api";
+import API, { getPastPapers, fetchCurriculum } from "../services/api";
 import RescheduleModal from "../components/RescheduleModal";
 
 export default function StudentDashboard() {
+  const [activeTab, setActiveTab] = useState("live"); // 'live' | 'practice'
   const [exams, setExams] = useState([]);
+  const [pastPapers, setPastPapers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingPractice, setLoadingPractice] = useState(false);
+  
+  // Accordion Controller States
+  const [expandedNodes, setExpandedNodes] = useState({});
+  const toggleNode = (nodeId) => setExpandedNodes((prev) => ({ ...prev, [nodeId]: !prev[nodeId] }));
+
   const [selectedExam, setSelectedExam] = useState(null); // 🔥 for modal
   const [rescheduleData, setRescheduleData] = useState({ isOpen: false, examId: null });
   const navigate = useNavigate();
@@ -51,8 +59,21 @@ export default function StudentDashboard() {
     }
   };
 
+  const fetchPracticePapers = async () => {
+    setLoadingPractice(true);
+    try {
+      const res = await getPastPapers();
+      setPastPapers(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch past papers", err);
+    } finally {
+      setLoadingPractice(false);
+    }
+  };
+
   useEffect(() => {
     fetchExams();
+    fetchPracticePapers();
   }, []);
 
   // =========================
@@ -105,11 +126,28 @@ export default function StudentDashboard() {
   // =========================
   return (
     <div className="min-h-screen bg-slate-950 text-white p-6">
-      <h1 className="text-2xl font-semibold mb-6">Available Exams</h1>
+      
+      {/* 🟢 TABS HEADER */}
+      <div className="flex items-center gap-6 mb-8 border-b border-slate-800 pb-3">
+        <button 
+          onClick={() => setActiveTab("live")}
+          className={`text-xl font-semibold transition-colors ${activeTab === 'live' ? 'text-white border-b-2 border-blue-500 pb-2 -mb-[14px]' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          Live Exams
+        </button>
+        <button 
+          onClick={() => setActiveTab("practice")}
+          className={`text-xl font-semibold transition-colors ${activeTab === 'practice' ? 'text-white border-b-2 border-purple-500 pb-2 -mb-[14px]' : 'text-slate-500 hover:text-slate-300'}`}
+        >
+          Previous Year Papers
+        </button>
+      </div>
 
-      {loading ? (
-        <p className="text-slate-400">Loading exams...</p>
-      ) : exams.length === 0 ? (
+      {activeTab === "live" ? (
+        <>
+          {loading ? (
+            <p className="text-slate-400">Loading exams...</p>
+          ) : exams.length === 0 ? (
         <div className="text-center text-slate-400 mt-10">
           <p className="text-lg">No exams available</p>
           <p className="text-sm mt-2">
@@ -227,6 +265,17 @@ export default function StudentDashboard() {
           })}
         </div>
       )}
+      </>
+      ) : (
+        /* 🟠 PRACTICE ARENA HIERARCHY TAB */
+        <PracticeHierarchy 
+            pastPapers={pastPapers} 
+            loadingPractice={loadingPractice} 
+            navigate={navigate} 
+            expandedNodes={expandedNodes}
+            toggleNode={toggleNode}
+        />
+      )}
 
       {/* 🔥 GUIDELINES MODAL */}
       {/* 🔥 RESCHEDULE MODAL */}
@@ -268,4 +317,179 @@ export default function StudentDashboard() {
       )}
     </div>
   );
+}
+
+// ==========================================
+// 📂 STATIC LAZY-LOAD HIERARCHICAL FOLDER TREE
+// ==========================================
+const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
+    // Standard Scale Variables
+    const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
+    const years = [2025, 2024, 2023, 2022, 2021, 2020];
+
+    // Local Tree State
+    const [expandedSemesters, setExpandedSemesters] = useState({});
+    const [expandedSubjects, setExpandedSubjects] = useState({});
+    const [expandedYears, setExpandedYears] = useState({});
+
+    // Caching Subjects Fetched dynamically from Backend (/curriculum)
+    const [subjectCache, setSubjectCache] = useState({});
+    const [loadingSubjects, setLoadingSubjects] = useState({}); // tracking active network fetches
+
+    // Toggler: Semester
+    const toggleSemester = async (sem) => {
+        const isCurrentlyOpen = expandedSemesters[sem];
+        setExpandedSemesters(prev => ({ ...prev, [sem]: !isCurrentlyOpen }));
+
+        // Lazy Load Ping! If we haven't fetched subjects for this semester yet, grab them!
+        if (!isCurrentlyOpen && !subjectCache[sem]) {
+            try {
+                setLoadingSubjects(prev => ({ ...prev, [sem]: true }));
+                const res = await fetchCurriculum(sem);
+                
+                // Curriculum API returns: { semester: N, subjects: [ {name, code}, ... ] }
+                setSubjectCache(prev => ({ ...prev, [sem]: res.data?.subjects || [] }));
+            } catch (err) {
+                console.error(`Failed to fetch subjects for Semester ${sem}`, err);
+                setSubjectCache(prev => ({ ...prev, [sem]: [] })); // Set empty on fail to prevent refetch loops
+            } finally {
+                setLoadingSubjects(prev => ({ ...prev, [sem]: false }));
+            }
+        }
+    };
+
+    const toggleSubject = (sem, subjCode) => {
+        const key = `${sem}_${subjCode}`;
+        setExpandedSubjects(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const toggleYear = (sem, subjCode, year) => {
+        const key = `${sem}_${subjCode}_${year}`;
+        setExpandedYears(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    // Filter Helper: matches dynamically fetched Past Papers against our static tree location
+    const getPapersForNode = (sem, subjCode, year) => {
+        if (!pastPapers) return [];
+        return pastPapers.filter(p => 
+            p.semester === sem && 
+            p.subject_code && p.subject_code.includes(subjCode) && 
+            p.year === year
+        );
+    };
+
+    if (loadingPractice) return <p className="text-slate-400">Booting infrastructure...</p>;
+
+    return (
+        <div className="flex flex-col gap-4">
+            {semesters.map(sem => {
+               const semOpen = expandedSemesters[sem];
+               const hasLoadedSubjects = !!subjectCache[sem];
+               const isFetching = loadingSubjects[sem];
+
+               return (
+                <div key={sem} className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-md">
+                    
+                    {/* 🔹 LEVEL 1: SEMESTER FOLDER */}
+                    <button 
+                        onClick={() => toggleSemester(sem)}
+                        className="w-full flex justify-between items-center bg-slate-800 p-5 hover:bg-slate-700 transition"
+                    >
+                        <span className="text-xl font-bold text-white flex items-center gap-3">
+                            <span className="text-blue-500 text-2xl">{semOpen ? '📂' : '📁'}</span>
+                            Semester {sem}
+                        </span>
+                        <span className="text-slate-400 text-sm font-semibold">{semOpen ? '▼ Collapse' : '▶ Expand'}</span>
+                    </button>
+
+                    {/* 🔹 LEVEL 2: SUBJECTS LISTING */}
+                    {semOpen && (
+                        <div className="p-4 pl-10 border-t border-slate-800 bg-slate-950/20 flex flex-col gap-4">
+                            {isFetching ? (
+                                <p className="text-purple-400 animate-pulse font-mono text-sm">Ping: Querying Question Bank for subjects...</p>
+                            ) : hasLoadedSubjects && subjectCache[sem].length === 0 ? (
+                                <p className="text-slate-500 italic">No formal subjects registered in curriculum for Semester {sem}.</p>
+                            ) : hasLoadedSubjects ? (
+                                subjectCache[sem].map((subject) => {
+                                    const subjOpen = expandedSubjects[`${sem}_${subject.code}`];
+
+                                    return (
+                                        <div key={subject.code} className="border border-slate-700/50 rounded-lg overflow-hidden bg-slate-900/50">
+                                            
+                                            <button 
+                                                onClick={() => toggleSubject(sem, subject.code)} 
+                                                className="w-full text-left p-4 hover:bg-slate-800 transition flex justify-between items-center"
+                                            >
+                                                <span className="text-lg font-bold text-purple-400 flex items-center gap-2">
+                                                    <span className="opacity-70">🏷️</span> {subject.name} [{subject.code}]
+                                                </span>
+                                            </button>
+
+                                            {/* 🔹 LEVEL 3: YEARS (2020 - 2025) */}
+                                            {subjOpen && (
+                                                <div className="p-4 pl-8 border-t border-slate-700/50 flex flex-col gap-3">
+                                                    {years.map(year => {
+                                                        const yearOpen = expandedYears[`${sem}_${subject.code}_${year}`];
+                                                        const matchingPapers = getPapersForNode(sem, subject.code, year);
+
+                                                        return (
+                                                            <div key={year} className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+                                                                <button 
+                                                                    onClick={() => toggleYear(sem, subject.code, year)} 
+                                                                    className="w-full text-left flex justify-between items-center text-slate-300 font-semibold hover:text-white"
+                                                                >
+                                                                    <span className="flex items-center gap-2">
+                                                                        <span className="opacity-50">⏳</span> {year} Session
+                                                                        {matchingPapers.length > 0 && (
+                                                                           <span className="ml-3 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                                                                               {matchingPapers.length} Available
+                                                                           </span>
+                                                                        )}
+                                                                    </span>
+                                                                </button>
+
+                                                                {/* 🔹 LEVEL 4: PAPERS LEAF NODE */}
+                                                                {yearOpen && (
+                                                                    <div className="mt-4 flex flex-col gap-3 pl-4 border-l-2 border-slate-800">
+                                                                        {matchingPapers.length === 0 ? (
+                                                                            <p className="text-sm text-slate-500 italic p-2 border border-dashed border-slate-800 rounded-lg">
+                                                                                No sample papers uploaded for this cycle yet.
+                                                                            </p>
+                                                                        ) : (
+                                                                            matchingPapers.map((paper) => (
+                                                                                <div key={paper._id} className="bg-slate-900 border border-slate-700 p-4 rounded-lg flex justify-between items-center hover:border-purple-500 transition shadow-sm">
+                                                                                    <div>
+                                                                                        <h3 className="font-bold text-white text-lg">{paper.exam_name}</h3>
+                                                                                        <p className="text-sm text-slate-400 mt-1">
+                                                                                            Format: <span className="text-white font-mono bg-slate-800 px-2 py-0.5 rounded mr-2">{paper.pattern || 'MIXED'}</span>
+                                                                                            {paper.duration_minutes} Mins
+                                                                                        </p>
+                                                                                    </div>
+                                                                                    <button 
+                                                                                        onClick={() => navigate(`/student/practice/${paper._id}`)}
+                                                                                        className="px-6 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg font-bold hover:bg-purple-600 hover:text-white transition"
+                                                                                    >
+                                                                                        Initialize
+                                                                                    </button>
+                                                                                </div>
+                                                                            ))
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                })
+                            ) : null}
+                        </div>
+                    )}
+                </div>
+               )
+            })}
+        </div>
+    )
 }

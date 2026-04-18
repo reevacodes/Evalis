@@ -28,6 +28,10 @@ exam_submission_collection = db["exam_submissions"]
 # Full history (multiple entries)
 submission_history_collection = db["submission_history"]
 
+# 📚 PAST PAPERS & PRACTICE
+past_papers_collection = db["past_papers"]
+practice_attempts_collection = db["practice_attempts"]
+
 
 # INDEXES
 

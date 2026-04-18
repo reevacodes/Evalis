@@ -21,6 +21,7 @@ import ExamFinalized from "./pages/ExamFinalized";
 import PublishExam from "./pages/PublishExam";
 import Landing from "./pages/Landing";
 import StudentResults from "./pages/StudentResults";
+import PracticeResultPage from "./pages/PracticeResultPage";
 import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
 import AdminLayout from "./components/AdminLayout";
@@ -43,7 +44,9 @@ function AppContent() {
         {/* PUBLIC */}
         <Route path="/" element={<Landing />} />
 
-        <Route path="/student/exam/:examId" element={<ExamPage />} />
+        <Route path="/student/exam/:examId" element={<ExamPage isPractice={false} />} />
+        <Route path="/student/practice/:examId" element={<ExamPage isPractice={true} />} />
+        <Route path="/student/practice-result/:examId" element={<PracticeResultPage />} />
         {/* <Route path="/results" element={<ResultPage />} /> */}
 
         {/* 🔥 Question Bank */}
