@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Folder, FolderOpen, BookOpen, Clock, ChevronRight, ChevronDown, CheckCircle } from "lucide-react";
 import API, { getPastPapers, fetchCurriculum } from "../services/api";
 import RescheduleModal from "../components/RescheduleModal";
 
@@ -393,22 +395,32 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                     {/* 🔹 LEVEL 1: SEMESTER FOLDER */}
                     <button 
                         onClick={() => toggleSemester(sem)}
-                        className="w-full flex justify-between items-center bg-slate-800 p-5 hover:bg-slate-700 transition"
+                        className="w-full flex justify-between items-center bg-slate-800 p-5 hover:bg-slate-700 transition group"
                     >
                         <span className="text-xl font-bold text-white flex items-center gap-3">
-                            <span className="text-blue-500 text-2xl">{semOpen ? '📂' : '📁'}</span>
+                            {semOpen ? <FolderOpen className="text-blue-400 w-6 h-6" /> : <Folder className="text-blue-500 w-6 h-6 group-hover:text-blue-400 transition" />}
                             Semester {sem}
                         </span>
-                        <span className="text-slate-400 text-sm font-semibold">{semOpen ? '▼ Collapse' : '▶ Expand'}</span>
+                        <span className="text-slate-400 text-sm font-semibold flex items-center gap-1">
+                            {semOpen ? <ChevronDown className="w-5 h-5 text-blue-400" /> : <ChevronRight className="w-5 h-5" />}
+                        </span>
                     </button>
 
                     {/* 🔹 LEVEL 2: SUBJECTS LISTING */}
+                    <AnimatePresence initial={false}>
                     {semOpen && (
+                        <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                        >
                         <div className="p-4 pl-10 border-t border-slate-800 bg-slate-950/20 flex flex-col gap-4">
                             {isFetching ? (
-                                <p className="text-purple-400 animate-pulse font-mono text-sm">Ping: Querying Question Bank for subjects...</p>
+                                <p className="text-purple-400 animate-pulse font-mono text-sm py-2">Ping: Querying Question Bank for subjects...</p>
                             ) : hasLoadedSubjects && subjectCache[sem].length === 0 ? (
-                                <p className="text-slate-500 italic">No formal subjects registered in curriculum for Semester {sem}.</p>
+                                <p className="text-slate-500 italic py-2">No formal subjects registered in curriculum for Semester {sem}.</p>
                             ) : hasLoadedSubjects ? (
                                 subjectCache[sem].map((subject) => {
                                     const subjOpen = expandedSubjects[`${sem}_${subject.code}`];
@@ -420,37 +432,59 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                                 onClick={() => toggleSubject(sem, subject.code)} 
                                                 className="w-full text-left p-4 hover:bg-slate-800 transition flex justify-between items-center"
                                             >
-                                                <span className="text-lg font-bold text-purple-400 flex items-center gap-2">
-                                                    <span className="opacity-70">🏷️</span> {subject.name} [{subject.code}]
+                                                <span className="text-lg font-bold text-purple-400 flex items-center gap-2.5">
+                                                    <BookOpen className="w-5 h-5 opacity-90" /> {subject.name} <span className="opacity-60 text-sm tracking-wide ml-1">[{subject.code}]</span>
+                                                </span>
+                                                <span className="text-slate-500">
+                                                    {subjOpen ? <ChevronDown className="w-4 h-4 text-purple-400" /> : <ChevronRight className="w-4 h-4" />}
                                                 </span>
                                             </button>
 
                                             {/* 🔹 LEVEL 3: YEARS (2020 - 2025) */}
+                                            <AnimatePresence initial={false}>
                                             {subjOpen && (
+                                                <motion.div 
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: "auto", opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                                                    className="overflow-hidden"
+                                                >
                                                 <div className="p-4 pl-8 border-t border-slate-700/50 flex flex-col gap-3">
                                                     {years.map(year => {
                                                         const yearOpen = expandedYears[`${sem}_${subject.code}_${year}`];
                                                         const matchingPapers = getPapersForNode(sem, subject.code, year);
 
                                                         return (
-                                                            <div key={year} className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+                                                            <div key={year} className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
                                                                 <button 
                                                                     onClick={() => toggleYear(sem, subject.code, year)} 
-                                                                    className="w-full text-left flex justify-between items-center text-slate-300 font-semibold hover:text-white"
+                                                                    className="w-full text-left flex justify-between items-center text-slate-300 font-semibold hover:text-white p-1"
                                                                 >
-                                                                    <span className="flex items-center gap-2">
-                                                                        <span className="opacity-50">⏳</span> {year} Session
+                                                                    <span className="flex items-center gap-2.5">
+                                                                        <Clock className="w-4 h-4 text-slate-500" /> {year} Session
                                                                         {matchingPapers.length > 0 && (
-                                                                           <span className="ml-3 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
-                                                                               {matchingPapers.length} Available
+                                                                           <span className="ml-3 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full flex items-center gap-1">
+                                                                               <CheckCircle className="w-3 h-3" /> {matchingPapers.length} Available
                                                                            </span>
                                                                         )}
+                                                                    </span>
+                                                                    <span className="text-slate-600">
+                                                                        {yearOpen ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4" />}
                                                                     </span>
                                                                 </button>
 
                                                                 {/* 🔹 LEVEL 4: PAPERS LEAF NODE */}
+                                                                <AnimatePresence initial={false}>
                                                                 {yearOpen && (
-                                                                    <div className="mt-4 flex flex-col gap-3 pl-4 border-l-2 border-slate-800">
+                                                                    <motion.div 
+                                                                        initial={{ height: 0, opacity: 0 }}
+                                                                        animate={{ height: "auto", opacity: 1 }}
+                                                                        exit={{ height: 0, opacity: 0 }}
+                                                                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                                                                        className="overflow-hidden"
+                                                                    >
+                                                                    <div className="mt-3 flex flex-col gap-3 pl-4 border-l-2 border-slate-800 pt-1 pb-2">
                                                                         {matchingPapers.length === 0 ? (
                                                                             <p className="text-sm text-slate-500 italic p-2 border border-dashed border-slate-800 rounded-lg">
                                                                                 No sample papers uploaded for this cycle yet.
@@ -475,18 +509,24 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                                                             ))
                                                                         )}
                                                                     </div>
+                                                                    </motion.div>
                                                                 )}
+                                                                </AnimatePresence>
                                                             </div>
                                                         )
                                                     })}
                                                 </div>
+                                                </motion.div>
                                             )}
+                                            </AnimatePresence>
                                         </div>
                                     )
                                 })
                             ) : null}
                         </div>
+                        </motion.div>
                     )}
+                    </AnimatePresence>
                 </div>
                )
             })}
