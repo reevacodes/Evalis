@@ -22,6 +22,9 @@ reschedule_collection = db["reschedule_requests"]
 # Latest submissions (1 per user + question)
 submission_collection = db["submissions"]
 
+# Global Notifications (Cross-platform inbox)
+notification_collection = db["notifications"]
+
 # Exam Submissions (Entire student test papers & analytics)
 exam_submission_collection = db["exam_submissions"]
 

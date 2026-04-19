@@ -11,7 +11,8 @@ from app.database import (
     question_collection,
     user_collection,
     reschedule_collection,
-    exam_submission_collection
+    exam_submission_collection,
+    notification_collection
 )
 from app.models.question_model import question_helper
 from app.services.exam_service import generate_exam
@@ -901,6 +902,24 @@ def publish_results_api(
             {"$set": {"is_results_published": not current_val}}
         )
         
+        # 📌 NOTIFICATION TRIGGER
+        if not current_val: # Only notify if turning ON publishing
+            submissions = exam_submission_collection.find({"exam_id": exam_id})
+            notifications = []
+            for sub in submissions:
+                notifications.append({
+                    "user_id": sub["student_id"],
+                    "title": "Exam Results Published",
+                    "message": f"Results for '{exam.get('exam_name', exam.get('title'))}' have been mathematically cleared and published by your instructor.",
+                    "type": "exam",
+                    "link": f"/exam/submissions/{exam_id}/me",
+                    "is_read": False,
+                    "created_at": datetime.utcnow()
+                })
+            
+            if notifications:
+                notification_collection.insert_many(notifications)
+        
         return {"message": "Results visibility toggled", "is_results_published": not current_val}
         
     except Exception as e:
@@ -1228,6 +1247,18 @@ def update_reschedule_request(
                 }
             }}
         )
+        
+    # 📌 NOTIFICATION TRIGGER
+    exam_data = exam_collection.find_one({"_id": ObjectId(req["exam_id"])})
+    exam_name = exam_data.get("exam_name", "Exam") if exam_data else "Exam"
+    notification_collection.insert_one({
+        "user_id": req["student_id"],
+        "title": "Reschedule Request " + status.capitalize(),
+        "message": f"Your request to reschedule {exam_name} was {status}.",
+        "type": "alert",
+        "is_read": False,
+        "created_at": datetime.utcnow()
+    })
     
     return {"message": f"Request {status} successfully"}
 

@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, M
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '../../src/api/client';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
     const [user, setUser] = useState<any>(null);
     const [exams, setExams] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const router = useRouter();
 
     // Reschedule Modal State
@@ -31,6 +33,11 @@ export default function DashboardScreen() {
             // Standardize array shape depending on backend wrapper
             const validExamsArray = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.exams) ? rawData.exams : []);
             setExams(validExamsArray);
+
+            // Fetch Notifications for Unread Tick
+            const notifRes = await API.get('/notifications/me');
+            const hits = notifRes.data.notifications || [];
+            setUnreadCount(hits.filter((n: any) => !n.is_read).length);
         } catch (err) {
             console.error("Failed loading dashboard data", err);
         } finally {
@@ -94,9 +101,15 @@ export default function DashboardScreen() {
                     <Text style={styles.name}>{user?.name || 'Student'}</Text>
                     <Text style={styles.subtext}>{user?.email || 'Unknown'}</Text>
                 </View>
-                <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-                    <Text style={styles.logoutText}>Log Out</Text>
-                </TouchableOpacity>
+                <View style={styles.headerRight}>
+                    <TouchableOpacity onPress={() => router.push('/notifications')} style={styles.bellBtn}>
+                        <Ionicons name="notifications-outline" size={24} color="#cbd5e1" />
+                        {unreadCount > 0 && <View style={styles.unreadBadge} />}
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+                        <Text style={styles.logoutText}>Log Out</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <ScrollView 
@@ -246,10 +259,13 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#020617' },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, paddingTop: 60, borderBottomWidth: 1, borderBottomColor: '#1e293b' },
-    greeting: { color: '#94a3b8', fontSize: 14, textTransform: 'uppercase', letterSpacing: 1 },
+    headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    greeting: { color: '#94a3b8', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
     name: { color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 4 },
-    subtext: { color: '#64748b', fontSize: 13, marginTop: 4 },
-    logoutBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#1e293b', borderRadius: 20 },
+    subtext: { color: '#64748b', fontSize: 12, marginTop: 4 },
+    bellBtn: { padding: 8, backgroundColor: '#1e293b', borderRadius: 20, position: 'relative' },
+    unreadBadge: { position: 'absolute', top: 6, right: 6, width: 8, height: 8, backgroundColor: '#ef4444', borderRadius: 4, borderWidth: 1, borderColor: '#1e293b' },
+    logoutBtn: { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#ef444410', borderRadius: 20 },
     logoutText: { color: '#ef4444', fontWeight: 'bold', fontSize: 12 },
     scrollArea: { flex: 1 },
     sectionTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 16 },

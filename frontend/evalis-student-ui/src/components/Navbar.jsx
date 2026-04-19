@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
@@ -10,6 +10,31 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
+  const [openNotifs, setOpenNotifs] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+
+  useEffect(() => {
+    if (user && user.role === "student") {
+      API.get("/notifications/me").then(res => {
+         setNotifications(res.data.notifications || []);
+      }).catch(err => console.error(err));
+    }
+  }, [user, location.pathname]);
+
+  const markAsRead = async (notif) => {
+    if (!notif.is_read) {
+       await API.put(`/notifications/${notif._id}/read`);
+       setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, is_read: true } : n));
+    }
+    if (notif.link) navigate(notif.link);
+    setOpenNotifs(false);
+  };
+
+  const markAllRead = async () => {
+    await API.put('/notifications/read-all');
+    setNotifications(prev => prev.map(n => ({...n, is_read: true})));
+  };
 
   if (!user) return null;
 
@@ -82,10 +107,45 @@ export default function Navbar() {
          </div>
 
          {/* NOTIFICATIONS */}
-         <button className="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10">
-           <Bell size={20} />
-           <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0b0f19]"></span>
-         </button>
+         <div className="relative">
+           <button 
+             onClick={() => { setOpenNotifs(!openNotifs); setOpen(false); }}
+             className="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+           >
+             <Bell size={20} />
+             {notifications.some(n => !n.is_read) && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0b0f19]"></span>
+             )}
+           </button>
+
+           {openNotifs && (
+             <div className="absolute right-0 mt-3 w-80 bg-[#0b0f19] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in z-50">
+                <div className="p-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
+                   <p className="text-sm font-bold text-white">Notifications</p>
+                   {notifications.some(n => !n.is_read) && (
+                     <button onClick={markAllRead} className="text-xs text-blue-400 hover:text-blue-300">Mark all read</button>
+                   )}
+                </div>
+                <div className="max-h-80 overflow-y-auto p-2 space-y-1">
+                   {notifications.length === 0 ? (
+                     <div className="p-4 text-center text-gray-500 text-sm">No new alerts</div>
+                   ) : (
+                     notifications.map(n => (
+                       <button 
+                         key={n._id}
+                         onClick={() => markAsRead(n)}
+                         className={`w-full text-left p-3 rounded-xl transition-colors ${!n.is_read ? 'bg-blue-500/10 hover:bg-blue-500/20' : 'hover:bg-white/5'}`}
+                       >
+                         <p className={`text-sm ${!n.is_read ? 'text-white font-bold' : 'text-gray-300'}`}>{n.title}</p>
+                         <p className="text-xs text-gray-400 mt-1 line-clamp-2">{n.message}</p>
+                         <p className="text-[10px] text-gray-500 mt-2">{new Date(n.created_at).toLocaleString()}</p>
+                       </button>
+                     ))
+                   )}
+                </div>
+             </div>
+           )}
+         </div>
 
          {/* PROFILE DIVIDER */}
          <div className="hidden md:block h-10 w-px bg-white/10"></div>
@@ -93,7 +153,7 @@ export default function Navbar() {
          {/* USER PROFILE BUBBLE */}
          <div className="relative">
            <button
-             onClick={() => setOpen(!open)}
+             onClick={() => { setOpen(!open); setOpenNotifs(false); }}
              className="flex items-center gap-3 bg-white/5 border border-white/10 pl-2 pr-4 py-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer group"
            >
              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-0.5 shadow-lg shadow-blue-500/20">

@@ -50,11 +50,20 @@ app.include_router(
     tags=["Past Papers"]
 )
 
+from app.routes.notification_routes import router as notification_router
+
 # CODE RUNNER
 app.include_router(
     code_router,
     prefix="/code",
     tags=["Code"]
+)
+
+# NOTIFICATIONS
+app.include_router(
+    notification_router,
+    prefix="",
+    tags=["Notifications"]
 )
 
 app.include_router(auth_routes.router, prefix="/auth", tags=["Auth"])
