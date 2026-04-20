@@ -503,7 +503,7 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                                                                         onClick={() => navigate(`/student/practice/${paper._id}`)}
                                                                                         className="px-6 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg font-bold hover:bg-purple-600 hover:text-white transition"
                                                                                     >
-                                                                                        Initialize
+                                                                                        Practice
                                                                                     </button>
                                                                                 </div>
                                                                             ))

@@ -138,8 +138,10 @@ export const fetchExamSubmissions = (examId) =>
 export const getPastPapers = () =>
   API.get("/past-papers");
 
-export const fetchPastPaper = (paperId) =>
-  API.get(`/past-papers/${paperId}`);
+export const fetchPastPaper = async (paperId) => {
+  const res = await API.get(`/past-papers/${paperId}`);
+  return res.data;
+};
 
 export const submitPractice = (paperId, payload) =>
   API.post(`/past-papers/${paperId}/practice-attempts`, payload);
@@ -227,5 +229,13 @@ export const login = (data) =>
 
 export const getMe = () =>
   API.get("/auth/me");
+
+// =========================
+// 📚 PAST PAPER APIs
+// =========================
+export const uploadPastPaperJSON = async (payload) => {
+  const res = await API.post("/past-papers/upload/json", payload);
+  return res.data;
+};
 
 export default API;

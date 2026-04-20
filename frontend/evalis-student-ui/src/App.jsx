@@ -26,6 +26,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
 import AdminLayout from "./components/AdminLayout";
 import AdminOverview from "./pages/AdminOverview";
+import AdminPracticeUpload from "./pages/AdminPracticeUpload";
 import InstructorSubmissions from "./pages/InstructorSubmissions";
 import TeacherLayout from "./components/TeacherLayout";
 import TeacherOverview from "./pages/TeacherOverview";
@@ -109,6 +110,17 @@ function AppContent() {
             <RoleRoute role="admin">
               <AdminLayout>
                 <InstructorSubmissions />
+              </AdminLayout>
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/admin/practice-archive"
+          element={
+            <RoleRoute role="admin">
+              <AdminLayout>
+                <AdminPracticeUpload />
               </AdminLayout>
             </RoleRoute>
           }

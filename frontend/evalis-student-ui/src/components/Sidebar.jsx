@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FileText, BookOpen, Boxes } from "lucide-react";
+import { LayoutDashboard, FileText, BookOpen, Boxes, Archive } from "lucide-react";
 
 export default function Sidebar() {
   const location = useLocation();
@@ -9,6 +9,7 @@ export default function Sidebar() {
     { name: "Exams", path: "/admin/exams", icon: FileText },
     { name: "Curriculum", path: "/admin/curriculum", icon: BookOpen },
     { name: "Question Bank", path: "/question-bank", icon: Boxes },
+    { name: "Practice Archive", path: "/admin/practice-archive", icon: Archive },
   ];
 
   return (

@@ -45,9 +45,9 @@ export default function CodingSection({
 
     input_format: p?.input_format || "Not specified",
     output_format: p?.output_format || "Not specified",
-    constraints: p?.constraints || "Not specified",
+    constraints: typeof p?.constraints === "object" ? JSON.stringify(p.constraints, null, 2) : p?.constraints || "Not specified",
 
-    test_cases: p?.test_cases || [],
+    test_cases: p?.test_cases || p?.sample_test_cases || [],
   });
 
   if (!problems.length) {
@@ -278,7 +278,7 @@ export default function CodingSection({
             <h3 className="text-sm font-semibold text-gray-400 mb-1">
               Constraints
             </h3>
-            <p className="text-gray-300">{problem.constraints}</p>
+            <p className="text-gray-300 whitespace-pre-wrap font-mono text-xs">{problem.constraints}</p>
           </div>
 
           {/* SAMPLE TEST CASES */}

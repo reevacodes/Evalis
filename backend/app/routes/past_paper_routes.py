@@ -151,3 +151,38 @@ def submit_practice_attempt(
     except Exception as e:
         print("🔥 PRACTICE SUBMIT ERROR:", str(e))
         raise HTTPException(status_code=500, detail="Failed to evaluate practice attempt")
+
+# ==========================
+# 🔥 UPLOAD PAST PAPER JSON
+# ==========================
+@router.post("/upload/json")
+def upload_past_paper_json(
+    payload: dict,
+    user=Depends(require_role("admin"))
+):
+    try:
+        # Expected Payload shape:
+        # {
+        #   "exam_name": "...", "subject_code": "...", "semester": 4,
+        #   "year": 2021, "exam_type": "MST", "pattern": "MCQ",
+        #   "duration_minutes": 60, "sections": [...]
+        # }
+        
+        # 1. Structural Validation
+        required_keys = ["exam_name", "subject_code", "semester", "year", "exam_type", "pattern", "sections"]
+        for key in required_keys:
+            if key not in payload:
+                raise HTTPException(status_code=400, detail=f"Missing required field: {key}")
+
+        # 2. Force normalizations to ensure mobile app UI groupings don't break
+        payload["exam_type"] = payload["exam_type"].strip().lower()
+        payload["pattern"] = payload["pattern"].strip().lower()
+
+        # 3. Direct DB Injection
+        past_papers_collection.insert_one(payload)
+        
+        return {"message": "Success! Navigable Past Paper injected."}
+
+    except Exception as e:
+        print(f"🔥 PAST PAPER UPLOAD ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to upload past paper structure.")
