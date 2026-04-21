@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Dimensions } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Circle } from 'react-native-svg';
 import API from '../../src/api/client';
@@ -75,7 +75,8 @@ export default function ExamAnalyticsScreen() {
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+            <Stack.Screen options={{ headerShown: false }} />
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.headerLeft}>
                     <Ionicons name="arrow-back" size={24} color="white" />
@@ -123,13 +124,29 @@ export default function ExamAnalyticsScreen() {
                         <Text style={styles.gridValue}>{submission.score || 0} / {totalMarks}</Text>
                     </View>
                     <View style={styles.gridCard}>
-                        <Ionicons name="pulse" size={24} color="#eab308" />
-                        <Text style={styles.gridLabel}>Status</Text>
-                        <Text style={[styles.gridValue, { color: percentage >= 40 ? '#22c55e' : '#ef4444' }]}>
-                            {percentage >= 40 ? 'PASSED' : 'FAILED'}
-                        </Text>
+                        <Ionicons name="layers" size={24} color="#10b981" />
+                        <Text style={styles.gridLabel}>Attempted</Text>
+                        <Text style={styles.gridValue}>{submission.analytics?.attempted_mcqs || 0} / {submission.analytics?.total_mcqs || 0}</Text>
                     </View>
                 </View>
+
+                {submission.analytics?.weak_topics && submission.analytics.weak_topics.length > 0 && (
+                    <View style={styles.topicBox}>
+                        <Text style={styles.topicTitle}>⚠️ Weak Topics</Text>
+                        {submission.analytics.weak_topics.map((t: string, idx: number) => (
+                            <Text key={idx} style={styles.topicItem}>• {t}</Text>
+                        ))}
+                    </View>
+                )}
+
+                {submission.analytics?.strong_topics && submission.analytics.strong_topics.length > 0 && (
+                    <View style={styles.topicBox}>
+                        <Text style={styles.topicTitle}>🔥 Strong Topics</Text>
+                        {submission.analytics.strong_topics.map((t: string, idx: number) => (
+                            <Text key={idx} style={styles.topicItem}>• {t}</Text>
+                        ))}
+                    </View>
+                )}
 
                 {graceMarks > 0 && (
                     <View style={styles.graceCard}>
@@ -144,8 +161,8 @@ export default function ExamAnalyticsScreen() {
                 <View style={styles.submissionLog}>
                     <Text style={styles.logTitle}>Submission Telemetry</Text>
                     <View style={styles.logRow}>
-                        <Text style={styles.logLabel}>Exam ID</Text>
-                        <Text style={styles.logValue}>{id}</Text>
+                        <Text style={styles.logLabel}>Exam Name</Text>
+                        <Text style={styles.logValue}>{result.exam_title || id}</Text>
                     </View>
                     <View style={styles.logRow}>
                         <Text style={styles.logLabel}>Timestamp</Text>
@@ -153,7 +170,7 @@ export default function ExamAnalyticsScreen() {
                     </View>
                 </View>
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
@@ -194,5 +211,9 @@ const styles = StyleSheet.create({
     logTitle: { color: 'white', fontSize: 16, fontWeight: 'bold', marginBottom: 16 },
     logRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#1e293b' },
     logLabel: { color: '#64748b', fontSize: 14 },
-    logValue: { color: '#cbd5e1', fontSize: 14, fontWeight: '600' }
+    logValue: { color: '#cbd5e1', fontSize: 14, fontWeight: '600', maxWidth: '70%', textAlign: 'right' },
+
+    topicBox: { backgroundColor: '#0f172a', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#1e293b', marginBottom: 16 },
+    topicTitle: { color: 'white', fontSize: 16, fontWeight: 'bold', marginBottom: 12 },
+    topicItem: { color: '#94a3b8', fontSize: 15, marginBottom: 6, paddingLeft: 8 }
 });

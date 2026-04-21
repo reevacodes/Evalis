@@ -19,6 +19,7 @@ from app.services.exam_service import generate_exam
 from app.services.evaluation_service import async_evaluate_submission
 from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
+from app.routes.notification_routes import send_expo_push
 
 router = APIRouter()
 
@@ -914,11 +915,13 @@ def publish_results_api(
                     "type": "exam",
                     "link": f"/exam/submissions/{exam_id}/me",
                     "is_read": False,
-                    "created_at": datetime.utcnow()
+                    "created_at": datetime.now(timezone.utc)
                 })
             
             if notifications:
                 notification_collection.insert_many(notifications)
+                for n in notifications:
+                    send_expo_push(n["user_id"], n["title"], n["message"], {"link": n["link"]})
         
         return {"message": "Results visibility toggled", "is_results_published": not current_val}
         
@@ -961,7 +964,32 @@ def publish_exam_api(
         }
     )
 
-    return {"message": "Exam published successfully"}
+    # 📡 NOTIFICATION BROADCAST TO ALL STUDENTS
+    try:
+        exam_name = exam.get("exam_name") or exam.get("title", "A new formal exam")
+        students = list(user_collection.find({"role": "student"}))
+        
+        if students:
+            notifications = []
+            for student in students:
+                notifications.append({
+                    "user_id": student.get("email"),
+                    "title": "New Examination Available",
+                    "message": f"'{exam_name}' has been published and is now live on your dashboard.",
+                    "type": "exam",
+                    "link": None, # Will just show on dashboard
+                    "is_read": False,
+                    "created_at": datetime.utcnow()
+                })
+            
+            notification_collection.insert_many(notifications)
+            for n in notifications:
+                send_expo_push(n["user_id"], n["title"], n["message"], {"link": n["link"]})
+            print(f"📡 Broadcasted Exam Publish to {len(students)} students.")
+    except Exception as e:
+        print("⚠️ Failed to broadcast exam publish notifications:", str(e))
+
+    return {"message": "Exam published successfully and students notified"}
 
 
 # ==========================
@@ -1257,8 +1285,10 @@ def update_reschedule_request(
         "message": f"Your request to reschedule {exam_name} was {status}.",
         "type": "alert",
         "is_read": False,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc)
     })
+    
+    send_expo_push(req["student_id"], "Reschedule Request " + status.capitalize(), f"Your request to reschedule {exam_name} was {status}.")
     
     return {"message": f"Request {status} successfully"}
 

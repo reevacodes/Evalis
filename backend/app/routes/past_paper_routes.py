@@ -61,7 +61,7 @@ def get_single_past_paper(paper_id: str, user=Depends(get_current_user)):
 def submit_practice_attempt(
     paper_id: str,
     payload: SubmissionRequest,
-    user=Depends(require_role("student"))
+    user=Depends(get_current_user)
 ):
     try:
         paper = past_papers_collection.find_one({"_id": ObjectId(paper_id)})

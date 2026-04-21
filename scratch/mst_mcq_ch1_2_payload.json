@@ -1,0 +1,659 @@
+[
+  {
+    "type": "mcq",
+    "count": 50,
+    "marks_per_question": 1,
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Machine language consists of:",
+        "options": [
+          "English statements",
+          "Binary digits",
+          "Mnemonics",
+          "Symbols"
+        ],
+        "correct_answer": "Binary digits",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q2",
+        "question": "Assembly language uses:",
+        "options": [
+          "Binary",
+          "Mnemonics",
+          "English",
+          "Java syntax"
+        ],
+        "correct_answer": "Mnemonics",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q3",
+        "question": "High-level languages are:",
+        "options": [
+          "Machine dependent",
+          "Machine independent",
+          "Binary",
+          "Hardware-specific"
+        ],
+        "correct_answer": "Machine independent",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q4",
+        "question": "Structured programming promotes:",
+        "options": [
+          "GOTO statements",
+          "Modular design",
+          "Random coding",
+          "Machine code"
+        ],
+        "correct_answer": "Modular design",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q5",
+        "question": "Which is NOT a structured programming feature?",
+        "options": [
+          "Sequence",
+          "Selection",
+          "Loop",
+          "Jump"
+        ],
+        "correct_answer": "Jump",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q6",
+        "question": "Compiler translates:",
+        "options": [
+          "Line by line",
+          "Entire program",
+          "Binary to text",
+          "Object to source"
+        ],
+        "correct_answer": "Entire program",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q7",
+        "question": "Interpreter works:",
+        "options": [
+          "Entire program",
+          "Line by line",
+          "Machine code",
+          "Object code"
+        ],
+        "correct_answer": "Line by line",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q8",
+        "question": "Object code is:",
+        "options": [
+          "High-level code",
+          "Machine code",
+          "Pseudocode",
+          "Flowchart"
+        ],
+        "correct_answer": "Machine code",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q9",
+        "question": "Source code is written in:",
+        "options": [
+          "Binary",
+          "Machine code",
+          "High-level language",
+          "Assembly only"
+        ],
+        "correct_answer": "High-level language",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q10",
+        "question": "Executable file is produced after:",
+        "options": [
+          "Editing",
+          "Compilation",
+          "Linking",
+          "Debugging"
+        ],
+        "correct_answer": "Linking",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q11",
+        "question": "Linker combines:",
+        "options": [
+          "Source files",
+          "Object files",
+          "Binary files",
+          "Flowcharts"
+        ],
+        "correct_answer": "Object files",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q12",
+        "question": "Loader loads program into:",
+        "options": [
+          "Disk",
+          "RAM",
+          "CPU",
+          "Cache"
+        ],
+        "correct_answer": "RAM",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q13",
+        "question": "Operating system is:",
+        "options": [
+          "Application software",
+          "System software",
+          "Compiler",
+          "Editor"
+        ],
+        "correct_answer": "System software",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q14",
+        "question": "Which is an OS?",
+        "options": [
+          "MS Excel",
+          "Windows",
+          "Chrome",
+          "Notepad"
+        ],
+        "correct_answer": "Windows",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q15",
+        "question": "Algorithm must be:",
+        "options": [
+          "Infinite",
+          "Finite",
+          "Random",
+          "Complex"
+        ],
+        "correct_answer": "Finite",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q16",
+        "question": "Algorithm step should be:",
+        "options": [
+          "Ambiguous",
+          "Clear",
+          "Complex",
+          "Hidden"
+        ],
+        "correct_answer": "Clear",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q17",
+        "question": "Flowchart is used to:",
+        "options": [
+          "Execute program",
+          "Represent algorithm",
+          "Compile code",
+          "Debug"
+        ],
+        "correct_answer": "Represent algorithm",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q18",
+        "question": "Oval symbol represents:",
+        "options": [
+          "Decision",
+          "Process",
+          "Start/End",
+          "Input"
+        ],
+        "correct_answer": "Start/End",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q19",
+        "question": "Rectangle symbol represents:",
+        "options": [
+          "Input",
+          "Process",
+          "Decision",
+          "Loop"
+        ],
+        "correct_answer": "Process",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q20",
+        "question": "Diamond symbol represents:",
+        "options": [
+          "Input",
+          "Process",
+          "Decision",
+          "Output"
+        ],
+        "correct_answer": "Decision",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q21",
+        "question": "Parallelogram represents:",
+        "options": [
+          "Process",
+          "Input/Output",
+          "Decision",
+          "Start"
+        ],
+        "correct_answer": "Input/Output",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q22",
+        "question": "Pseudocode is:",
+        "options": [
+          "Machine code",
+          "Informal algorithm description",
+          "Binary",
+          "Assembly"
+        ],
+        "correct_answer": "Informal algorithm description",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q23",
+        "question": "Debugging means:",
+        "options": [
+          "Writing code",
+          "Removing errors",
+          "Compiling",
+          "Linking"
+        ],
+        "correct_answer": "Removing errors",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q24",
+        "question": "Compiler is faster than:",
+        "options": [
+          "Interpreter",
+          "OS",
+          "Loader",
+          "Editor"
+        ],
+        "correct_answer": "Interpreter",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q25",
+        "question": "Which tool translates high-level language?",
+        "options": [
+          "Compiler",
+          "Editor",
+          "OS",
+          "Loader"
+        ],
+        "correct_answer": "Compiler",
+        "topic": "Unit 1: Introduction",
+        "type": "mcq"
+      },
+      {
+        "id": "q26",
+        "question": "C language was developed by:",
+        "options": [
+          "Dennis Ritchie",
+          "Bjarne Stroustrup",
+          "James Gosling",
+          "Guido van Rossum"
+        ],
+        "correct_answer": "Dennis Ritchie",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q27",
+        "question": "C was developed at:",
+        "options": [
+          "IBM",
+          "Bell Labs",
+          "Google",
+          "Microsoft"
+        ],
+        "correct_answer": "Bell Labs",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q28",
+        "question": "C is a:",
+        "options": [
+          "Low-level language",
+          "High-level language",
+          "Assembly language",
+          "Machine language"
+        ],
+        "correct_answer": "High-level language",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q29",
+        "question": "Entry point of C program:",
+        "options": [
+          "start()",
+          "main()",
+          "init()",
+          "run()"
+        ],
+        "correct_answer": "main()",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q30",
+        "question": "Header files are included using:",
+        "options": [
+          "include",
+          "#include",
+          "import",
+          "using"
+        ],
+        "correct_answer": "#include",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q31",
+        "question": "Which is a valid identifier?",
+        "options": [
+          "1var",
+          "_var",
+          "@var",
+          "#var"
+        ],
+        "correct_answer": "_var",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q32",
+        "question": "Keywords are:",
+        "options": [
+          "Variables",
+          "Reserved words",
+          "Constants",
+          "Identifiers"
+        ],
+        "correct_answer": "Reserved words",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q33",
+        "question": "Which is a keyword?",
+        "options": [
+          "var",
+          "int",
+          "name",
+          "value"
+        ],
+        "correct_answer": "int",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q34",
+        "question": "int is:",
+        "options": [
+          "Variable",
+          "Data type",
+          "Operator",
+          "Function"
+        ],
+        "correct_answer": "Data type",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q35",
+        "question": "Which is NOT a data type?",
+        "options": [
+          "int",
+          "float",
+          "char",
+          "real"
+        ],
+        "correct_answer": "real",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q36",
+        "question": "sizeof(int) typically equals:",
+        "options": [
+          "2",
+          "4",
+          "8",
+          "1"
+        ],
+        "correct_answer": "4",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q37",
+        "question": "Which is a constant?",
+        "options": [
+          "x",
+          "10",
+          "var",
+          "name"
+        ],
+        "correct_answer": "10",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q38",
+        "question": "= is:",
+        "options": [
+          "Comparison",
+          "Assignment",
+          "Logical",
+          "Bitwise"
+        ],
+        "correct_answer": "Assignment",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q39",
+        "question": "== is:",
+        "options": [
+          "Assignment",
+          "Comparison",
+          "Logical",
+          "Bitwise"
+        ],
+        "correct_answer": "Comparison",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q40",
+        "question": "Highest precedence operator:",
+        "options": [
+          "+",
+          "*",
+          "=",
+          ","
+        ],
+        "correct_answer": "*",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q41",
+        "question": "printf() is used for:",
+        "options": [
+          "Input",
+          "Output",
+          "Loop",
+          "Condition"
+        ],
+        "correct_answer": "Output",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q42",
+        "question": "scanf() is used for:",
+        "options": [
+          "Output",
+          "Input",
+          "Loop",
+          "Condition"
+        ],
+        "correct_answer": "Input",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q43",
+        "question": "%d is used for:",
+        "options": [
+          "float",
+          "int",
+          "char",
+          "string"
+        ],
+        "correct_answer": "int",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q44",
+        "question": "%f is used for:",
+        "options": [
+          "int",
+          "float",
+          "char",
+          "string"
+        ],
+        "correct_answer": "float",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q45",
+        "question": "%c is used for:",
+        "options": [
+          "int",
+          "float",
+          "char",
+          "string"
+        ],
+        "correct_answer": "char",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q46",
+        "question": "; indicates:",
+        "options": [
+          "Start",
+          "End of statement",
+          "Loop",
+          "Block"
+        ],
+        "correct_answer": "End of statement",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q47",
+        "question": "{} denotes:",
+        "options": [
+          "Loop",
+          "Block",
+          "Variable",
+          "Function"
+        ],
+        "correct_answer": "Block",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q48",
+        "question": "Which is a unary operator?",
+        "options": [
+          "+",
+          "-",
+          "++",
+          "*"
+        ],
+        "correct_answer": "++",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q49",
+        "question": "Logical AND operator is:",
+        "options": [
+          "&",
+          "&&",
+          "|",
+          "||"
+        ],
+        "correct_answer": "&&",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q50",
+        "question": "Which is NOT an operator?",
+        "options": [
+          "+",
+          "-",
+          "printf",
+          "*"
+        ],
+        "correct_answer": "printf",
+        "topic": "Unit 2: Introduction to C (Q26\u201350)",
+        "type": "mcq"
+      }
+    ]
+  }
+]

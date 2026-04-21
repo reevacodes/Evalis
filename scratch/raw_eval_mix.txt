@@ -1,0 +1,550 @@
+1. First generation languages are:
+A) Assembly
+B) Machine
+C) High-level
+D) Script
+👉 Ans: B
+
+2. Which language uses mnemonics?
+A) Machine
+B) Assembly
+C) C
+D) Java
+👉 Ans: B
+
+3. Which is NOT a high-level language?
+A) C
+B) Java
+C) Assembly
+D) Python
+👉 Ans: C
+
+4. Structured programming improves:
+A) Hardware
+B) Readability
+C) Speed
+D) Storage
+👉 Ans: B
+
+5. Compilation error occurs during:
+A) Execution
+B) Translation
+C) Linking
+D) Debugging
+👉 Ans: B
+
+6. Syntax errors are detected by:
+A) OS
+B) Compiler
+C) User
+D) Loader
+👉 Ans: B
+
+7. Which file is produced after compilation?
+A) .c
+B) .exe
+C) .obj
+D) .txt
+👉 Ans: C
+
+8. Executable file extension is:
+A) .c
+B) .exe
+C) .obj
+D) .txt
+👉 Ans: B
+
+9. Which is system software?
+A) Browser
+B) OS
+C) Game
+D) Word
+👉 Ans: B
+
+10. Algorithm should be:
+A) Ambiguous
+B) Clear
+C) Infinite
+D) Random
+👉 Ans: B
+
+11. Flowchart arrow indicates:
+A) Data
+B) Flow
+C) Process
+D) Decision
+👉 Ans: B
+
+12. Pseudocode helps in:
+A) Execution
+B) Planning logic
+C) Compilation
+D) Linking
+👉 Ans: B
+
+13. Which is not an algorithm property?
+A) Finiteness
+B) Ambiguity
+C) Input
+D) Output
+👉 Ans: B
+
+14. Loader works after:
+A) Writing
+B) Linking
+C) Compilation
+D) Debugging
+👉 Ans: B
+
+15. Which is not system software?
+A) OS
+B) Compiler
+C) Word
+D) Linker
+👉 Ans: C
+
+16. Flowchart improves:
+A) Speed
+B) Understanding
+C) Execution
+D) Memory
+👉 Ans: B
+
+17. Which is input symbol?
+A) Rectangle
+B) Diamond
+C) Parallelogram
+D) Oval
+👉 Ans: C
+
+18. Which step comes first?
+A) Coding
+B) Algorithm
+C) Testing
+D) Debugging
+👉 Ans: B
+
+19. Interpreter gives error:
+A) At end
+B) Line by line
+C) Never
+D) After execution
+👉 Ans: B
+
+20. Compiler output is:
+A) Source code
+B) Object code
+C) Flowchart
+D) Algorithm
+👉 Ans: B
+
+🔹 Q21–40 (Unit 2 + Unit 3)
+
+21. C is closer to:
+A) Machine language
+B) Human language
+C) Assembly
+D) Script
+👉 Ans: A
+
+22. Which is not keyword?
+A) int
+B) float
+C) var
+D) return
+👉 Ans: C
+
+23. Variable name cannot start with:
+A) Letter
+B) _
+C) Digit
+D) Alphabet
+👉 Ans: C
+
+24. Which is constant?
+A) x
+B) 3.14
+C) var
+D) name
+👉 Ans: B
+
+25. Data type for decimal:
+A) int
+B) float
+C) char
+D) void
+👉 Ans: B
+
+26. ++ is:
+A) Unary
+B) Binary
+C) Logical
+D) Bitwise
+👉 Ans: A
+
+27. Logical AND returns:
+A) Sum
+B) Product
+C) Boolean
+D) Value
+👉 Ans: C
+
+28. Which is relational operator?
+A) +
+B) <
+C) &&
+D) =
+👉 Ans: B
+
+29. while loop checks:
+A) End
+B) Start
+C) Middle
+D) Never
+👉 Ans: B
+
+30. for loop is used for:
+A) Infinite loops
+B) Known iterations
+C) Decisions
+D) Functions
+👉 Ans: B
+
+31. switch requires:
+A) Variable
+B) Expression
+C) Function
+D) Loop
+👉 Ans: B
+
+32. case label must be:
+A) Variable
+B) Constant
+C) Function
+D) Loop
+👉 Ans: B
+
+33. Default in switch is:
+A) Required
+B) Optional
+C) Loop
+D) Error
+👉 Ans: B
+
+34. static inside function is:
+A) Global
+B) Persistent local
+C) Temporary
+D) Pointer
+👉 Ans: B
+
+35. register improves:
+A) Storage
+B) Speed
+C) Memory
+D) Size
+👉 Ans: B
+
+36. Scope defines:
+A) Memory
+B) Visibility
+C) Value
+D) Loop
+👉 Ans: B
+
+37. strcpy() header:
+A) stdio.h
+B) string.h
+C) math.h
+D) time.h
+👉 Ans: B
+
+38. pow() is in:
+A) stdio.h
+B) string.h
+C) math.h
+D) time.h
+👉 Ans: C
+
+39. tolower() is in:
+A) ctype.h
+B) string.h
+C) math.h
+D) stdio.h
+👉 Ans: A
+
+40. rand() is in:
+A) stdlib.h
+B) string.h
+C) math.h
+D) time.h
+👉 Ans: A
+
+🔹 Q41–60 (Unit 4 + Unit 5)
+
+41. Function call transfers:
+A) Control
+B) Memory
+C) Data
+D) Loop
+👉 Ans: A
+
+42. Actual arguments are:
+A) Definition
+B) Call values
+C) Declaration
+D) Loop
+👉 Ans: B
+
+43. Formal arguments are:
+A) Values
+B) Parameters
+C) Variables
+D) Loops
+👉 Ans: B
+
+44. Recursion uses:
+A) Stack
+B) Queue
+C) Array
+D) Heap
+👉 Ans: A
+
+45. 2D array stored as:
+A) Row major
+B) Column major
+C) Random
+D) Stack
+👉 Ans: A
+
+46. Structure access operator:
+A) ->
+B) .
+C) *
+D) &
+👉 Ans: B
+
+47. Pointer to structure uses:
+A) .
+B) ->
+C) *
+D) &
+👉 Ans: B
+
+48. Union memory is:
+A) Separate
+B) Shared
+C) Fixed
+D) Dynamic
+👉 Ans: B
+
+49. Pointer value is:
+A) Address
+B) Data
+C) Function
+D) Loop
+👉 Ans: A
+
+50. *(p+1) means:
+A) Next value
+B) Previous
+C) Same
+D) None
+👉 Ans: A
+
+51. calloc() arguments:
+A) 1
+B) 2
+C) 3
+D) 4
+👉 Ans: B
+
+52. realloc() changes:
+A) Type
+B) Size
+C) Value
+D) Pointer
+👉 Ans: B
+
+53. File opened in "r+" mode:
+A) Read
+B) Write
+C) Read & write
+D) Append
+👉 Ans: C
+
+54. fwrite() writes:
+A) Char
+B) Block
+C) String
+D) Int
+👉 Ans: B
+
+55. fread() reads:
+A) Char
+B) Block
+C) String
+D) Int
+👉 Ans: B
+
+56. fseek() is used for:
+A) Close
+B) Move pointer
+C) Open
+D) Write
+👉 Ans: B
+
+57. ftell() returns:
+A) Size
+B) Position
+C) Value
+D) Address
+👉 Ans: B
+
+58. rewind() sets pointer to:
+A) End
+B) Start
+C) Middle
+D) Random
+👉 Ans: B
+
+59. Function pointer stores:
+A) Value
+B) Address of function
+C) Loop
+D) Array
+👉 Ans: B
+
+60. Double pointer stores:
+A) Value
+B) Address of pointer
+C) Function
+D) Loop
+👉 Ans: B
+
+{
+  "id": "max_element_array",
+  "difficulty": "easy",
+  "title": "Find Maximum Element in Array",
+  "statement": "Given an array of integers, find and print the maximum element.",
+  "constraints": {
+    "n": "1 <= n <= 10^5",
+    "arr[i]": "-10^9 <= arr[i] <= 10^9"
+  },
+  "input_format": "First line contains integer n. Second line contains n space-separated integers.",
+  "output_format": "Print a single integer representing the maximum element.",
+  "function_signature": "int findMax(int arr[], int n)",
+  "sample_test_cases": [
+    {
+      "input": "5\n1 3 2 5 4",
+      "output": "5"
+    }
+  ],
+  "hidden_test_cases": [
+    {
+      "input": "1\n10",
+      "output": "10"
+    },
+    {
+      "input": "4\n-1 -2 -3 -4",
+      "output": "-1"
+    },
+    {
+      "input": "6\n0 0 0 0 0 0",
+      "output": "0"
+    }
+  ],
+  "edge_cases": [
+    "Single element array",
+    "All negative numbers",
+    "All elements same",
+    "Large input size"
+  ]
+}
+{
+  "id": "factorial_recursion",
+  "difficulty": "medium",
+  "title": "Factorial Using Recursion",
+  "statement": "Given a non-negative integer n, compute its factorial using recursion.",
+  "constraints": {
+    "n": "0 <= n <= 20"
+  },
+  "input_format": "Single integer n",
+  "output_format": "Print n! (factorial of n)",
+  "function_signature": "long long factorial(int n)",
+  "sample_test_cases": [
+    {
+      "input": "5",
+      "output": "120"
+    }
+  ],
+  "hidden_test_cases": [
+    {
+      "input": "0",
+      "output": "1"
+    },
+    {
+      "input": "1",
+      "output": "1"
+    },
+    {
+      "input": "10",
+      "output": "3628800"
+    },
+    {
+      "input": "20",
+      "output": "2432902008176640000"
+    }
+  ],
+  "edge_cases": [
+    "n = 0 (base case)",
+    "n = 1",
+    "Maximum constraint (n = 20)",
+    "Stack depth consideration"
+  ]
+}
+{
+  "id": "student_sort_stable",
+  "difficulty": "hard",
+  "title": "Sort Student Records by Marks",
+  "statement": "Given n student records (id, name, marks), sort them in descending order of marks. If two students have the same marks, maintain their original input order (stable sort).",
+  "constraints": {
+    "n": "1 <= n <= 10^5",
+    "marks": "0 <= marks <= 100",
+    "name_length": "1 <= length <= 50"
+  },
+  "input_format": "First line contains integer n. Next n lines contain: id name marks",
+  "output_format": "Print sorted records in format: id name marks",
+  "function_signature": "void sortStudents(struct Student arr[], int n)",
+  "sample_test_cases": [
+    {
+      "input": "3\n1 Alice 85\n2 Bob 90\n3 Charlie 80",
+      "output": "2 Bob 90\n1 Alice 85\n3 Charlie 80"
+    }
+  ],
+  "hidden_test_cases": [
+    {
+      "input": "2\n1 A 50\n2 B 50",
+      "output": "1 A 50\n2 B 50"
+    },
+    {
+      "input": "1\n10 John 100",
+      "output": "10 John 100"
+    },
+    {
+      "input": "4\n1 X 10\n2 Y 20\n3 Z 30\n4 W 40",
+      "output": "4 W 40\n3 Z 30\n2 Y 20\n1 X 10"
+    },
+    {
+      "input": "5\n1 A 90\n2 B 95\n3 C 90\n4 D 95\n5 E 80",
+      "output": "2 B 95\n4 D 95\n1 A 90\n3 C 90\n5 E 80"
+    }
+  ],
+  "edge_cases": [
+    "Single student",
+    "All students have same marks",
+    "Already sorted input",
+    "Reverse sorted input",
+    "Large input size (performance test)"
+  ]
+}

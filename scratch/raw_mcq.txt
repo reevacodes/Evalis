@@ -1,0 +1,353 @@
+🔹 Unit 1: Introduction to Programming (Q1–25)
+
+1. Which generation of languages is machine language?
+A) 1st
+B) 2nd
+C) 3rd
+D) 4th
+👉 Ans: A
+
+2. Assembly language belongs to:
+A) 1GL
+B) 2GL
+C) 3GL
+D) 4GL
+👉 Ans: B
+
+3. High-level languages are:
+A) Machine dependent
+B) Machine independent
+C) Assembly dependent
+D) None
+👉 Ans: B
+
+4. Structured programming mainly focuses on:
+A) GOTO statements
+B) Modular design
+C) Machine code
+D) Hardware
+👉 Ans: B
+
+5. Which is NOT a structured programming construct?
+A) Sequence
+B) Selection
+C) Loop
+D) Interrupt
+👉 Ans: D
+
+6. The process of converting source code into object code is called:
+A) Execution
+B) Compilation
+C) Linking
+D) Debugging
+👉 Ans: B
+
+7. Object code is:
+A) Human-readable
+B) Machine-readable
+C) Pseudocode
+D) Flowchart
+👉 Ans: B
+
+8. Source code is written in:
+A) Binary
+B) Assembly
+C) High-level language
+D) Object code
+👉 Ans: C
+
+9. Executable code is:
+A) Source code
+B) Object + linked code
+C) Assembly code
+D) Flowchart
+👉 Ans: B
+
+10. Which software links object files?
+A) Compiler
+B) Linker
+C) Loader
+D) Editor
+👉 Ans: B
+
+11. Operating system is:
+A) Hardware
+B) System software
+C) Application software
+D) Compiler
+👉 Ans: B
+
+12. Which is an OS?
+A) MS Word
+B) Linux
+C) Chrome
+D) Photoshop
+👉 Ans: B
+
+13. Algorithm must be:
+A) Infinite
+B) Ambiguous
+C) Finite
+D) Random
+👉 Ans: C
+
+14. Algorithm step must be:
+A) Complex
+B) Clear
+C) Hidden
+D) Large
+👉 Ans: B
+
+15. Flowchart uses:
+A) Text only
+B) Symbols
+C) Code
+D) Numbers
+👉 Ans: B
+
+16. Oval symbol represents:
+A) Process
+B) Decision
+C) Start/End
+D) Input
+👉 Ans: C
+
+17. Rectangle in flowchart means:
+A) Input
+B) Decision
+C) Process
+D) Output
+👉 Ans: C
+
+18. Diamond represents:
+A) Process
+B) Decision
+C) Start
+D) Loop
+👉 Ans: B
+
+19. Pseudocode is:
+A) Real code
+B) Informal description
+C) Machine code
+D) Binary
+👉 Ans: B
+
+20. Compiler translates:
+A) Line by line
+B) Whole program
+C) Binary
+D) Assembly
+👉 Ans: B
+
+21. Interpreter translates:
+A) Entire program
+B) Line by line
+C) Machine code
+D) Object code
+👉 Ans: B
+
+22. Which is faster?
+A) Interpreter
+B) Compiler
+C) Both same
+D) None
+👉 Ans: B
+
+23. Algorithm should have:
+A) Input & Output
+B) Only output
+C) Only input
+D) None
+👉 Ans: A
+
+24. Debugging means:
+A) Writing code
+B) Removing errors
+C) Compiling
+D) Linking
+👉 Ans: B
+
+25. Loader loads program into:
+A) Disk
+B) CPU
+C) RAM
+D) Cache
+👉 Ans: C
+
+🔹 Unit 2: Introduction to C (Q26–50)
+
+26. Who developed C language?
+A) Dennis Ritchie
+B) Bjarne Stroustrup
+C) James Gosling
+D) Guido van Rossum
+👉 Ans: A
+
+27. C was developed at:
+A) IBM
+B) Bell Labs
+C) Google
+D) Microsoft
+👉 Ans: B
+
+28. C is a:
+A) Low-level language
+B) High-level language
+C) Machine language
+D) Assembly
+👉 Ans: B
+
+29. Basic structure starts with:
+A) main()
+B) printf()
+C) include
+D) return
+👉 Ans: A
+
+30. Entry point of C program:
+A) start()
+B) main()
+C) begin()
+D) init()
+👉 Ans: B
+
+31. Header files are included using:
+A) #include
+B) include
+C) import
+D) using
+👉 Ans: A
+
+32. Which is a valid identifier?
+A) 1abc
+B) _abc
+C) @abc
+D) #abc
+👉 Ans: B
+
+33. Keywords are:
+A) User-defined
+B) Reserved words
+C) Variables
+D) Constants
+👉 Ans: B
+
+34. int is:
+A) Variable
+B) Data type
+C) Constant
+D) Operator
+👉 Ans: B
+
+35. sizeof(int) in C (typically):
+A) 2
+B) 4
+C) 8
+D) 1
+👉 Ans: B
+
+36. Which is NOT a data type?
+A) int
+B) float
+C) char
+D) real
+👉 Ans: D
+
+37. Which is a constant?
+A) x
+B) 10
+C) a
+D) var
+👉 Ans: B
+
+38. = is:
+A) Equality
+B) Assignment
+C) Comparison
+D) Logical
+👉 Ans: B
+
+39. == is:
+A) Assignment
+B) Comparison
+C) Logical
+D) Bitwise
+👉 Ans: B
+
+40. Which operator has highest precedence?
+A) +
+B) *
+C) =
+D) ,
+👉 Ans: B
+
+41. printf() is used for:
+A) Input
+B) Output
+C) Calculation
+D) Loop
+👉 Ans: B
+
+42. scanf() is used for:
+A) Output
+B) Input
+C) Loop
+D) Condition
+👉 Ans: B
+
+43. Format specifier for int:
+A) %f
+B) %c
+C) %d
+D) %s
+👉 Ans: C
+
+44. Format specifier for float:
+A) %d
+B) %f
+C) %c
+D) %s
+👉 Ans: B
+
+45. Character type uses:
+A) %d
+B) %f
+C) %c
+D) %s
+👉 Ans: C
+
+46. ; indicates:
+A) Start
+B) End of statement
+C) Loop
+D) Block
+👉 Ans: B
+
+47. {} denotes:
+A) Function
+B) Block
+C) Loop
+D) Variable
+👉 Ans: B
+
+48. Which is a unary operator?
+A) +
+B) -
+C) ++
+D) *
+👉 Ans: C
+
+49. Which is logical operator?
+A) &
+B) &&
+C) =
+D) %
+👉 Ans: B
+
+50. Which is NOT an operator?
+A) +
+B) -
+C) printf
+D) *
+👉 Ans: C

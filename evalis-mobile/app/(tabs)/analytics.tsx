@@ -1,52 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, ActivityIndicator } from 'react-native';
-import { ProgressChart } from "react-native-chart-kit";
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, Dimensions, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import API from '../../src/api/client';
-
-const screenWidth = Dimensions.get("window").width;
 
 export default function AnalyticsScreen() {
     const [loading, setLoading] = useState(true);
-    
-    // We will simulate real performance averages from past exams
-    const [chartData, setChartData] = useState({
-        labels: ["DSA", "DBMS", "OOSD", "Networks"],
-        data: [0.85, 0.60, 0.90, 0.40]
-    });
+    const [pastAttempts, setPastAttempts] = useState<any[]>([]);
+    const router = useRouter();
 
-    useEffect(() => {
-        // Attempt to fetch actual scores
-        const compileAnalytics = async () => {
-            try {
-                // Future Implementation: Parse true results from `/exam` array grades
-                // For now, this mounts the native SVGs safely
-            } catch (err) {
-                console.error(err);
-            } finally {
-                // Simulated API delay
-                setTimeout(() => setLoading(false), 800);
-            }
-        };
-        compileAnalytics();
-    }, []);
+    const [refreshing, setRefreshing] = useState(false);
 
-    const chartConfig = {
-        backgroundGradientFrom: "#0f172a",
-        backgroundGradientTo: "#0f172a",
-        color: (opacity = 1, index = 0) => {
-            // Apply different colors based on ring index for beautiful Apple-style visuals
-            const colors = [
-                `rgba(99, 102, 241, ${opacity})`,   // Indigo
-                `rgba(16, 185, 129, ${opacity})`,   // Emerald
-                `rgba(245, 158, 11, ${opacity})`,   // Amber
-                `rgba(239, 68, 68, ${opacity})`,    // Red
-                `rgba(255, 255, 255, ${opacity})`
-            ];
-            return colors[index % colors.length];
-        },
-        strokeWidth: 10, // Width of the rings
-        barPercentage: 0.5,
-        useShadowColorFromDataset: false 
+    const fetchAttempts = async () => {
+        try {
+            // Fetch all exams student has access to
+            const res = await API.get('/exam');
+            const rawData = res.data;
+            const validExamsArray = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.exams) ? rawData.exams : []);
+            
+            // Filter exams that are strictly attempted by the student
+            const attempted = validExamsArray.filter((exam: any) => exam.has_submitted === true);
+            
+            // Sort by most recent
+            attempted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            
+            setPastAttempts(attempted);
+        } catch (err) {
+            console.error("Failed fetching past attempts", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchAttempts();
+        }, [])
+    );
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchAttempts();
+        setRefreshing(false);
     };
 
     if (loading) {
@@ -59,47 +53,63 @@ export default function AnalyticsScreen() {
     }
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
+        <ScrollView 
+            style={styles.container} 
+            contentContainerStyle={{ paddingBottom: 60 }}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />
+            }
+        >
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Performance Radar</Text>
-                <Text style={styles.headerSubtitle}>Continuous Intelligence Tracking</Text>
+                <Text style={styles.headerTitle}>Analytics Center</Text>
+                <Text style={styles.headerSubtitle}>Past Exam Submissions</Text>
             </View>
 
-            <View style={styles.chartCard}>
-                <Text style={styles.cardTitle}>Subject Mastery Core</Text>
-                <ProgressChart
-                    data={chartData}
-                    width={screenWidth - 48} // Padding offset
-                    height={220}
-                    strokeWidth={12}
-                    radius={32}
-                    chartConfig={chartConfig}
-                    hideLegend={false}
-                    style={{
-                        marginVertical: 8,
-                        borderRadius: 16
-                    }}
-                />
-            </View>
-
-            <Text style={styles.sectionTitle}>Key Insights</Text>
-            
-            <View style={styles.insightCard}>
-                <View style={styles.insightIconBox}><Text style={{fontSize: 20}}>⭐</Text></View>
-                <View style={styles.insightContent}>
-                    <Text style={styles.insightTitle}>Strongest Subject</Text>
-                    <Text style={styles.insightDesc}>You are currently outperforming 85% of your class in <Text style={{color:'white', fontWeight: 'bold'}}>Object Oriented Systems Design (OOSD)</Text>.</Text>
+            {pastAttempts.length === 0 ? (
+                <View style={styles.emptyState}>
+                    <Text style={{ fontSize: 40, marginBottom: 10 }}>📊</Text>
+                    <Text style={styles.emptyTitle}>No Submissions Yet</Text>
+                    <Text style={styles.emptySubtitle}>You haven't completed any formal exams. Once you do, your comprehensive analytics will appear here.</Text>
                 </View>
-            </View>
-
-            <View style={[styles.insightCard, { borderColor: '#ef444450' }]}>
-                <View style={[styles.insightIconBox, { backgroundColor: '#ef444420' }]}><Text style={{fontSize: 20}}>⚠️</Text></View>
-                <View style={styles.insightContent}>
-                    <Text style={styles.insightTitle}>Vulnerability Detected</Text>
-                    <Text style={styles.insightDesc}>Your mastery in <Text style={{color:'white', fontWeight: 'bold'}}>Computer Networks</Text> has dropped by 12% since the last test. I recommend running the Practice Arena.</Text>
+            ) : (
+                <View style={styles.listContainer}>
+                    {pastAttempts.map(exam => {
+                        const isPublished = exam.is_results_published === true;
+                        
+                        return (
+                            <View key={exam._id} style={styles.attemptCard}>
+                                <View style={styles.cardHeader}>
+                                    <View>
+                                        <Text style={styles.examName}>{exam.exam_name}</Text>
+                                        <Text style={styles.examSubject}>{exam.subject_code} • {exam.pattern.toUpperCase()}</Text>
+                                    </View>
+                                    
+                                    <View style={[styles.badge, isPublished ? styles.badgeSuccess : styles.badgePending]}>
+                                        <Text style={[styles.badgeText, isPublished ? styles.textSuccess : styles.textPending]}>
+                                            {isPublished ? 'Published' : 'Pending'}
+                                        </Text>
+                                    </View>
+                                </View>
+                                
+                                <View style={styles.cardFooter}>
+                                    {!isPublished ? (
+                                        <View style={styles.lockedBox}>
+                                            <Text style={styles.lockedText}>🔒 Results are locked pending Instructor review</Text>
+                                        </View>
+                                    ) : (
+                                        <TouchableOpacity 
+                                            style={styles.viewBtn} 
+                                            onPress={() => router.push(`/exam/${exam._id}`)}
+                                        >
+                                            <Text style={styles.viewBtnText}>View Intelligence Report</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+                            </View>
+                        );
+                    })}
                 </View>
-            </View>
-
+            )}
         </ScrollView>
     );
 }
@@ -111,15 +121,26 @@ const styles = StyleSheet.create({
     header: { marginBottom: 30 },
     headerTitle: { color: 'white', fontSize: 32, fontWeight: 'bold' },
     headerSubtitle: { color: '#64748b', fontSize: 14, marginTop: 4, letterSpacing: 1, textTransform: 'uppercase' },
+
+    emptyState: { alignItems: 'center', padding: 30, backgroundColor: '#0f172a', borderRadius: 24, borderWidth: 1, borderColor: '#1e293b', marginTop: 20 },
+    emptyTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
+    emptySubtitle: { color: '#64748b', fontSize: 14, textAlign: 'center', lineHeight: 22 },
+
+    listContainer: { gap: 16 },
+    attemptCard: { backgroundColor: '#0f172a', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#1e293b', shadowColor: '#10b981', shadowOpacity: 0.05, shadowRadius: 15 },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
+    examName: { color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+    examSubject: { color: '#94a3b8', fontSize: 13, fontWeight: '600' },
     
-    chartCard: { backgroundColor: '#0f172a', borderRadius: 24, padding: 20, marginBottom: 30, borderWidth: 1, borderColor: '#1e293b', shadowColor: '#6366f1', shadowOpacity: 0.1, shadowRadius: 20 },
-    cardTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 20 },
-    
-    sectionTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginBottom: 16 },
-    
-    insightCard: { flexDirection: 'row', backgroundColor: '#0f172a', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#1e293b', alignItems: 'center' },
-    insightIconBox: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#fbbf2420', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
-    insightContent: { flex: 1 },
-    insightTitle: { color: 'white', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-    insightDesc: { color: '#94a3b8', fontSize: 13, lineHeight: 20 }
+    badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1 },
+    badgeSuccess: { backgroundColor: '#10b98115', borderColor: '#10b98140' },
+    badgePending: { backgroundColor: '#f59e0b15', borderColor: '#f59e0b40' },
+    textSuccess: { color: '#10b981', fontSize: 12, fontWeight: 'bold' },
+    textPending: { color: '#f59e0b', fontSize: 12, fontWeight: 'bold' },
+
+    cardFooter: { borderTopWidth: 1, borderTopColor: '#1e293b', paddingTop: 16 },
+    lockedBox: { backgroundColor: '#1e293b50', padding: 12, borderRadius: 10, alignItems: 'center' },
+    lockedText: { color: '#64748b', fontSize: 13, fontStyle: 'italic' },
+    viewBtn: { backgroundColor: '#6366f1', padding: 14, borderRadius: 12, alignItems: 'center' },
+    viewBtnText: { color: 'white', fontSize: 15, fontWeight: 'bold' }
 });

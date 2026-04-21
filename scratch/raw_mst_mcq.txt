@@ -1,0 +1,353 @@
+🔹 Unit 1: Introduction to Programming (Q1–25)
+
+1. Machine language is written in:
+A) English
+B) Binary
+C) Assembly
+D) C
+👉 Ans: B
+
+2. Assembly language is also called:
+A) 1GL
+B) 2GL
+C) 3GL
+D) 4GL
+👉 Ans: B
+
+3. High-level languages are:
+A) Machine dependent
+B) Machine independent
+C) Binary
+D) Hardware dependent
+👉 Ans: B
+
+4. Structured programming emphasizes:
+A) GOTO
+B) Modular design
+C) Machine code
+D) Hardware
+👉 Ans: B
+
+5. Which is NOT a structured programming construct?
+A) Sequence
+B) Selection
+C) Loop
+D) Interrupt
+👉 Ans: D
+
+6. Compiler converts:
+A) Source → Object code
+B) Object → Source
+C) Binary → Text
+D) None
+👉 Ans: A
+
+7. Interpreter works:
+A) Line by line
+B) Whole program
+C) Binary only
+D) None
+👉 Ans: A
+
+8. Object code is:
+A) Human-readable
+B) Machine-readable
+C) Pseudocode
+D) Flowchart
+👉 Ans: B
+
+9. Source code is:
+A) Binary
+B) Machine code
+C) High-level code
+D) Object code
+👉 Ans: C
+
+10. Executable file is created after:
+A) Compilation
+B) Linking
+C) Writing
+D) Debugging
+👉 Ans: B
+
+11. Linker is used to:
+A) Compile code
+B) Combine object files
+C) Execute code
+D) Debug code
+👉 Ans: B
+
+12. Loader loads program into:
+A) Disk
+B) RAM
+C) CPU
+D) Cache
+👉 Ans: B
+
+13. Operating system is:
+A) Hardware
+B) System software
+C) Application software
+D) Compiler
+👉 Ans: B
+
+14. Which is an OS?
+A) MS Word
+B) Linux
+C) Chrome
+D) Photoshop
+👉 Ans: B
+
+15. Algorithm must be:
+A) Infinite
+B) Finite
+C) Random
+D) Complex
+👉 Ans: B
+
+16. Algorithm should have:
+A) Only input
+B) Only output
+C) Input & output
+D) None
+👉 Ans: C
+
+17. Flowchart represents:
+A) Code
+B) Algorithm graphically
+C) Binary
+D) Hardware
+👉 Ans: B
+
+18. Oval symbol denotes:
+A) Process
+B) Start/End
+C) Decision
+D) Input
+👉 Ans: B
+
+19. Rectangle represents:
+A) Input
+B) Process
+C) Decision
+D) Loop
+👉 Ans: B
+
+20. Diamond represents:
+A) Start
+B) Process
+C) Decision
+D) End
+👉 Ans: C
+
+21. Parallelogram represents:
+A) Decision
+B) Input/Output
+C) Loop
+D) Process
+👉 Ans: B
+
+22. Pseudocode is:
+A) Machine code
+B) Informal description
+C) Binary
+D) Assembly
+👉 Ans: B
+
+23. Debugging means:
+A) Writing code
+B) Removing errors
+C) Compiling
+D) Executing
+👉 Ans: B
+
+24. Which is faster?
+A) Interpreter
+B) Compiler
+C) Same
+D) None
+👉 Ans: B
+
+25. Which tool translates high-level language?
+A) Compiler
+B) Editor
+C) OS
+D) Loader
+👉 Ans: A
+
+🔹 Unit 2: Introduction to C (Q26–50)
+
+26. C language was developed by:
+A) Dennis Ritchie
+B) James Gosling
+C) Guido van Rossum
+D) Bjarne Stroustrup
+👉 Ans: A
+
+27. C was developed at:
+A) IBM
+B) Bell Labs
+C) Microsoft
+D) Google
+👉 Ans: B
+
+28. C is a:
+A) Low-level language
+B) High-level language
+C) Assembly language
+D) Machine language
+👉 Ans: B
+
+29. Entry point of C program:
+A) start()
+B) main()
+C) run()
+D) init()
+👉 Ans: B
+
+30. Header files are included using:
+A) include
+B) #include
+C) import
+D) using
+👉 Ans: B
+
+31. Which is a valid identifier?
+A) 1var
+B) _var
+C) @var
+D) #var
+👉 Ans: B
+
+32. Keywords are:
+A) User-defined
+B) Reserved words
+C) Variables
+D) Constants
+👉 Ans: B
+
+33. Which is a keyword?
+A) var
+B) int
+C) name
+D) value
+👉 Ans: B
+
+34. int is:
+A) Variable
+B) Data type
+C) Operator
+D) Function
+👉 Ans: B
+
+35. Which is NOT a data type?
+A) int
+B) float
+C) char
+D) real
+👉 Ans: D
+
+36. sizeof(int) is typically:
+A) 2
+B) 4
+C) 8
+D) 1
+👉 Ans: B
+
+37. Which is a constant?
+A) x
+B) 10
+C) var
+D) name
+👉 Ans: B
+
+38. = is:
+A) Comparison
+B) Assignment
+C) Logical
+D) Bitwise
+👉 Ans: B
+
+39. == is:
+A) Assignment
+B) Comparison
+C) Logical
+D) Bitwise
+👉 Ans: B
+
+40. Which has highest precedence?
+A) +
+B) *
+C) =
+D) ,
+👉 Ans: B
+
+41. printf() is used for:
+A) Input
+B) Output
+C) Loop
+D) Condition
+👉 Ans: B
+
+42. scanf() is used for:
+A) Output
+B) Input
+C) Loop
+D) Condition
+👉 Ans: B
+
+43. %d is used for:
+A) float
+B) int
+C) char
+D) string
+👉 Ans: B
+
+44. %f is used for:
+A) int
+B) float
+C) char
+D) string
+👉 Ans: B
+
+45. %c is used for:
+A) int
+B) float
+C) char
+D) string
+👉 Ans: C
+
+46. ; indicates:
+A) Start
+B) End of statement
+C) Loop
+D) Block
+👉 Ans: B
+
+47. {} denotes:
+A) Loop
+B) Block
+C) Variable
+D) Function
+👉 Ans: B
+
+48. Which is a unary operator?
+A) +
+B) -
+C) ++
+D) *
+👉 Ans: C
+
+49. Which is a logical operator?
+A) &
+B) &&
+C) %
+D) =
+👉 Ans: B
+
+50. Which is NOT an operator?
+A) +
+B) -
+C) printf
+D) *
+👉 Ans: C

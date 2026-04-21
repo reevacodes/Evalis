@@ -1,0 +1,497 @@
+🔹 Control Statements & Storage (Q1–10)
+
+1. Which statement is used for decision making?
+A) for
+B) while
+C) if
+D) goto
+👉 Ans: C
+
+2. Which loop executes at least once?
+A) for
+B) while
+C) do-while
+D) none
+👉 Ans: C
+
+3. switch statement works with:
+A) float
+B) double
+C) int
+D) string
+👉 Ans: C
+
+4. break statement is used to:
+A) Skip iteration
+B) Exit loop
+C) End program
+D) Continue loop
+👉 Ans: B
+
+5. continue statement is used to:
+A) Exit loop
+B) Skip current iteration
+C) End program
+D) Restart loop
+👉 Ans: B
+
+6. Default storage class in C is:
+A) static
+B) extern
+C) auto
+D) register
+👉 Ans: C
+
+7. static variable retains:
+A) No value
+B) Previous value
+C) Random value
+D) Zero
+👉 Ans: B
+
+8. extern keyword is used for:
+A) Local variables
+B) Global variables
+C) Loop variables
+D) Constants
+👉 Ans: B
+
+9. register variables are stored in:
+A) RAM
+B) CPU registers
+C) Disk
+D) Cache
+👉 Ans: B
+
+10. Scope of local variable is:
+A) Entire program
+B) File
+C) Function/block
+D) Global
+👉 Ans: C
+
+🔹 Functions, Arrays, Structures (Q11–15)
+
+11. Function prototype is:
+A) Definition
+B) Declaration
+C) Call
+D) Loop
+👉 Ans: B
+
+12. Call by value passes:
+A) Address
+B) Value
+C) Pointer
+D) Reference
+👉 Ans: B
+
+13. Recursion is:
+A) Loop
+B) Function calling itself
+C) Variable
+D) Array
+👉 Ans: B
+
+14. Array index starts from:
+A) 1
+B) 0
+C) -1
+D) Any
+👉 Ans: B
+
+15. Structure can store:
+A) Same type data
+B) Different type data
+C) Only int
+D) Only char
+👉 Ans: B
+
+🔹 Pointers, DMA, Files (Q16–20)
+
+16. Pointer stores:
+A) Value
+B) Address
+C) Function
+D) Loop
+👉 Ans: B
+
+17. malloc() is used for:
+A) Deallocation
+B) Allocation
+C) Printing
+D) Loop
+👉 Ans: B
+
+18. free() is used to:
+A) Allocate
+B) Deallocate
+C) Print
+D) Loop
+👉 Ans: B
+
+19. fopen() is used to:
+A) Close file
+B) Open file
+C) Delete file
+D) Read only
+👉 Ans: B
+
+20. Dangling pointer is:
+A) Valid pointer
+B) Pointer to freed memory
+C) Null pointer
+D) Global pointer
+👉 Ans: B
+
+1. A function is:
+A) Variable
+B) Block of code
+C) Loop
+D) Operator
+👉 Ans: B
+
+2. Function prototype is:
+A) Definition
+B) Declaration
+C) Call
+D) Loop
+👉 Ans: B
+
+3. Which is correct function declaration?
+A) int sum();
+B) sum int();
+C) int sum
+D) function sum()
+👉 Ans: A
+
+4. Call by value passes:
+A) Address
+B) Value
+C) Pointer
+D) Reference
+👉 Ans: B
+
+5. Call by reference passes:
+A) Value
+B) Address
+C) Constant
+D) None
+👉 Ans: B
+
+6. Recursion is:
+A) Loop
+B) Function calling itself
+C) Variable
+D) Array
+👉 Ans: B
+
+7. Base condition in recursion is:
+A) Optional
+B) Mandatory
+C) Loop
+D) None
+👉 Ans: B
+
+8. Which is NOT a function category?
+A) With return & arguments
+B) Without return & without arguments
+C) Loop function
+D) With return & without arguments
+👉 Ans: C
+
+9. Array index starts from:
+A) 1
+B) 0
+C) -1
+D) Any
+👉 Ans: B
+
+10. int arr[5] means:
+A) 4 elements
+B) 5 elements
+C) 6 elements
+D) Infinite
+👉 Ans: B
+
+11. Multidimensional array is:
+A) 1D
+B) 2D or more
+C) Pointer
+D) Function
+👉 Ans: B
+
+12. Strings in C are:
+A) int arrays
+B) char arrays
+C) float arrays
+D) pointer only
+👉 Ans: B
+
+13. strlen() returns:
+A) Size including '\0'
+B) Length excluding '\0'
+C) Pointer
+D) Character
+👉 Ans: B
+
+14. strcpy() is used to:
+A) Compare
+B) Copy
+C) Concatenate
+D) Length
+👉 Ans: B
+
+15. strcat() is used to:
+A) Compare
+B) Copy
+C) Join strings
+D) Length
+👉 Ans: C
+
+16. strcmp() returns:
+A) Boolean
+B) Integer
+C) Float
+D) Char
+👉 Ans: B
+
+17. Structure keyword is:
+A) union
+B) struct
+C) class
+D) type
+👉 Ans: B
+
+18. Structure stores:
+A) Same type
+B) Different types
+C) Only int
+D) Only char
+👉 Ans: B
+
+19. Union keyword is:
+A) struct
+B) union
+C) class
+D) type
+👉 Ans: B
+
+20. Union stores:
+A) All members
+B) One member at a time
+C) None
+D) Multiple copies
+👉 Ans: B
+
+21. Size of union is:
+A) Sum of members
+B) Largest member
+C) Smallest member
+D) Constant
+👉 Ans: B
+
+22. Passing array to function passes:
+A) Value
+B) Address
+C) Copy
+D) None
+👉 Ans: B
+
+23. void function means:
+A) Returns int
+B) Returns nothing
+C) Returns char
+D) Returns float
+👉 Ans: B
+
+24. Nested functions in C are:
+A) Allowed
+B) Not allowed
+C) Optional
+D) Required
+👉 Ans: B
+
+25. Which is string input function (safe)?
+A) gets()
+B) scanf()
+C) fgets()
+D) printf()
+👉 Ans: C
+
+🔹 Unit 5: Pointers, DMA, File Handling (Q26–50)
+
+26. Pointer stores:
+A) Value
+B) Address
+C) Function
+D) Loop
+👉 Ans: B
+
+27. & operator gives:
+A) Value
+B) Address
+C) Loop
+D) None
+👉 Ans: B
+
+28. * operator is:
+A) Address
+B) Dereference
+C) Loop
+D) None
+👉 Ans: B
+
+29. NULL pointer means:
+A) Random
+B) 0 address
+C) Infinite
+D) Global
+👉 Ans: B
+
+30. Pointer arithmetic increases by:
+A) 1 byte
+B) Size of data type
+C) 2 bytes
+D) None
+👉 Ans: B
+
+31. int *p means:
+A) Value
+B) Pointer to int
+C) Array
+D) Function
+👉 Ans: B
+
+32. Pointer to pointer is:
+A) int
+B) int*
+C) int**
+D) char
+👉 Ans: C
+
+33. malloc() returns:
+A) int
+B) pointer
+C) float
+D) char
+👉 Ans: B
+
+34. calloc() initializes memory to:
+A) Garbage
+B) Zero
+C) One
+D) Random
+👉 Ans: B
+
+35. realloc() is used to:
+A) Allocate
+B) Resize memory
+C) Free memory
+D) Print
+👉 Ans: B
+
+36. free() is used to:
+A) Allocate
+B) Deallocate
+C) Print
+D) Loop
+👉 Ans: B
+
+37. Dangling pointer is:
+A) Valid pointer
+B) Pointer to freed memory
+C) Null pointer
+D) Global pointer
+👉 Ans: B
+
+38. File pointer type:
+A) int
+B) FILE*
+C) char
+D) void
+👉 Ans: B
+
+39. fopen() is used to:
+A) Close file
+B) Open file
+C) Delete file
+D) Read only
+👉 Ans: B
+
+40. fclose() is used to:
+A) Open file
+B) Close file
+C) Delete file
+D) Write
+👉 Ans: B
+
+41. fprintf() writes to:
+A) Console
+B) File
+C) Memory
+D) Loop
+👉 Ans: B
+
+42. fscanf() reads from:
+A) Console
+B) File
+C) Array
+D) Loop
+👉 Ans: B
+
+43. feof() checks:
+A) Start of file
+B) End of file
+C) Loop
+D) Error
+👉 Ans: B
+
+44. fgetc() reads:
+A) String
+B) Character
+C) Integer
+D) Float
+👉 Ans: B
+
+45. fputc() writes:
+A) String
+B) Character
+C) Integer
+D) Float
+👉 Ans: B
+
+46. fopen("file.txt","r") means:
+A) Write
+B) Read
+C) Append
+D) Binary
+👉 Ans: B
+
+47. fopen("file.txt","w") means:
+A) Read
+B) Write
+C) Append
+D) Binary
+👉 Ans: B
+
+48. fopen("file.txt","a") means:
+A) Read
+B) Write
+C) Append
+D) Binary
+👉 Ans: C
+
+49. Pointer to function is used to:
+A) Store value
+B) Store function address
+C) Loop
+D) Array
+👉 Ans: B
+
+50. Passing pointer to function enables:
+A) Copy
+B) Reference modification
+C) Loop
+D) None
+👉 Ans: B

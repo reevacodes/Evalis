@@ -1,0 +1,659 @@
+[
+  {
+    "type": "mcq",
+    "count": 50,
+    "marks_per_question": 1,
+    "questions": [
+      {
+        "id": "q1",
+        "question": "A function is:",
+        "options": [
+          "Variable",
+          "Block of code",
+          "Loop",
+          "Operator"
+        ],
+        "correct_answer": "Block of code",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q2",
+        "question": "Function prototype is:",
+        "options": [
+          "Definition",
+          "Declaration",
+          "Call",
+          "Loop"
+        ],
+        "correct_answer": "Declaration",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q3",
+        "question": "Which is correct function declaration?",
+        "options": [
+          "int sum();",
+          "sum int();",
+          "int sum",
+          "function sum()"
+        ],
+        "correct_answer": "int sum();",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q4",
+        "question": "Call by value passes:",
+        "options": [
+          "Address",
+          "Value",
+          "Pointer",
+          "Reference"
+        ],
+        "correct_answer": "Value",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q5",
+        "question": "Call by reference passes:",
+        "options": [
+          "Value",
+          "Address",
+          "Constant",
+          "None"
+        ],
+        "correct_answer": "Address",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q6",
+        "question": "Recursion is:",
+        "options": [
+          "Loop",
+          "Function calling itself",
+          "Variable",
+          "Array"
+        ],
+        "correct_answer": "Function calling itself",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q7",
+        "question": "Base condition in recursion is:",
+        "options": [
+          "Optional",
+          "Mandatory",
+          "Loop",
+          "None"
+        ],
+        "correct_answer": "Mandatory",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q8",
+        "question": "Which is NOT a function category?",
+        "options": [
+          "With return & arguments",
+          "Without return & without arguments",
+          "Loop function",
+          "With return & without arguments"
+        ],
+        "correct_answer": "Loop function",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q9",
+        "question": "Array index starts from:",
+        "options": [
+          "1",
+          "0",
+          "-1",
+          "Any"
+        ],
+        "correct_answer": "0",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q10",
+        "question": "int arr[5] means:",
+        "options": [
+          "4 elements",
+          "5 elements",
+          "6 elements",
+          "Infinite"
+        ],
+        "correct_answer": "5 elements",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q11",
+        "question": "Multidimensional array is:",
+        "options": [
+          "1D",
+          "2D or more",
+          "Pointer",
+          "Function"
+        ],
+        "correct_answer": "2D or more",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q12",
+        "question": "Strings in C are:",
+        "options": [
+          "int arrays",
+          "char arrays",
+          "float arrays",
+          "pointer only"
+        ],
+        "correct_answer": "char arrays",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q13",
+        "question": "strlen() returns:",
+        "options": [
+          "Size including '\\0'",
+          "Length excluding '\\0'",
+          "Pointer",
+          "Character"
+        ],
+        "correct_answer": "Length excluding '\\0'",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q14",
+        "question": "strcpy() is used to:",
+        "options": [
+          "Compare",
+          "Copy",
+          "Concatenate",
+          "Length"
+        ],
+        "correct_answer": "Copy",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q15",
+        "question": "strcat() is used to:",
+        "options": [
+          "Compare",
+          "Copy",
+          "Join strings",
+          "Length"
+        ],
+        "correct_answer": "Join strings",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q16",
+        "question": "strcmp() returns:",
+        "options": [
+          "Boolean",
+          "Integer",
+          "Float",
+          "Char"
+        ],
+        "correct_answer": "Integer",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q17",
+        "question": "Structure keyword is:",
+        "options": [
+          "union",
+          "struct",
+          "class",
+          "type"
+        ],
+        "correct_answer": "struct",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q18",
+        "question": "Structure stores:",
+        "options": [
+          "Same type",
+          "Different types",
+          "Only int",
+          "Only char"
+        ],
+        "correct_answer": "Different types",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q19",
+        "question": "Union keyword is:",
+        "options": [
+          "struct",
+          "union",
+          "class",
+          "type"
+        ],
+        "correct_answer": "union",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q20",
+        "question": "Union stores:",
+        "options": [
+          "All members",
+          "One member at a time",
+          "None",
+          "Multiple copies"
+        ],
+        "correct_answer": "One member at a time",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q21",
+        "question": "Size of union is:",
+        "options": [
+          "Sum of members",
+          "Largest member",
+          "Smallest member",
+          "Constant"
+        ],
+        "correct_answer": "Largest member",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q22",
+        "question": "Passing array to function passes:",
+        "options": [
+          "Value",
+          "Address",
+          "Copy",
+          "None"
+        ],
+        "correct_answer": "Address",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q23",
+        "question": "void function means:",
+        "options": [
+          "Returns int",
+          "Returns nothing",
+          "Returns char",
+          "Returns float"
+        ],
+        "correct_answer": "Returns nothing",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q24",
+        "question": "Nested functions in C are:",
+        "options": [
+          "Allowed",
+          "Not allowed",
+          "Optional",
+          "Required"
+        ],
+        "correct_answer": "Not allowed",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q25",
+        "question": "Which is string input function (safe)?",
+        "options": [
+          "gets()",
+          "scanf()",
+          "fgets()",
+          "printf()"
+        ],
+        "correct_answer": "fgets()",
+        "topic": "Unit 1",
+        "type": "mcq"
+      },
+      {
+        "id": "q26",
+        "question": "Pointer stores:",
+        "options": [
+          "Value",
+          "Address",
+          "Function",
+          "Loop"
+        ],
+        "correct_answer": "Address",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q27",
+        "question": "& operator gives:",
+        "options": [
+          "Value",
+          "Address",
+          "Loop",
+          "None"
+        ],
+        "correct_answer": "Address",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q28",
+        "question": "* operator is:",
+        "options": [
+          "Address",
+          "Dereference",
+          "Loop",
+          "None"
+        ],
+        "correct_answer": "Dereference",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q29",
+        "question": "NULL pointer means:",
+        "options": [
+          "Random",
+          "0 address",
+          "Infinite",
+          "Global"
+        ],
+        "correct_answer": "0 address",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q30",
+        "question": "Pointer arithmetic increases by:",
+        "options": [
+          "1 byte",
+          "Size of data type",
+          "2 bytes",
+          "None"
+        ],
+        "correct_answer": "Size of data type",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q31",
+        "question": "int *p means:",
+        "options": [
+          "Value",
+          "Pointer to int",
+          "Array",
+          "Function"
+        ],
+        "correct_answer": "Pointer to int",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q32",
+        "question": "Pointer to pointer is:",
+        "options": [
+          "int",
+          "int*",
+          "int**",
+          "char"
+        ],
+        "correct_answer": "int**",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q33",
+        "question": "malloc() returns:",
+        "options": [
+          "int",
+          "pointer",
+          "float",
+          "char"
+        ],
+        "correct_answer": "pointer",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q34",
+        "question": "calloc() initializes memory to:",
+        "options": [
+          "Garbage",
+          "Zero",
+          "One",
+          "Random"
+        ],
+        "correct_answer": "Zero",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q35",
+        "question": "realloc() is used to:",
+        "options": [
+          "Allocate",
+          "Resize memory",
+          "Free memory",
+          "Print"
+        ],
+        "correct_answer": "Resize memory",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q36",
+        "question": "free() is used to:",
+        "options": [
+          "Allocate",
+          "Deallocate",
+          "Print",
+          "Loop"
+        ],
+        "correct_answer": "Deallocate",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q37",
+        "question": "Dangling pointer is:",
+        "options": [
+          "Valid pointer",
+          "Pointer to freed memory",
+          "Null pointer",
+          "Global pointer"
+        ],
+        "correct_answer": "Pointer to freed memory",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q38",
+        "question": "File pointer type:",
+        "options": [
+          "int",
+          "FILE*",
+          "char",
+          "void"
+        ],
+        "correct_answer": "FILE*",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q39",
+        "question": "fopen() is used to:",
+        "options": [
+          "Close file",
+          "Open file",
+          "Delete file",
+          "Read only"
+        ],
+        "correct_answer": "Open file",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q40",
+        "question": "fclose() is used to:",
+        "options": [
+          "Open file",
+          "Close file",
+          "Delete file",
+          "Write"
+        ],
+        "correct_answer": "Close file",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q41",
+        "question": "fprintf() writes to:",
+        "options": [
+          "Console",
+          "File",
+          "Memory",
+          "Loop"
+        ],
+        "correct_answer": "File",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q42",
+        "question": "fscanf() reads from:",
+        "options": [
+          "Console",
+          "File",
+          "Array",
+          "Loop"
+        ],
+        "correct_answer": "File",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q43",
+        "question": "feof() checks:",
+        "options": [
+          "Start of file",
+          "End of file",
+          "Loop",
+          "Error"
+        ],
+        "correct_answer": "End of file",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q44",
+        "question": "fgetc() reads:",
+        "options": [
+          "String",
+          "Character",
+          "Integer",
+          "Float"
+        ],
+        "correct_answer": "Character",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q45",
+        "question": "fputc() writes:",
+        "options": [
+          "String",
+          "Character",
+          "Integer",
+          "Float"
+        ],
+        "correct_answer": "Character",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q46",
+        "question": "fopen(\"file.txt\",\"r\") means:",
+        "options": [
+          "Write",
+          "Read",
+          "Append",
+          "Binary"
+        ],
+        "correct_answer": "Read",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q47",
+        "question": "fopen(\"file.txt\",\"w\") means:",
+        "options": [
+          "Read",
+          "Write",
+          "Append",
+          "Binary"
+        ],
+        "correct_answer": "Write",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q48",
+        "question": "fopen(\"file.txt\",\"a\") means:",
+        "options": [
+          "Read",
+          "Write",
+          "Append",
+          "Binary"
+        ],
+        "correct_answer": "Append",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q49",
+        "question": "Pointer to function is used to:",
+        "options": [
+          "Store value",
+          "Store function address",
+          "Loop",
+          "Array"
+        ],
+        "correct_answer": "Store function address",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      },
+      {
+        "id": "q50",
+        "question": "Passing pointer to function enables:",
+        "options": [
+          "Copy",
+          "Reference modification",
+          "Loop",
+          "None"
+        ],
+        "correct_answer": "Reference modification",
+        "topic": "Unit 5: Pointers, DMA, File Handling (Q26\u201350)",
+        "type": "mcq"
+      }
+    ]
+  }
+]

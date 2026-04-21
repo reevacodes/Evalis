@@ -1,0 +1,957 @@
+[
+  {
+    "type": "mcq",
+    "count": 60,
+    "marks_per_question": 1,
+    "questions": [
+      {
+        "id": "q1",
+        "question": "if statement is used for:",
+        "options": [
+          "Looping",
+          "Decision making",
+          "Storage",
+          "Function"
+        ],
+        "correct_answer": "Decision making",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q2",
+        "question": "Which is NOT a loop?",
+        "options": [
+          "for",
+          "while",
+          "if",
+          "do-while"
+        ],
+        "correct_answer": "if",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q3",
+        "question": "do-while loop executes:",
+        "options": [
+          "Zero times",
+          "At least once",
+          "Infinite",
+          "None"
+        ],
+        "correct_answer": "At least once",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q4",
+        "question": "switch works with:",
+        "options": [
+          "float",
+          "double",
+          "int",
+          "string"
+        ],
+        "correct_answer": "int",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q5",
+        "question": "break statement:",
+        "options": [
+          "Ends program",
+          "Exits loop/switch",
+          "Skips iteration",
+          "None"
+        ],
+        "correct_answer": "Exits loop/switch",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q6",
+        "question": "continue statement:",
+        "options": [
+          "Ends loop",
+          "Skips current iteration",
+          "Stops program",
+          "None"
+        ],
+        "correct_answer": "Skips current iteration",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q7",
+        "question": "Default case in switch is:",
+        "options": [
+          "Mandatory",
+          "Optional",
+          "Loop",
+          "Function"
+        ],
+        "correct_answer": "Optional",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q8",
+        "question": "Storage class defines:",
+        "options": [
+          "Loop",
+          "Memory & scope",
+          "Function",
+          "Input"
+        ],
+        "correct_answer": "Memory & scope",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q9",
+        "question": "auto storage class is:",
+        "options": [
+          "Default",
+          "Static",
+          "Global",
+          "External"
+        ],
+        "correct_answer": "Default",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q10",
+        "question": "static variable retains:",
+        "options": [
+          "No value",
+          "Previous value",
+          "Random value",
+          "Zero"
+        ],
+        "correct_answer": "Previous value",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q11",
+        "question": "extern keyword is used for:",
+        "options": [
+          "Local variable",
+          "Global variable access",
+          "Loop",
+          "Function"
+        ],
+        "correct_answer": "Global variable access",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q12",
+        "question": "register variable stored in:",
+        "options": [
+          "RAM",
+          "CPU register",
+          "Disk",
+          "Cache"
+        ],
+        "correct_answer": "CPU register",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q13",
+        "question": "Scope of local variable:",
+        "options": [
+          "Entire program",
+          "Function/block",
+          "File",
+          "Global"
+        ],
+        "correct_answer": "Function/block",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q14",
+        "question": "strlen() is in:",
+        "options": [
+          "stdio.h",
+          "string.h",
+          "math.h",
+          "time.h"
+        ],
+        "correct_answer": "string.h",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q15",
+        "question": "printf() belongs to:",
+        "options": [
+          "math.h",
+          "stdio.h",
+          "string.h",
+          "time.h"
+        ],
+        "correct_answer": "stdio.h",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q16",
+        "question": "sqrt() belongs to:",
+        "options": [
+          "stdio.h",
+          "math.h",
+          "string.h",
+          "time.h"
+        ],
+        "correct_answer": "math.h",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q17",
+        "question": "isdigit() belongs to:",
+        "options": [
+          "ctype.h",
+          "stdio.h",
+          "math.h",
+          "string.h"
+        ],
+        "correct_answer": "ctype.h",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q18",
+        "question": "time() function is in:",
+        "options": [
+          "time.h",
+          "math.h",
+          "stdio.h",
+          "string.h"
+        ],
+        "correct_answer": "time.h",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q19",
+        "question": "strcmp() returns:",
+        "options": [
+          "Boolean",
+          "Integer",
+          "Float",
+          "Char"
+        ],
+        "correct_answer": "Integer",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q20",
+        "question": "strcat() is used to:",
+        "options": [
+          "Compare",
+          "Copy",
+          "Concatenate",
+          "Length"
+        ],
+        "correct_answer": "Concatenate",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q21",
+        "question": "Infinite loop condition:",
+        "options": [
+          "i<10",
+          "while(1)",
+          "for(i=0;i<10;i++)",
+          "if"
+        ],
+        "correct_answer": "while(1)",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q22",
+        "question": "Loop condition checked first in:",
+        "options": [
+          "do-while",
+          "while",
+          "both",
+          "none"
+        ],
+        "correct_answer": "while",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q23",
+        "question": "Logical AND is:",
+        "options": [
+          "&",
+          "&&",
+          "|",
+          "||"
+        ],
+        "correct_answer": "&&",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q24",
+        "question": "Logical OR is:",
+        "options": [
+          "|",
+          "||",
+          "&",
+          "&&"
+        ],
+        "correct_answer": "||",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q25",
+        "question": "NOT operator is:",
+        "options": [
+          "!",
+          "~",
+          "&",
+          "^"
+        ],
+        "correct_answer": "!",
+        "topic": "Unit 3: Control Flow",
+        "type": "mcq"
+      },
+      {
+        "id": "q26",
+        "question": "Function is:",
+        "options": [
+          "Variable",
+          "Block of code",
+          "Loop",
+          "Operator"
+        ],
+        "correct_answer": "Block of code",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q27",
+        "question": "Function prototype is:",
+        "options": [
+          "Definition",
+          "Declaration",
+          "Call",
+          "Loop"
+        ],
+        "correct_answer": "Declaration",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q28",
+        "question": "Call by value passes:",
+        "options": [
+          "Address",
+          "Value",
+          "Pointer",
+          "Reference"
+        ],
+        "correct_answer": "Value",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q29",
+        "question": "Call by reference uses:",
+        "options": [
+          "Value",
+          "Pointer",
+          "Constant",
+          "Array"
+        ],
+        "correct_answer": "Pointer",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q30",
+        "question": "Recursion is:",
+        "options": [
+          "Loop",
+          "Function calling itself",
+          "Variable",
+          "Array"
+        ],
+        "correct_answer": "Function calling itself",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q31",
+        "question": "Base condition in recursion:",
+        "options": [
+          "Optional",
+          "Mandatory",
+          "Loop",
+          "None"
+        ],
+        "correct_answer": "Mandatory",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q32",
+        "question": "Array index starts from:",
+        "options": [
+          "1",
+          "0",
+          "-1",
+          "Any"
+        ],
+        "correct_answer": "0",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q33",
+        "question": "int arr[5] stores:",
+        "options": [
+          "4 elements",
+          "5 elements",
+          "6 elements",
+          "Infinite"
+        ],
+        "correct_answer": "5 elements",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q34",
+        "question": "Multidimensional array:",
+        "options": [
+          "1D",
+          "2D+",
+          "Pointer",
+          "Loop"
+        ],
+        "correct_answer": "2D+",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q35",
+        "question": "Strings are:",
+        "options": [
+          "int array",
+          "char array",
+          "float",
+          "pointer"
+        ],
+        "correct_answer": "char array",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q36",
+        "question": "gets() is:",
+        "options": [
+          "Safe",
+          "Unsafe",
+          "Math",
+          "Loop"
+        ],
+        "correct_answer": "Unsafe",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q37",
+        "question": "fgets() is:",
+        "options": [
+          "Safe",
+          "Unsafe",
+          "Math",
+          "Loop"
+        ],
+        "correct_answer": "Safe",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q38",
+        "question": "Structure keyword:",
+        "options": [
+          "union",
+          "struct",
+          "class",
+          "type"
+        ],
+        "correct_answer": "struct",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q39",
+        "question": "Structure stores:",
+        "options": [
+          "Same type",
+          "Different types",
+          "Only int",
+          "Only char"
+        ],
+        "correct_answer": "Different types",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q40",
+        "question": "Union stores:",
+        "options": [
+          "All values",
+          "One at a time",
+          "None",
+          "Multiple copies"
+        ],
+        "correct_answer": "One at a time",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q41",
+        "question": "Size of union is:",
+        "options": [
+          "Sum",
+          "Largest member",
+          "Smallest",
+          "Constant"
+        ],
+        "correct_answer": "Largest member",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q42",
+        "question": "Passing array to function passes:",
+        "options": [
+          "Copy",
+          "Address",
+          "Value",
+          "None"
+        ],
+        "correct_answer": "Address",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q43",
+        "question": "Function returning nothing uses:",
+        "options": [
+          "int",
+          "void",
+          "float",
+          "char"
+        ],
+        "correct_answer": "void",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q44",
+        "question": "Nested functions in C:",
+        "options": [
+          "Allowed",
+          "Not allowed",
+          "Optional",
+          "Compiler dependent"
+        ],
+        "correct_answer": "Not allowed",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q45",
+        "question": "strlen(\"abc\") =",
+        "options": [
+          "2",
+          "3",
+          "4",
+          "0"
+        ],
+        "correct_answer": "3",
+        "topic": "Unit 4: Functions, Arrays, Structures, Recursion (Q26\u201345)",
+        "type": "mcq"
+      },
+      {
+        "id": "q46",
+        "question": "Pointer stores:",
+        "options": [
+          "Value",
+          "Address",
+          "Function",
+          "Loop"
+        ],
+        "correct_answer": "Address",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q47",
+        "question": "& operator gives:",
+        "options": [
+          "Value",
+          "Address",
+          "Loop",
+          "None"
+        ],
+        "correct_answer": "Address",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q48",
+        "question": "* operator is:",
+        "options": [
+          "Value",
+          "Dereference",
+          "Address",
+          "Loop"
+        ],
+        "correct_answer": "Dereference",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q49",
+        "question": "NULL pointer means:",
+        "options": [
+          "0",
+          "Random",
+          "Infinite",
+          "Memory"
+        ],
+        "correct_answer": "0",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q50",
+        "question": "Pointer arithmetic increases by:",
+        "options": [
+          "1 byte",
+          "Size of type",
+          "2 bytes",
+          "None"
+        ],
+        "correct_answer": "Size of type",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q51",
+        "question": "malloc() returns:",
+        "options": [
+          "int",
+          "pointer",
+          "float",
+          "char"
+        ],
+        "correct_answer": "pointer",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q52",
+        "question": "free() is used to:",
+        "options": [
+          "Allocate",
+          "Deallocate",
+          "Print",
+          "Loop"
+        ],
+        "correct_answer": "Deallocate",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q53",
+        "question": "Dangling pointer is:",
+        "options": [
+          "Valid",
+          "Freed memory pointer",
+          "Null",
+          "Global"
+        ],
+        "correct_answer": "Freed memory pointer",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q54",
+        "question": "fopen() is used to:",
+        "options": [
+          "Close file",
+          "Open file",
+          "Write",
+          "Read"
+        ],
+        "correct_answer": "Open file",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q55",
+        "question": "fclose() is used to:",
+        "options": [
+          "Open",
+          "Close",
+          "Delete",
+          "Create"
+        ],
+        "correct_answer": "Close",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q56",
+        "question": "File pointer type:",
+        "options": [
+          "int",
+          "FILE*",
+          "char",
+          "void"
+        ],
+        "correct_answer": "FILE*",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q57",
+        "question": "fprintf() writes to:",
+        "options": [
+          "Console",
+          "File",
+          "Memory",
+          "Loop"
+        ],
+        "correct_answer": "File",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q58",
+        "question": "fscanf() reads from:",
+        "options": [
+          "Console",
+          "File",
+          "Loop",
+          "Array"
+        ],
+        "correct_answer": "File",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q59",
+        "question": "feof() checks:",
+        "options": [
+          "Start",
+          "End of file",
+          "Loop",
+          "Error"
+        ],
+        "correct_answer": "End of file",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      },
+      {
+        "id": "q60",
+        "question": "Pointer to pointer:",
+        "options": [
+          "int",
+          "int**",
+          "int*",
+          "char"
+        ],
+        "correct_answer": "int**",
+        "topic": "Unit 5: Pointers, DMA, Files (Q46\u201360)",
+        "type": "mcq"
+      }
+    ]
+  },
+  {
+    "type": "coding",
+    "count": 4,
+    "marks_per_question": 10,
+    "questions": [
+      {
+        "id": "reverse_array",
+        "difficulty": "easy",
+        "title": "Reverse an Array",
+        "statement": "Given an array of integers, reverse the array in-place.",
+        "constraints": {
+          "n": "1 <= n <= 10^5",
+          "arr[i]": "-10^9 <= arr[i] <= 10^9"
+        },
+        "input_format": "First line contains integer n. Second line contains n space-separated integers.",
+        "output_format": "Print the reversed array.",
+        "function_signature": "void reverseArray(int arr[], int n)",
+        "sample_test_cases": [
+          {
+            "input": "5\n1 2 3 4 5",
+            "output": "5 4 3 2 1"
+          }
+        ],
+        "hidden_test_cases": [
+          {
+            "input": "1\n10",
+            "output": "10"
+          },
+          {
+            "input": "4\n-1 -2 -3 -4",
+            "output": "-4 -3 -2 -1"
+          },
+          {
+            "input": "6\n0 0 0 0 0 0",
+            "output": "0 0 0 0 0 0"
+          }
+        ],
+        "edge_cases": [
+          "Single element array",
+          "All elements same",
+          "Negative numbers"
+        ],
+        "type": "coding"
+      },
+      {
+        "id": "palindrome_recursion",
+        "difficulty": "medium",
+        "title": "Check Palindrome using Recursion",
+        "statement": "Given a string, check if it is a palindrome using recursion.",
+        "constraints": {
+          "length": "1 <= len(s) <= 10^5"
+        },
+        "input_format": "Single string s",
+        "output_format": "Print YES if palindrome, else NO",
+        "function_signature": "int isPalindrome(char str[], int start, int end)",
+        "sample_test_cases": [
+          {
+            "input": "madam",
+            "output": "YES"
+          }
+        ],
+        "hidden_test_cases": [
+          {
+            "input": "racecar",
+            "output": "YES"
+          },
+          {
+            "input": "hello",
+            "output": "NO"
+          },
+          {
+            "input": "a",
+            "output": "YES"
+          },
+          {
+            "input": "abba",
+            "output": "YES"
+          }
+        ],
+        "edge_cases": [
+          "Single character",
+          "Even length string",
+          "Odd length string",
+          "Non-palindrome with same prefix/suffix"
+        ],
+        "type": "coding"
+      },
+      {
+        "id": "dynamic_array_sum",
+        "difficulty": "medium",
+        "title": "Sum of Dynamically Allocated Array",
+        "statement": "Allocate memory dynamically for n integers and compute their sum.",
+        "constraints": {
+          "n": "1 <= n <= 10^6",
+          "arr[i]": "-10^9 <= arr[i] <= 10^9"
+        },
+        "input_format": "First line contains integer n. Second line contains n integers.",
+        "output_format": "Print the sum of elements.",
+        "function_signature": "long long sumArray(int *arr, int n)",
+        "sample_test_cases": [
+          {
+            "input": "5\n1 2 3 4 5",
+            "output": "15"
+          }
+        ],
+        "hidden_test_cases": [
+          {
+            "input": "3\n1000000000 1000000000 1000000000",
+            "output": "3000000000"
+          },
+          {
+            "input": "4\n-1 -2 -3 -4",
+            "output": "-10"
+          },
+          {
+            "input": "1\n0",
+            "output": "0"
+          }
+        ],
+        "edge_cases": [
+          "Large values causing overflow (use long long)",
+          "Negative numbers",
+          "Single element"
+        ],
+        "type": "coding"
+      },
+      {
+        "id": "student_file_sort",
+        "difficulty": "hard",
+        "title": "Store and Sort Student Records",
+        "statement": "Given n student records (id, name, marks), store them and print them sorted by marks in descending order.",
+        "constraints": {
+          "n": "1 <= n <= 10^5",
+          "marks": "0 <= marks <= 100"
+        },
+        "input_format": "First line contains n. Next n lines contain: id name marks",
+        "output_format": "Print sorted records: id name marks",
+        "function_signature": "void sortStudents(struct Student arr[], int n)",
+        "sample_test_cases": [
+          {
+            "input": "3\n1 Alice 85\n2 Bob 90\n3 Charlie 80",
+            "output": "2 Bob 90\n1 Alice 85\n3 Charlie 80"
+          }
+        ],
+        "hidden_test_cases": [
+          {
+            "input": "2\n1 A 50\n2 B 50",
+            "output": "1 A 50\n2 B 50"
+          },
+          {
+            "input": "1\n10 John 100",
+            "output": "10 John 100"
+          },
+          {
+            "input": "4\n1 X 10\n2 Y 20\n3 Z 30\n4 W 40",
+            "output": "4 W 40\n3 Z 30\n2 Y 20\n1 X 10"
+          }
+        ],
+        "edge_cases": [
+          "Same marks (stable order)",
+          "Single student",
+          "Already sorted input",
+          "Reverse sorted input"
+        ],
+        "type": "coding"
+      }
+    ]
+  }
+]

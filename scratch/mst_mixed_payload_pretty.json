@@ -1,0 +1,373 @@
+[
+  {
+    "type": "mcq",
+    "count": 20,
+    "marks_per_question": 1,
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Which statement is used for decision making?",
+        "options": [
+          "for",
+          "while",
+          "if",
+          "goto"
+        ],
+        "correct_answer": "if",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q2",
+        "question": "Which loop executes at least once?",
+        "options": [
+          "for",
+          "while",
+          "do-while",
+          "none"
+        ],
+        "correct_answer": "do-while",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q3",
+        "question": "switch statement works with:",
+        "options": [
+          "float",
+          "double",
+          "int",
+          "string"
+        ],
+        "correct_answer": "int",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q4",
+        "question": "break statement is used to:",
+        "options": [
+          "Skip iteration",
+          "Exit loop",
+          "End program",
+          "Continue loop"
+        ],
+        "correct_answer": "Exit loop",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q5",
+        "question": "continue statement is used to:",
+        "options": [
+          "Exit loop",
+          "Skip current iteration",
+          "End program",
+          "Restart loop"
+        ],
+        "correct_answer": "Skip current iteration",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q6",
+        "question": "Default storage class in C is:",
+        "options": [
+          "static",
+          "extern",
+          "auto",
+          "register"
+        ],
+        "correct_answer": "auto",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q7",
+        "question": "static variable retains:",
+        "options": [
+          "No value",
+          "Previous value",
+          "Random value",
+          "Zero"
+        ],
+        "correct_answer": "Previous value",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q8",
+        "question": "extern keyword is used for:",
+        "options": [
+          "Local variables",
+          "Global variables",
+          "Loop variables",
+          "Constants"
+        ],
+        "correct_answer": "Global variables",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q9",
+        "question": "register variables are stored in:",
+        "options": [
+          "RAM",
+          "CPU registers",
+          "Disk",
+          "Cache"
+        ],
+        "correct_answer": "CPU registers",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q10",
+        "question": "Scope of local variable is:",
+        "options": [
+          "Entire program",
+          "File",
+          "Function/block",
+          "Global"
+        ],
+        "correct_answer": "Function/block",
+        "topic": "Control Statements & Storage (Q1\u201310)",
+        "type": "mcq"
+      },
+      {
+        "id": "q11",
+        "question": "Function prototype is:",
+        "options": [
+          "Definition",
+          "Declaration",
+          "Call",
+          "Loop"
+        ],
+        "correct_answer": "Declaration",
+        "topic": "Functions, Arrays, Structures (Q11\u201315)",
+        "type": "mcq"
+      },
+      {
+        "id": "q12",
+        "question": "Call by value passes:",
+        "options": [
+          "Address",
+          "Value",
+          "Pointer",
+          "Reference"
+        ],
+        "correct_answer": "Value",
+        "topic": "Functions, Arrays, Structures (Q11\u201315)",
+        "type": "mcq"
+      },
+      {
+        "id": "q13",
+        "question": "Recursion is:",
+        "options": [
+          "Loop",
+          "Function calling itself",
+          "Variable",
+          "Array"
+        ],
+        "correct_answer": "Function calling itself",
+        "topic": "Functions, Arrays, Structures (Q11\u201315)",
+        "type": "mcq"
+      },
+      {
+        "id": "q14",
+        "question": "Array index starts from:",
+        "options": [
+          "1",
+          "0",
+          "-1",
+          "Any"
+        ],
+        "correct_answer": "0",
+        "topic": "Functions, Arrays, Structures (Q11\u201315)",
+        "type": "mcq"
+      },
+      {
+        "id": "q15",
+        "question": "Structure can store:",
+        "options": [
+          "Same type data",
+          "Different type data",
+          "Only int",
+          "Only char"
+        ],
+        "correct_answer": "Different type data",
+        "topic": "Functions, Arrays, Structures (Q11\u201315)",
+        "type": "mcq"
+      },
+      {
+        "id": "q16",
+        "question": "Pointer stores:",
+        "options": [
+          "Value",
+          "Address",
+          "Function",
+          "Loop"
+        ],
+        "correct_answer": "Address",
+        "topic": "Pointers, DMA, Files (Q16\u201320)",
+        "type": "mcq"
+      },
+      {
+        "id": "q17",
+        "question": "malloc() is used for:",
+        "options": [
+          "Deallocation",
+          "Allocation",
+          "Printing",
+          "Loop"
+        ],
+        "correct_answer": "Allocation",
+        "topic": "Pointers, DMA, Files (Q16\u201320)",
+        "type": "mcq"
+      },
+      {
+        "id": "q18",
+        "question": "free() is used to:",
+        "options": [
+          "Allocate",
+          "Deallocate",
+          "Print",
+          "Loop"
+        ],
+        "correct_answer": "Deallocate",
+        "topic": "Pointers, DMA, Files (Q16\u201320)",
+        "type": "mcq"
+      },
+      {
+        "id": "q19",
+        "question": "fopen() is used to:",
+        "options": [
+          "Close file",
+          "Open file",
+          "Delete file",
+          "Read only"
+        ],
+        "correct_answer": "Open file",
+        "topic": "Pointers, DMA, Files (Q16\u201320)",
+        "type": "mcq"
+      },
+      {
+        "id": "q20",
+        "question": "Dangling pointer is:",
+        "options": [
+          "Valid pointer",
+          "Pointer to freed memory",
+          "Null pointer",
+          "Global pointer"
+        ],
+        "correct_answer": "Pointer to freed memory",
+        "topic": "Pointers, DMA, Files (Q16\u201320)",
+        "type": "mcq"
+      }
+    ]
+  },
+  {
+    "type": "coding",
+    "count": 3,
+    "marks_per_question": 10,
+    "questions": [
+      {
+        "id": "count_even",
+        "difficulty": "easy",
+        "title": "Count Even Numbers",
+        "statement": "Given an array of integers, count how many numbers are even.",
+        "input_format": "n followed by n integers",
+        "output_format": "Single integer count",
+        "constraints": {
+          "n": "1 <= n <= 10^5"
+        },
+        "sample_test_cases": [
+          {
+            "input": "5\n1 2 3 4 5",
+            "output": "2"
+          }
+        ],
+        "hidden_test_cases": [
+          {
+            "input": "1\n2",
+            "output": "1"
+          },
+          {
+            "input": "4\n1 3 5 7",
+            "output": "0"
+          },
+          {
+            "input": "6\n2 4 6 8 10 12",
+            "output": "6"
+          }
+        ],
+        "type": "coding"
+      },
+      {
+        "id": "reverse_string_recursion",
+        "difficulty": "medium",
+        "title": "Reverse String using Recursion",
+        "statement": "Reverse a string using recursion.",
+        "input_format": "string s",
+        "output_format": "Reversed string",
+        "constraints": {
+          "length": "1 <= len(s) <= 10^5"
+        },
+        "sample_test_cases": [
+          {
+            "input": "hello",
+            "output": "olleh"
+          }
+        ],
+        "hidden_test_cases": [
+          {
+            "input": "a",
+            "output": "a"
+          },
+          {
+            "input": "madam",
+            "output": "madam"
+          },
+          {
+            "input": "abcd",
+            "output": "dcba"
+          }
+        ],
+        "type": "coding"
+      },
+      {
+        "id": "max_student_marks",
+        "difficulty": "hard",
+        "title": "Find Student with Highest Marks",
+        "statement": "Given student records (id, name, marks), find and print the student with highest marks.",
+        "input_format": "n followed by n lines: id name marks",
+        "output_format": "id name marks of highest scorer",
+        "constraints": {
+          "n": "1 <= n <= 10^5",
+          "marks": "0 <= marks <= 100"
+        },
+        "sample_test_cases": [
+          {
+            "input": "3\n1 A 50\n2 B 90\n3 C 70",
+            "output": "2 B 90"
+          }
+        ],
+        "hidden_test_cases": [
+          {
+            "input": "2\n1 A 50\n2 B 50",
+            "output": "1 A 50"
+          },
+          {
+            "input": "1\n10 X 100",
+            "output": "10 X 100"
+          },
+          {
+            "input": "4\n1 X 10\n2 Y 20\n3 Z 30\n4 W 40",
+            "output": "4 W 40"
+          }
+        ],
+        "type": "coding"
+      }
+    ]
+  }
+]
