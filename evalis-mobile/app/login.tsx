@@ -1,16 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import API from '../src/api/client';
 
 export default function LoginScreen() {
     const [isLogin, setIsLogin] = useState(true);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
+    const [forgotMessage, setForgotMessage] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+
+    const handleForgotPasswordSubmit = async () => {
+        if (!email) {
+            Alert.alert("Missing Email", "Please enter your email to reset your password.");
+            return;
+        }
+        setLoading(true);
+        try {
+            const res = await API.post('/auth/forgot-password', { email });
+            setForgotMessage(res.data.message || "If the email is registered, a new password will be sent.");
+        } catch (error) {
+            setForgotMessage("Failed to send reset request.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleAuth = async () => {
         if (!email || !password || (!isLogin && !name)) {
@@ -41,9 +60,6 @@ export default function LoginScreen() {
                 });
                 await AsyncStorage.setItem('user', JSON.stringify(userRes.data));
                 
-                // Note: The Web version uses API.defaults.headers to inject auth globally
-                // In React Native, our interceptor automatically pulls from AsyncStorage on every request!
-                
                 // Force Entry into Dashboard Ecosystem
                 router.replace('/(tabs)');
             }
@@ -57,91 +73,291 @@ export default function LoginScreen() {
     };
 
     return (
-        <KeyboardAvoidingView 
-            style={styles.container} 
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-            <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-                <View style={styles.modalCard}>
-                    <Text style={styles.title}>{isLogin ? 'Welcome back' : 'Create account'}</Text>
+        <View style={styles.container}>
+            {/* Background Blobs (Simulated with absolute LinearGradients) */}
+            <View style={styles.blobTop} />
+            <View style={styles.blobBottom} />
 
-                    <View style={styles.form}>
-                        {/* Name Input - Only visible on Sign Up */}
-                        {!isLogin && (
-                            <TextInput 
-                                style={styles.input}
-                                placeholder="Full Name"
-                                placeholderTextColor="rgba(255,255,255,0.4)"
-                                value={name}
-                                onChangeText={setName}
-                                autoCapitalize="words"
+            <KeyboardAvoidingView 
+                style={{ flex: 1 }} 
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                    
+                    {/* Brand & Hero Typography */}
+                    <View style={styles.heroSection}>
+                        <View style={styles.logoRow}>
+                            <Image 
+                                source={require('../assets/images/evalis_logo_transparent.png')} 
+                                style={styles.evalisLogo} 
+                                resizeMode="contain"
                             />
-                        )}
-
-                        <TextInput 
-                            style={styles.input}
-                            placeholder="Email"
-                            placeholderTextColor="rgba(255,255,255,0.4)"
-                            value={email}
-                            onChangeText={setEmail}
-                            autoCapitalize="none"
-                            keyboardType="email-address"
-                        />
-
-                        <TextInput 
-                            style={styles.input}
-                            placeholder="Password"
-                            placeholderTextColor="rgba(255,255,255,0.4)"
-                            secureTextEntry
-                            value={password}
-                            onChangeText={setPassword}
-                        />
-
-                        <TouchableOpacity 
-                            style={styles.button} 
-                            onPress={handleAuth}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <ActivityIndicator color="black" />
-                            ) : (
-                                <Text style={styles.buttonText}>{isLogin ? 'Login' : 'Sign up'}</Text>
-                            )}
-                        </TouchableOpacity>
+                            <Text style={styles.logoText}>EVALIS</Text>
+                        </View>
+                        
+                        <View style={styles.taglineContainer}>
+                            <Text style={styles.taglineWordBlue}>Build.</Text>
+                            <Text style={styles.taglineWordWhite}>Evaluate.</Text>
+                            <Text style={styles.taglineWordPink}>Scale.</Text>
+                        </View>
+                        
+                        <Text style={styles.heroSubText}>The ultimate assessment portal.</Text>
+                        <Text style={styles.heroDescText}>Experience frictionless code execution and analytics, built exclusively for MIET.</Text>
                     </View>
 
-                    <View style={styles.toggleContainer}>
-                        <Text style={styles.toggleText}>
-                            {isLogin ? "Don’t have an account? " : "Already have an account? "}
-                            <Text style={styles.toggleLink} onPress={() => setIsLogin(!isLogin)}>
-                                {isLogin ? "Sign up" : "Login"}
+                    {/* Auth Modal Card */}
+                    <View style={styles.modalCardWrapper}>
+                        <View style={styles.partnerContainer}>
+                            <View style={styles.partnerBox}>
+                                <Image 
+                                    source={require('../assets/images/miet_logo_transparent.png')} 
+                                    style={styles.mietLogo} 
+                                    resizeMode="contain"
+                                />
+                            </View>
+                        </View>
+
+                        <LinearGradient
+                            colors={['rgba(59,130,246,0.15)', 'rgba(168,85,247,0.15)']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.modalCardBackground}
+                        />
+                        <View style={styles.modalCard}>
+                            <Text style={styles.title}>
+                                {isForgotPassword ? 'Reset Password' : (isLogin ? 'Welcome back' : 'Create account')}
                             </Text>
-                        </Text>
+
+                            {isForgotPassword ? (
+                                <View style={styles.form}>
+                                    {forgotMessage ? (
+                                        <View style={styles.successMessage}>
+                                            <Text style={styles.successMessageText}>{forgotMessage}</Text>
+                                        </View>
+                                    ) : null}
+
+                                    <TextInput 
+                                        style={styles.input}
+                                        placeholder="Email"
+                                        placeholderTextColor="rgba(255,255,255,0.4)"
+                                        value={email}
+                                        onChangeText={setEmail}
+                                        autoCapitalize="none"
+                                        keyboardType="email-address"
+                                    />
+
+                                    <TouchableOpacity 
+                                        style={styles.button} 
+                                        onPress={handleForgotPasswordSubmit}
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <ActivityIndicator color="black" />
+                                        ) : (
+                                            <Text style={styles.buttonText}>Send New Password</Text>
+                                        )}
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity style={styles.forgotBtn} onPress={() => setIsForgotPassword(false)}>
+                                        <Text style={styles.forgotBtnText}>Back to login</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : (
+                                <View style={styles.form}>
+                                {!isLogin && (
+                                    <TextInput 
+                                        style={styles.input}
+                                        placeholder="Full Name"
+                                        placeholderTextColor="rgba(255,255,255,0.4)"
+                                        value={name}
+                                        onChangeText={setName}
+                                        autoCapitalize="words"
+                                    />
+                                )}
+
+                                <TextInput 
+                                    style={styles.input}
+                                    placeholder="Email"
+                                    placeholderTextColor="rgba(255,255,255,0.4)"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                />
+
+                                <TextInput 
+                                    style={styles.input}
+                                    placeholder="Password"
+                                    placeholderTextColor="rgba(255,255,255,0.4)"
+                                    secureTextEntry
+                                    value={password}
+                                    onChangeText={setPassword}
+                                />
+
+                                {isLogin && (
+                                    <View style={styles.forgotRow}>
+                                        <TouchableOpacity onPress={() => setIsForgotPassword(true)}>
+                                            <Text style={styles.forgotText}>Forgot password?</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                <TouchableOpacity 
+                                    style={styles.button} 
+                                    onPress={handleAuth}
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <ActivityIndicator color="black" />
+                                    ) : (
+                                        <Text style={styles.buttonText}>{isLogin ? 'Login' : 'Sign up'}</Text>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                            )}
+
+                            <View style={styles.toggleContainer}>
+                                <Text style={styles.toggleText}>
+                                    {isLogin ? "Don’t have an account? " : "Already have an account? "}
+                                    <Text style={styles.toggleLink} onPress={() => { setIsLogin(!isLogin); setIsForgotPassword(false); }}>
+                                        {isLogin ? "Sign up" : "Login"}
+                                    </Text>
+                                </Text>
+                            </View>
+                        </View>
                     </View>
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                    
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // Match Tailwind container bg-black/50 feel
-        backgroundColor: '#000000', 
+        backgroundColor: '#050505', 
+        position: 'relative'
+    },
+    blobTop: {
+        position: 'absolute',
+        top: -100,
+        left: -100,
+        width: 300,
+        height: 300,
+        borderRadius: 150,
+        backgroundColor: 'rgba(37,99,235,0.15)',
+        transform: [{ scale: 1.5 }]
+    },
+    blobBottom: {
+        position: 'absolute',
+        bottom: -100,
+        right: -100,
+        width: 300,
+        height: 300,
+        borderRadius: 150,
+        backgroundColor: 'rgba(147,51,234,0.15)',
+        transform: [{ scale: 1.5 }]
     },
     scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
         paddingHorizontal: 24,
+        paddingTop: 80,
+        paddingBottom: 40,
+    },
+    heroSection: {
+        marginBottom: 40,
+    },
+    logoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 30,
+    },
+    evalisLogo: {
+        width: 48,
+        height: 48,
+        marginRight: 12,
+    },
+    logoText: {
+        fontSize: 32,
+        fontWeight: '900',
+        letterSpacing: 4,
+        color: 'white',
+        textShadowColor: 'rgba(255,255,255,0.2)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10
+    },
+    taglineContainer: {
+        marginBottom: 20,
+    },
+    taglineWordBlue: {
+        fontSize: 56,
+        fontWeight: '900',
+        lineHeight: 60,
+        color: '#60a5fa', // tailwind blue-400
+    },
+    taglineWordWhite: {
+        fontSize: 56,
+        fontWeight: '900',
+        lineHeight: 60,
+        color: 'white',
+    },
+    taglineWordPink: {
+        fontSize: 56,
+        fontWeight: '900',
+        lineHeight: 60,
+        color: '#c084fc', // tailwind purple-400
+    },
+    heroSubText: {
+        fontSize: 18,
+        color: '#9ca3af',
+        fontWeight: '300',
+        marginBottom: 8,
+    },
+    heroDescText: {
+        fontSize: 14,
+        color: '#6b7280',
+        fontWeight: '300',
+        lineHeight: 22,
+    },
+    modalCardWrapper: {
+        position: 'relative',
+        borderRadius: 24,
+        marginTop: 20,
+    },
+    partnerContainer: {
+        alignItems: 'center',
+        marginBottom: -20, // Overlay on top of the card
+        zIndex: 10,
+    },
+    partnerBox: {
+        backgroundColor: 'rgba(226,232,240,0.95)', // slate-200/95 equivalent
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.3)',
+        shadowColor: '#fff',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+    },
+    mietLogo: {
+        height: 40,
+        width: 120,
+    },
+    modalCardBackground: {
+        ...StyleSheet.absoluteFillObject,
+        borderRadius: 24,
     },
     modalCard: {
-        // Match Web EXACTLY: bg-[#0b0f19] border border-white/10 rounded-2xl p-8
-        backgroundColor: '#0b0f19',
+        backgroundColor: 'rgba(11,15,25,0.95)',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
         borderRadius: 24,
         padding: 32,
+        paddingTop: 40, // extra padding for the partner logo overlay
     },
     title: {
         fontSize: 24,
@@ -154,7 +370,6 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     input: {
-        // Match Web: bg-white/5 border border-white/10 rounded-lg px-4 py-3
         backgroundColor: 'rgba(255,255,255,0.05)',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
@@ -163,10 +378,9 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         color: 'white',
         fontSize: 16,
-        marginBottom: 16, // using margin fallback for React Native gap support
+        marginBottom: 16, 
     },
     button: {
-        // Match Web: bg-white text-black py-3 rounded-lg font-medium hover:opacity-90 transition mt-2
         backgroundColor: 'white',
         paddingVertical: 14,
         borderRadius: 12,
@@ -179,15 +393,47 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
     },
+    forgotRow: {
+        alignItems: 'flex-end',
+        marginTop: -8,
+        marginBottom: 8,
+    },
+    forgotText: {
+        color: '#9ca3af',
+        fontSize: 14,
+    },
+    forgotBtn: {
+        alignItems: 'center',
+        marginTop: 12,
+    },
+    forgotBtnText: {
+        color: '#60a5fa',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    successMessage: {
+        backgroundColor: 'rgba(34,197,94,0.1)',
+        borderColor: 'rgba(34,197,94,0.2)',
+        borderWidth: 1,
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 8,
+    },
+    successMessageText: {
+        color: '#4ade80',
+        fontSize: 14,
+        textAlign: 'center',
+    },
     toggleContainer: {
         marginTop: 24,
         alignItems: 'center',
     },
     toggleText: {
-        color: '#9ca3af', // text-gray-400
+        color: '#9ca3af',
         fontSize: 14,
     },
     toggleLink: {
-        color: 'white', // text-white
+        color: 'white', 
+        fontWeight: 'bold',
     }
 });
