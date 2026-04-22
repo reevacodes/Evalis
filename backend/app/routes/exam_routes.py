@@ -512,6 +512,13 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
 
     # ✅ PARSE TIME
     start_time = datetime.fromisoformat(start_time_str).replace(tzinfo=None)
+    
+    # ✅ VALIDATE SCHEDULING TIMEFRAME (10 DAYS ADVANCE)
+    if start_time < datetime.now() + timedelta(days=10):
+        raise HTTPException(
+            status_code=400,
+            detail="Exams must be scheduled at least 10 days in advance."
+        )
 
     # ✅ ZERO-TRUST JUST-IN-TIME SET GENERATION
     # The teacher built the Seed Pool. Now we enforce the Hybrid Engine.
@@ -957,6 +964,19 @@ def publish_exam_api(
             status_code=400,
             detail="Schedule exam before publishing"
         )
+        
+    start_time = exam.get("start_time")
+    if isinstance(start_time, str):
+        try:
+            start_time = datetime.fromisoformat(start_time).replace(tzinfo=None)
+        except:
+            pass
+    if isinstance(start_time, datetime):
+        if start_time < datetime.now() + timedelta(days=10):
+            raise HTTPException(
+                status_code=400,
+                detail="Exams must be published at least 10 days before the scheduled start time."
+            )
 
     exam_collection.update_one(
         {"_id": ObjectId(exam_id)},
@@ -1215,6 +1235,19 @@ def request_reschedule(
     exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
     if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
+        
+    start_time = exam.get("start_time")
+    if isinstance(start_time, str):
+        try:
+            start_time = datetime.fromisoformat(start_time).replace(tzinfo=None)
+        except:
+            pass
+    if isinstance(start_time, datetime):
+        if start_time < datetime.now() + timedelta(days=5):
+            raise HTTPException(
+                status_code=400,
+                detail="Reschedule requests must be submitted at least 5 days before the exam's scheduled start time."
+            )
         
     # Check if a pending request already exists
     pending_req = reschedule_collection.find_one({
