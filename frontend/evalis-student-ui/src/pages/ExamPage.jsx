@@ -32,6 +32,7 @@ export default function ExamPage({ isPractice = false }) {
 
   const submittedRef = useRef(false);
   const isLoadedRef = useRef(false);
+  const warningCountRef = useRef(0);
   const storageKey = `exam_${examId}_answers`;
 
   // ================= LOAD EXAM =================
@@ -113,9 +114,37 @@ export default function ExamPage({ isPractice = false }) {
   // ✅ Trigger submit sequentially on standard render loop to avoid Stale Closures
   useEffect(() => {
     if (timeLeft === 0 && !submittedRef.current) {
-      handleAutoSubmit();
+      handleAutoSubmit("Time expired! Your exam was auto-submitted.");
     }
   }, [timeLeft]);
+
+  // ================= PROCTORING: TAB SWITCH DETECTION =================
+  useEffect(() => {
+    // Only monitor strictly for non-practice formal exams
+    if (isPractice || timeStatus !== "active") return;
+
+    const handleVisibilityChange = () => {
+      // If the page goes out of view and the student hasn't legally submitted yet
+      if (document.hidden && !submittedRef.current) {
+        warningCountRef.current += 1;
+        const violations = warningCountRef.current;
+
+        if (violations === 1) {
+          alert("⚠️ WARNING 1: Tab switching is strictly prohibited! Return to the exam immediately.");
+        } else if (violations === 2) {
+          alert("⚠️ FINAL WARNING: If you switch tabs one more time, your exam will be automatically submitted and locked.");
+        } else if (violations >= 3) {
+          alert("🚨 INFRACTION LIMIT EXCEEDED: You switched tabs 3 times. Your exam is now being automatically submitted.");
+          handleAutoSubmit("Infraction limit exceeded. Exam terminated.");
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [timeStatus, isPractice]);
 
   useEffect(() => {
     if (!isLoadedRef.current) return;
@@ -193,7 +222,7 @@ export default function ExamPage({ isPractice = false }) {
   };
 
   // ✅ AUTO SUBMIT (no UI, no prompts)
-  const handleAutoSubmit = async () => {
+  const handleAutoSubmit = async (customMessage = null) => {
     if (submittedRef.current) return;
 
     submittedRef.current = true;
@@ -204,7 +233,7 @@ export default function ExamPage({ isPractice = false }) {
             mcq_answers: answers,
             coding_answers: codingAnswers,
           });
-          setSuccessMessage("Time expired! Practice Exam Finished.");
+          setSuccessMessage(customMessage || "Time expired! Practice Exam Finished.");
           setShowSuccessModal(true);
           localStorage.removeItem(storageKey);
 
@@ -218,7 +247,7 @@ export default function ExamPage({ isPractice = false }) {
             coding_answers: codingAnswers,
           });
 
-          setSuccessMessage("Time expired! Your exam was auto-submitted.");
+          setSuccessMessage(customMessage || "Time expired! Your exam was auto-submitted.");
           setShowSuccessModal(true);
           localStorage.removeItem(storageKey);
 

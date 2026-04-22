@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Modal, TextInput, Alert, ActivityIndicator, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '../../src/api/client';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
@@ -45,8 +45,17 @@ export default function DashboardScreen() {
         }
     };
 
+    useFocusEffect(
+        useCallback(() => {
+            loadData();
+        }, [])
+    );
+
     useEffect(() => {
-        loadData();
+        const sub = DeviceEventEmitter.addListener('notification_received', () => {
+            loadData();
+        });
+        return () => sub.remove();
     }, []);
 
     const onRefresh = async () => {
@@ -68,7 +77,8 @@ export default function DashboardScreen() {
 
         setSubmittingReschedule(true);
         try {
-            const preferred_time = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
+            // Send exact local time without UTC conversion to prevent timezone shifts on the backend
+            const preferred_time = `${rescheduleDate}T${rescheduleTime}:00`;
             await API.post(`/exam/${activeRescheduleId}/reschedule`, { reason: rescheduleReason, preferred_time });
             Alert.alert("Request Sent", "Your instructor will review your reschedule request.");
             setRescheduleModalVisible(false);
@@ -161,7 +171,7 @@ export default function DashboardScreen() {
                                         </View>
                                     )}
                                     
-                                    {isUpcoming && !exam.is_rescheduled && (
+                                    {isUpcoming && exam.reschedule_status !== 'approved' && exam.reschedule_status !== 'pending' && (
                                         <TouchableOpacity 
                                             style={styles.rescheduleBtn}
                                             onPress={() => {
@@ -173,9 +183,15 @@ export default function DashboardScreen() {
                                         </TouchableOpacity>
                                     )}
 
-                                    {exam.is_rescheduled && (
+                                    {exam.reschedule_status === 'pending' && (
                                         <View style={styles.rescheduledBadge}>
                                             <Text style={styles.rescheduledBadgeText}>Reschedule Pending</Text>
+                                        </View>
+                                    )}
+
+                                    {exam.reschedule_status === 'approved' && (
+                                        <View style={[styles.rescheduledBadge, { backgroundColor: '#064e3b' }]}>
+                                            <Text style={[styles.rescheduledBadgeText, { color: '#34d399' }]}>Reschedule Approved</Text>
                                         </View>
                                     )}
 

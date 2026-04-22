@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React, { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, DeviceEventEmitter } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -16,6 +16,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -30,6 +32,14 @@ export default function TabLayout() {
           .catch(err => console.error('⚠️ Failed hooking token:', err));
       }
     });
+
+    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+      DeviceEventEmitter.emit('notification_received', notification);
+    });
+
+    return () => {
+      notificationListener.remove();
+    };
   }, []);
 
   async function registerForPushNotificationsAsync() {
@@ -55,7 +65,11 @@ export default function TabLayout() {
         return;
       }
       // For EAS builds without a projectId injected, we fallback to a dummy or blank.
-      token = (await Notifications.getExpoPushTokenAsync({ projectId: "evalis-mobile-local" })).data;
+      try {
+        token = (await Notifications.getExpoPushTokenAsync({ projectId: "00000000-0000-0000-0000-000000000000" })).data;
+      } catch (error: any) {
+        console.warn("Push notifications are not supported in Expo Go on Android SDK 53+ or require a valid Project ID. Skipping token generation.", error?.message || String(error));
+      }
     }
     return token;
   }

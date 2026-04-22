@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { signup, login } from "../services/api";
+import { signup, login, forgotPassword } from "../services/api";
 import AuthSuccessModal from "../components/AuthSuccessModal";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
@@ -7,6 +7,8 @@ import { useAuth } from "../context/AuthContext";
 
 export default function AuthModal({ onClose, hideClose = false, isInline = false }) {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState("");
   const [role, setRole] = useState("student");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +17,18 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
   const [successType, setSuccessType] = useState(""); // "login" or "signup"
   const navigate = useNavigate();
   const { setUser } = useAuth();
+
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!email) return;
+    try {
+      const res = await forgotPassword({ email });
+      setForgotMessage(res.data.message || "If the email is registered, a new password will be sent.");
+    } catch (err) {
+      console.error(err);
+      setForgotMessage("Failed to send reset request.");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,85 +91,130 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
 
         {/* Title */}
         <h2 className="text-2xl font-semibold mb-6 text-center">
-          {isLogin ? "Welcome back" : "Create account"}
+          {isForgotPassword ? "Reset Password" : (isLogin ? "Welcome back" : "Create account")}
         </h2>
 
-        {/* ✅ FORM (added) */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* 👇 ROLE SELECTOR (ONLY FOR SIGNUP) */}
-          {!isLogin && (
-            <div className="flex gap-3">
-              <button
-                type="button" // ✅ fix
-                onClick={() => setRole("student")}
-                className={`flex-1 py-2 rounded-lg border ${
-                  role === "student"
-                    ? "bg-white text-black"
-                    : "border-white/20 text-white"
-                }`}
-              >
-                Student
-              </button>
-
-              <button
-                type="button" // ✅ fix
-                onClick={() => setRole("teacher")}
-                className={`flex-1 py-2 rounded-lg border ${
-                  role === "teacher"
-                    ? "bg-white text-black"
-                    : "border-white/20 text-white"
-                }`}
-              >
-                Teacher
-              </button>
-            </div>
-          )}
-
-          {!isLogin && (
+        {isForgotPassword ? (
+          <form onSubmit={handleForgotPasswordSubmit} className="flex flex-col gap-4">
+            {forgotMessage && (
+              <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-3 rounded-lg text-sm text-center">
+                {forgotMessage}
+              </div>
+            )}
             <input
-              type="text"
-              placeholder="Full Name"
+              type="email"
+              placeholder="Email"
               className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
-          )}
+            <button
+              type="submit"
+              className="bg-white text-black py-3 rounded-lg font-medium hover:opacity-90 transition mt-2"
+            >
+              Send Reset Email
+            </button>
+            <p className="text-center text-sm text-gray-400 mt-4">
+              Remember your password? 
+              <span
+                onClick={() => { setIsForgotPassword(false); setForgotMessage(""); }}
+                className="ml-2 text-white cursor-pointer hover:underline"
+              >
+                Back to Login
+              </span>
+            </p>
+          </form>
+        ) : (
+          <>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {/* 👇 ROLE SELECTOR (ONLY FOR SIGNUP) */}
+              {!isLogin && (
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRole("student")}
+                    className={`flex-1 py-2 rounded-lg border ${
+                      role === "student"
+                        ? "bg-white text-black"
+                        : "border-white/20 text-white"
+                    }`}
+                  >
+                    Student
+                  </button>
 
-          <input
-            type="email"
-            placeholder="Email"
-            className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+                  <button
+                    type="button"
+                    onClick={() => setRole("teacher")}
+                    className={`flex-1 py-2 rounded-lg border ${
+                      role === "teacher"
+                        ? "bg-white text-black"
+                        : "border-white/20 text-white"
+                    }`}
+                  >
+                    Teacher
+                  </button>
+                </div>
+              )}
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+              {!isLogin && (
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              )}
 
-          {/* ✅ button fix */}
-          <button
-            type="submit"
-            className="bg-white text-black py-3 rounded-lg font-medium hover:opacity-90 transition mt-2"
-          >
-            {isLogin ? "Login" : "Sign up"}
-          </button>
-        </form>
+              <input
+                type="email"
+                placeholder="Email"
+                className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
 
-        {/* Toggle */}
-        <p className="text-center text-sm text-gray-400 mt-6">
-          {isLogin ? "Don’t have an account?" : "Already have an account?"}
-          <span
-            onClick={() => setIsLogin(!isLogin)}
-            className="ml-2 text-white cursor-pointer hover:underline"
-          >
-            {isLogin ? "Sign up" : "Login"}
-          </span>
-        </p>
+              <div className="flex flex-col gap-1">
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                {isLogin && (
+                  <div className="text-right mt-1">
+                    <span 
+                      className="text-xs text-gray-400 hover:text-white cursor-pointer transition"
+                      onClick={() => setIsForgotPassword(true)}
+                    >
+                      Forgot Password?
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="bg-white text-black py-3 rounded-lg font-medium hover:opacity-90 transition mt-2"
+              >
+                {isLogin ? "Login" : "Sign up"}
+              </button>
+            </form>
+
+            {/* Toggle */}
+            <p className="text-center text-sm text-gray-400 mt-6">
+              {isLogin ? "Don’t have an account?" : "Already have an account?"}
+              <span
+                onClick={() => setIsLogin(!isLogin)}
+                className="ml-2 text-white cursor-pointer hover:underline"
+              >
+                {isLogin ? "Sign up" : "Login"}
+              </span>
+            </p>
+          </>
+        )}
       </div>
 
       {/* ✅ Success Modal */}

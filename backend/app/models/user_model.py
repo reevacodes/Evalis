@@ -51,3 +51,13 @@ def update_user_role(db, email: str, new_role: str):
         {"email": email},
         {"$set": {"role": new_role}}
     )
+
+
+def update_user_password(db, email: str, hashed_password: str):
+    """
+    Update user password.
+    """
+    return db.users.update_one(
+        {"email": email},
+        {"$set": {"password": hashed_password}}
+    )

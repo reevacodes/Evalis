@@ -230,6 +230,12 @@ export const login = (data) =>
 export const getMe = () =>
   API.get("/auth/me");
 
+export const forgotPassword = (data) =>
+  API.post("/auth/forgot-password", data);
+
+export const resetPasswordToken = (data) =>
+  API.post("/auth/reset-password", data);
+
 // =========================
 // 📚 PAST PAPER APIs
 // =========================

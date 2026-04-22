@@ -20,6 +20,7 @@ from app.services.evaluation_service import async_evaluate_submission
 from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
 from app.routes.notification_routes import send_expo_push
+from app.services.email_service import send_exam_publish_email, send_reschedule_status_email
 
 router = APIRouter()
 
@@ -434,6 +435,9 @@ def get_all_exams_api(user=Depends(get_current_user)):
             my_subs = list(exam_submission_collection.find({"student_id": user.get("sub")}))
             my_sub_exam_ids = [str(s.get("exam_id")) for s in my_subs]
 
+            my_reschedules = list(reschedule_collection.find({"student_id": user.get("sub")}))
+            my_reschedules_map = {str(r.get("exam_id")): r.get("status") for r in my_reschedules}
+
         else:
             raise HTTPException(403, "Not authorized")
 
@@ -443,6 +447,7 @@ def get_all_exams_api(user=Depends(get_current_user)):
             # Apply student-specific overrides (Reschedules)
             if role == "student":
                 exam["has_submitted"] = exam["_id"] in my_sub_exam_ids
+                exam["reschedule_status"] = my_reschedules_map.get(exam["_id"], None)
                 
                 overrides = exam.get("overrides", [])
                 for ov in overrides:
@@ -967,6 +972,13 @@ def publish_exam_api(
     # 📡 NOTIFICATION BROADCAST TO ALL STUDENTS
     try:
         exam_name = exam.get("exam_name") or exam.get("title", "A new formal exam")
+        subject_code = exam.get("subject_code", "N/A")
+        
+        # Format the time nicely for the email
+        start_t = exam.get("start_time")
+        time_str = start_t.strftime("%Y-%m-%d %I:%M %p") if isinstance(start_t, datetime) else str(start_t)
+        duration = exam.get("duration_minutes", 0)
+
         students = list(user_collection.find({"role": "student"}))
         
         if students:
@@ -983,9 +995,12 @@ def publish_exam_api(
                 })
             
             notification_collection.insert_many(notifications)
-            for n in notifications:
-                send_expo_push(n["user_id"], n["title"], n["message"], {"link": n["link"]})
-            print(f"📡 Broadcasted Exam Publish to {len(students)} students.")
+            
+            for student in students:
+                if student.get("email"):
+                    send_exam_publish_email(student.get("email"), exam_name, subject_code, time_str, duration)
+                    
+            print(f"📡 Broadcasted Exam Publish Email to {len(students)} students.")
     except Exception as e:
         print("⚠️ Failed to broadcast exam publish notifications:", str(e))
 
@@ -1237,11 +1252,11 @@ def get_reschedule_requests(
             req["exam_name"] = exam.get("exam_name", "Unknown Exam")
             req["original_time"] = exam.get("start_time")
             
-        # Fix timezone serialization (MongoDB stores naive datetime, FastAPI serializes without Z)
+        # Fix timezone serialization (strip tzinfo so browser parses exact local time)
         if "preferred_time" in req and isinstance(req["preferred_time"], datetime):
-            req["preferred_time"] = req["preferred_time"].replace(tzinfo=timezone.utc).isoformat()
+            req["preferred_time"] = req["preferred_time"].replace(tzinfo=None).isoformat()
         if "original_time" in req and isinstance(req["original_time"], datetime):
-            req["original_time"] = req["original_time"].replace(tzinfo=timezone.utc).isoformat()
+            req["original_time"] = req["original_time"].replace(tzinfo=None).isoformat()
             
     return {"requests": requests}
 
@@ -1288,7 +1303,19 @@ def update_reschedule_request(
         "created_at": datetime.now(timezone.utc)
     })
     
-    send_expo_push(req["student_id"], "Reschedule Request " + status.capitalize(), f"Your request to reschedule {exam_name} was {status}.")
+    student_data = user_collection.find_one({"sub": req["student_id"]}) or user_collection.find_one({"email": req["student_id"]})
+    to_email = student_data.get("email") if student_data else req["student_id"]
+    
+    if to_email:
+        time_str = req["preferred_time"] if status == "approved" else None
+        if time_str and isinstance(time_str, datetime):
+            time_str = time_str.strftime("%Y-%m-%d %I:%M %p")
+        elif time_str and isinstance(time_str, str):
+            try:
+                time_str = datetime.fromisoformat(time_str).strftime("%Y-%m-%d %I:%M %p")
+            except:
+                pass
+        send_reschedule_status_email(to_email, exam_name, status, time_str)
     
     return {"message": f"Request {status} successfully"}
 

@@ -20,6 +20,7 @@ import ExamEditor from "./pages/ExamEditor";
 import ExamFinalized from "./pages/ExamFinalized";
 import PublishExam from "./pages/PublishExam";
 import Landing from "./pages/Landing";
+import ResetPassword from "./pages/ResetPassword";
 import StudentResults from "./pages/StudentResults";
 import PracticeResultPage from "./pages/PracticeResultPage";
 import PrivateRoute from "./components/PrivateRoute";
@@ -44,6 +45,7 @@ function AppContent() {
       <Routes>
         {/* PUBLIC */}
         <Route path="/" element={<Landing />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/student/exam/:examId" element={<ExamPage isPractice={false} />} />
         <Route path="/student/practice/:examId" element={<ExamPage isPractice={true} />} />

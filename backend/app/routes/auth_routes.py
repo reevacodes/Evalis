@@ -2,13 +2,25 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from app.schemas.user_schema import UserSignup, UserLogin, LoginResponse
 from app.models.user_model import create_user, get_user_by_email
 from app.utils.security import hash_password, verify_password
-from app.utils.jwt_handler import create_access_token
+from app.utils.jwt_handler import create_access_token, decode_token
+from jose import JWTError
 from app.database import db
 from pymongo.errors import DuplicateKeyError
 from app.utils.auth_dependency import get_current_user
 from app.database import get_db
-from app.models.user_model import update_user_role
+from app.models.user_model import update_user_role, update_user_password
 from app.utils.auth_dependency import get_current_user, require_admin
+from app.services.email_service import send_password_reset_email
+from pydantic import BaseModel
+import random
+import string
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
 
 router = APIRouter()
 
@@ -112,3 +124,53 @@ def make_admin(
 ):
     update_user_role(db, email, "admin")
     return {"message": f"User {email} is now admin"}
+
+
+# =========================
+# 🟣 FORGOT PASSWORD
+# =========================
+@router.post("/forgot-password")
+def forgot_password(req: ForgotPasswordRequest):
+    db_user = get_user_by_email(db, req.email)
+    
+    if not db_user:
+        return {"message": "If the email is registered, a password reset link will be sent."}
+    
+    # Generate a JWT token valid for 15 minutes
+    reset_token = create_access_token({
+        "sub": req.email,
+        "purpose": "password_reset"
+    })
+    
+    reset_link = f"http://localhost:5173/reset-password?token={reset_token}"
+    
+    # Send email
+    send_password_reset_email(req.email, reset_link)
+    
+    return {"message": "If the email is registered, a password reset link will be sent."}
+
+# =========================
+# 🔴 RESET PASSWORD
+# =========================
+@router.post("/reset-password")
+def reset_password(req: ResetPasswordRequest):
+    try:
+        payload = decode_token(req.token)
+        email = payload.get("sub")
+        purpose = payload.get("purpose")
+        
+        if purpose != "password_reset" or not email:
+            raise HTTPException(status_code=400, detail="Invalid or expired token")
+            
+        db_user = get_user_by_email(db, email)
+        if not db_user:
+            raise HTTPException(status_code=400, detail="User not found")
+            
+        # Hash new password and update
+        hashed_password = hash_password(req.new_password)
+        update_user_password(db, email, hashed_password)
+        
+        return {"message": "Password successfully reset. You can now log in."}
+        
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
