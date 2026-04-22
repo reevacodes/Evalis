@@ -140,7 +140,7 @@ export default function StudentResults() {
                  </div>
                  <div>
                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Score</p>
-                   <p className="text-3xl font-black text-slate-100">{sub.mcq_score}</p>
+                   <p className="text-3xl font-black text-slate-100">{sub.total_score ?? sub.mcq_score}</p>
                  </div>
                </div>
             </div>

@@ -58,7 +58,8 @@ export default function CodingSection({
 
   // ================= LOAD GLOBALLY SAVED CODE =================
   useEffect(() => {
-    const saved = codingAnswers?.[currentProblem];
+    const qId = problems[currentProblem]?._id || problems[currentProblem]?.id || currentProblem;
+    const saved = codingAnswers?.[qId];
     if (saved) {
       setCode(saved.code || languageTemplates[language]);
       setLanguage(saved.language || language);
@@ -72,9 +73,11 @@ export default function CodingSection({
   useEffect(() => {
     if (!setCodingAnswers) return;
 
+    const qId = problems[currentProblem]?._id || problems[currentProblem]?.id || currentProblem;
+
     setCodingAnswers((prev) => ({
       ...prev,
-      [currentProblem]: {
+      [qId]: {
         code,
         language,
       },
@@ -154,7 +157,7 @@ export default function CodingSection({
     ]);
 
     try {
-      const qid = problems[currentProblem]?.id;
+      const qid = problems[currentProblem]?._id || problems[currentProblem]?.id || currentProblem;
 
       const res = await submitCode({
         code,

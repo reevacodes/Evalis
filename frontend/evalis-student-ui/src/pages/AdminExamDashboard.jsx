@@ -98,7 +98,7 @@ export default function AdminExamDashboard() {
       alert("Exam scheduled successfully");
     } catch (err) {
       console.error(err);
-      alert("Failed to schedule exam");
+      alert(err.response?.data?.detail || "Failed to schedule exam");
     }
   };
   // =========================
@@ -121,7 +121,7 @@ export default function AdminExamDashboard() {
       );
     } catch (err) {
       console.error(err);
-      alert("Failed to publish exam");
+      alert(err.response?.data?.detail || "Failed to publish exam");
     }
   };
   // =========================

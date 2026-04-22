@@ -23,7 +23,7 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
   }
 
   const q = normalizeQuestion(questions[current]);
-  const questionId = questions[current]?._id || current;
+  const questionId = questions[current]?._id || questions[current]?.id || current;
 
   const selectOption = (opt) => {
     setAnswers((prev) => ({
@@ -50,7 +50,7 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
   /* STATUS COLOR LOGIC */
 
   const getColor = (i) => {
-    const qId = questions[i]?._id || i;
+    const qId = questions[i]?._id || questions[i]?.id || i;
 
     if (i === current) return "bg-blue-600 text-white";
 

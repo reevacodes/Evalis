@@ -64,10 +64,15 @@ export default function ExamAnalyticsScreen() {
 
     // Analytics Calculation
     const submission = result.submission || {};
-    const finalScore = submission.final_score ?? submission.score ?? 0;
+    const finalScore = submission.final_score ?? submission.total_score ?? submission.mcq_score ?? 0;
     const totalMarks = result.total_marks || 100;
     const percentage = Math.round((finalScore / totalMarks) * 100);
     const graceMarks = submission.grace_marks_awarded || 0;
+
+    const mcqScore = submission.mcq_score || 0;
+    const codingScore = submission.coding_score || 0;
+    const attemptedMcqs = submission.analytics?.attempted_mcqs || 0;
+    const totalMcqs = submission.analytics?.total_mcqs || 0;
 
     // SVG Ring Logic
     const radius = 60;
@@ -120,13 +125,23 @@ export default function ExamAnalyticsScreen() {
                 <View style={styles.grid}>
                     <View style={styles.gridCard}>
                         <Ionicons name="analytics" size={24} color="#6366f1" />
-                        <Text style={styles.gridLabel}>Raw Score</Text>
-                        <Text style={styles.gridValue}>{submission.score || 0} / {totalMarks}</Text>
+                        <Text style={styles.gridLabel}>Total Score</Text>
+                        <Text style={styles.gridValue}>{finalScore} / {totalMarks}</Text>
                     </View>
                     <View style={styles.gridCard}>
                         <Ionicons name="layers" size={24} color="#10b981" />
-                        <Text style={styles.gridLabel}>Attempted</Text>
-                        <Text style={styles.gridValue}>{submission.analytics?.attempted_mcqs || 0} / {submission.analytics?.total_mcqs || 0}</Text>
+                        <Text style={styles.gridLabel}>MCQ Score</Text>
+                        <Text style={styles.gridValue}>{mcqScore}</Text>
+                    </View>
+                    <View style={styles.gridCard}>
+                        <Ionicons name="code-slash" size={24} color="#f59e0b" />
+                        <Text style={styles.gridLabel}>Coding Score</Text>
+                        <Text style={styles.gridValue}>{codingScore}</Text>
+                    </View>
+                    <View style={styles.gridCard}>
+                        <Ionicons name="checkmark-circle-outline" size={24} color="#3b82f6" />
+                        <Text style={styles.gridLabel}>MCQ Attempted</Text>
+                        <Text style={styles.gridValue}>{attemptedMcqs} / {totalMcqs}</Text>
                     </View>
                 </View>
 
@@ -197,8 +212,8 @@ const styles = StyleSheet.create({
     chartPercentage: { color: 'white', fontSize: 32, fontWeight: 'bold' },
     chartSub: { color: '#94a3b8', fontSize: 12, fontWeight: '600', textTransform: 'uppercase' },
 
-    grid: { flexDirection: 'row', gap: 16, marginBottom: 20 },
-    gridCard: { flex: 1, backgroundColor: '#0f172a', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#1e293b', alignItems: 'center' },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 20 },
+    gridCard: { width: '45%', backgroundColor: '#0f172a', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#1e293b', alignItems: 'center' },
     gridLabel: { color: '#64748b', fontSize: 12, marginTop: 12, textTransform: 'uppercase', fontWeight: 'bold' },
     gridValue: { color: 'white', fontSize: 20, fontWeight: 'bold', marginTop: 4 },
 

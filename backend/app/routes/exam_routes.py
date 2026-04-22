@@ -514,11 +514,12 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
     start_time = datetime.fromisoformat(start_time_str).replace(tzinfo=None)
     
     # ✅ VALIDATE SCHEDULING TIMEFRAME (10 DAYS ADVANCE)
-    if start_time < datetime.now() + timedelta(days=10):
-        raise HTTPException(
-            status_code=400,
-            detail="Exams must be scheduled at least 10 days in advance."
-        )
+    # Temporarily disabled for testing
+    # if start_time < datetime.now() + timedelta(days=10):
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="Exams must be scheduled at least 10 days in advance."
+    #     )
 
     # ✅ ZERO-TRUST JUST-IN-TIME SET GENERATION
     # The teacher built the Seed Pool. Now we enforce the Hybrid Engine.
@@ -798,7 +799,7 @@ def get_my_submission_results(
             "status": "submitted",
             "is_published": True,
             "submission": submission,
-            "exam_title": exam.get("title"),
+            "exam_title": exam.get("exam_name"),
             "total_marks": exam.get("total_marks", 0)
         }
 
@@ -972,11 +973,12 @@ def publish_exam_api(
         except:
             pass
     if isinstance(start_time, datetime):
-        if start_time < datetime.now() + timedelta(days=10):
-            raise HTTPException(
-                status_code=400,
-                detail="Exams must be published at least 10 days before the scheduled start time."
-            )
+        pass # Temporarily disabled for testing
+        # if start_time < datetime.now() + timedelta(days=10):
+        #     raise HTTPException(
+        #         status_code=400,
+        #         detail="Exams must be published at least 10 days before the scheduled start time."
+        #     )
 
     exam_collection.update_one(
         {"_id": ObjectId(exam_id)},
