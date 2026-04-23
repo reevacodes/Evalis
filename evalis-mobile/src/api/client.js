@@ -9,8 +9,8 @@ const getBaseUrl = () => {
         return 'http://localhost:8000';
     }
     // We utilize the exact Home Wi-Fi IP rather than the Emulator loopback
-    // Update (Dynamic DHCP Lease change): Host IP is now .2
-    return 'http://192.168.1.2:8000';
+    // Update (Ngrok Tunnel): Public URL for Mentor APK Demo
+    return 'https://uncouple-plant-contend.ngrok-free.dev';
 };
 
 const API = axios.create({
