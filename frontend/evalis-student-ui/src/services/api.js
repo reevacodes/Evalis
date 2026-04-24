@@ -97,8 +97,8 @@ export const finalizeExam = (examId) =>
 export const getAllExams = () =>
   API.get("/exam");
 
-export const requestSchedule = (examId) =>
-  API.put(`/exam/${examId}/request-schedule`);
+export const requestSchedule = (examId, payload) =>
+  API.put(`/exam/${examId}/request-schedule`, payload);
 
 export const requestUnlock = (examId) =>
   API.put(`/exam/${examId}/request-unlock`);
@@ -106,11 +106,14 @@ export const requestUnlock = (examId) =>
 export const requestReschedule = (examId, payload) =>
   API.post(`/exam/${examId}/reschedule`, payload);
 
-export const getRescheduleRequests = (status = "pending") =>
+export const getRescheduleRequests = (status = "all") =>
   API.get(`/exam/reschedule-requests/all?status=${status}`);
 
 export const updateRescheduleRequest = (requestId, payload) =>
   API.put(`/exam/reschedule-requests/${requestId}`, payload);
+
+export const deleteRescheduleRequest = (requestId) =>
+  API.delete(`/exam/reschedule-requests/${requestId}`);
 
 export const applyGraceMarks = (examId, payload) =>
   API.put(`/exam/${examId}/grace-mark`, payload);

@@ -1,10 +1,13 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, File, UploadFile, Form
+import shutil
+import uuid
+import os
 from bson import ObjectId
 from datetime import datetime, timedelta,timezone
 import re
 from app.services.exam_service import MIET_RULES
 
-from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest, AddQuestionsRequest, DeleteQuestionRequest, SubmissionRequest, GraceMarkRequest
+from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest, AddQuestionsRequest, DeleteQuestionRequest, SubmissionRequest, GraceMarkRequest, RequestSchedulePayload
 from app.services.exam_service import generate_exam
 from app.database import (
     exam_collection,
@@ -393,7 +396,7 @@ def calculate_exam_state(exam):
     if not exam.get("start_time"):
         return "unscheduled"
 
-    now = datetime.now()
+    now = datetime.utcnow()
 
     start = exam["start_time"]
 
@@ -461,6 +464,12 @@ def get_all_exams_api(user=Depends(get_current_user)):
             exam.pop("sections", None)
             exam.pop("sets", None)       # 🔥 Enforce Zero-Trust globally across dashboard
             exam.pop("overrides", None)  # Hide other students' overrides
+
+            # 🔥 FIX TIMEZONE SERIALIZATION BUG (so 10:30 AM IST doesn't become 5:00 AM IST)
+            if "start_time" in exam and isinstance(exam["start_time"], datetime):
+                exam["start_time"] = exam["start_time"].replace(tzinfo=timezone.utc)
+            if "requested_start_time" in exam and isinstance(exam["requested_start_time"], datetime):
+                exam["requested_start_time"] = exam["requested_start_time"].replace(tzinfo=timezone.utc)
 
         return {
             "count": len(exams),
@@ -611,7 +620,7 @@ def get_exam_api(
     exam["time_left"] = None
 
     if exam["time_status"] == "active":
-        now = datetime.now()
+        now = datetime.utcnow()
         start = exam.get("start_time")
 
         if start:
@@ -631,6 +640,12 @@ def get_exam_api(
         if exam.get("status") in ["finalized", "published", "scheduled"]:
             exam.pop("sections", None)
             exam.pop("sets", None)
+
+    # 🔥 FIX TIMEZONE SERIALIZATION BUG
+    if "start_time" in exam and isinstance(exam["start_time"], datetime):
+        exam["start_time"] = exam["start_time"].replace(tzinfo=timezone.utc)
+    if "requested_start_time" in exam and isinstance(exam["requested_start_time"], datetime):
+        exam["requested_start_time"] = exam["requested_start_time"].replace(tzinfo=timezone.utc)
 
     return exam
 
@@ -913,6 +928,12 @@ def publish_results_api(
 
         current_val = exam.get("is_results_published", False)
         
+        # Prevent publishing if exam is not expired
+        if not current_val:
+            state = calculate_exam_state(exam)
+            if state != "expired":
+                raise HTTPException(400, "Cannot publish results before the exam has ended.")
+        
         exam_collection.update_one(
             {"_id": ObjectId(exam_id)},
             {"$set": {"is_results_published": not current_val}}
@@ -1187,7 +1208,11 @@ def delete_exam_question(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/{exam_id}/request-schedule")
-def request_schedule(exam_id: str, user=Depends(require_role("teacher"))):
+def request_schedule(
+    exam_id: str, 
+    payload: RequestSchedulePayload,
+    user=Depends(require_role("teacher"))
+):
     exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
 
     if not exam:
@@ -1204,7 +1229,11 @@ def request_schedule(exam_id: str, user=Depends(require_role("teacher"))):
 
     exam_collection.update_one(
         {"_id": ObjectId(exam_id)},
-        {"$set": {"schedule_requested": True}}
+        {"$set": {
+            "schedule_requested": True,
+            "requested_start_time": payload.requested_start_time,
+            "requested_duration_minutes": payload.requested_duration_minutes
+        }}
     )
 
     return {"message": "Schedule request sent"}
@@ -1225,28 +1254,32 @@ def request_unlock(exam_id: str, user=Depends(require_role("teacher"))):
     )
 
     return {"message": "Unlock request sent"}
-
 # ==========================
 # 🔥 RESCHEDULE REQUESTS
 # ==========================
 
 @router.post("/{exam_id}/reschedule")
 def request_reschedule(
-    exam_id: str, 
-    request: RescheduleRequest, 
+    exam_id: str,
+    category: str = Form(...),
+    reason: str = Form(...),
+    preferred_time: str = Form(...),
+    proof_file: UploadFile = File(None),
     user=Depends(require_role("student"))
 ):
+    # Verify exam exists
     exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
     if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
         
-    start_time = exam.get("start_time")
-    if isinstance(start_time, str):
-        try:
-            start_time = datetime.fromisoformat(start_time).replace(tzinfo=None)
-        except:
-            pass
-    if isinstance(start_time, datetime):
+    start_time = exam.get("scheduled_start")
+    if start_time:
+        if isinstance(start_time, str):
+            start_time = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+        # Ensure start_time is naive for comparison, assuming local time
+        if start_time.tzinfo is not None:
+             start_time = start_time.replace(tzinfo=None)
+        
         if start_time < datetime.now() + timedelta(days=5):
             raise HTTPException(
                 status_code=400,
@@ -1263,11 +1296,44 @@ def request_reschedule(
     if pending_req:
         raise HTTPException(status_code=400, detail="You already have a pending reschedule request for this exam.")
         
+    # Check total limit (max 2 attempts)
+    total_requests = reschedule_collection.count_documents({
+        "student_id": user["sub"],
+        "exam_id": exam_id
+    })
+    
+    if total_requests >= 2:
+        raise HTTPException(
+            status_code=400, 
+            detail="You have reached the maximum number of reschedule requests (2) for this exam. Please contact the administrator directly."
+        )
+
+    # Handle File Upload
+    proof_link = None
+    if proof_file and proof_file.filename:
+        upload_dir = "uploads/reschedule_proofs"
+        os.makedirs(upload_dir, exist_ok=True)
+        ext = proof_file.filename.split(".")[-1] if "." in proof_file.filename else "bin"
+        filename = f"{uuid.uuid4()}.{ext}"
+        file_path = os.path.join(upload_dir, filename)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(proof_file.file, buffer)
+            
+        proof_link = f"http://localhost:8000/static/reschedule_proofs/{filename}"
+        
+    try:
+        preferred_time_dt = datetime.fromisoformat(preferred_time.replace("Z", "+00:00"))
+    except:
+        preferred_time_dt = datetime.utcnow()
+        
     doc = {
         "student_id": user["sub"],
         "exam_id": exam_id,
-        "reason": request.reason,
-        "preferred_time": request.preferred_time,
+        "category": category,
+        "reason": reason,
+        "proof_link": proof_link,
+        "preferred_time": preferred_time_dt,
         "status": "pending",
         "created_at": datetime.utcnow()
     }
@@ -1276,10 +1342,13 @@ def request_reschedule(
 
 @router.get("/reschedule-requests/all")
 def get_reschedule_requests(
-    status: str = Query("pending"),
+    status: str = Query("all"),
     user=Depends(require_role("admin"))
 ):
-    requests = list(reschedule_collection.find({"status": status}))
+    query = {}
+    if status != "all":
+        query["status"] = status
+    requests = list(reschedule_collection.find(query).sort("created_at", -1))
     for req in requests:
         req["_id"] = str(req["_id"])
         
@@ -1289,13 +1358,23 @@ def get_reschedule_requests(
             req["exam_name"] = exam.get("exam_name", "Unknown Exam")
             req["original_time"] = exam.get("start_time")
             
-        # Fix timezone serialization (strip tzinfo so browser parses exact local time)
+        # Fix timezone serialization
         if "preferred_time" in req and isinstance(req["preferred_time"], datetime):
-            req["preferred_time"] = req["preferred_time"].replace(tzinfo=None).isoformat()
+            req["preferred_time"] = req["preferred_time"].replace(tzinfo=timezone.utc).isoformat()
         if "original_time" in req and isinstance(req["original_time"], datetime):
-            req["original_time"] = req["original_time"].replace(tzinfo=None).isoformat()
+            req["original_time"] = req["original_time"].replace(tzinfo=timezone.utc).isoformat()
             
     return {"requests": requests}
+
+@router.delete("/reschedule-requests/{request_id}")
+def delete_reschedule_request(
+    request_id: str,
+    user=Depends(require_role("admin"))
+):
+    result = reschedule_collection.delete_one({"_id": ObjectId(request_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Request not found")
+    return {"message": "Request deleted"}
 
 @router.put("/reschedule-requests/{request_id}")
 def update_reschedule_request(
@@ -1311,10 +1390,47 @@ def update_reschedule_request(
     if not req:
         raise HTTPException(404, "Request not found")
         
+    admin_feedback = payload.get("admin_feedback", "")
+    admin_email = user.get("email", "admin@evalis.com")
+    
+    update_data = {
+        "status": status, 
+        "updated_at": datetime.utcnow()
+    }
+    
+    if status == "rejected":
+        if not admin_feedback:
+            raise HTTPException(400, "Admin feedback is required for rejection.")
+        update_data["admin_feedback"] = admin_feedback
+        update_data["admin_email"] = admin_email
+        
     reschedule_collection.update_one(
         {"_id": ObjectId(request_id)},
-        {"$set": {"status": status, "updated_at": datetime.utcnow()}}
+        {"$set": update_data}
     )
+    
+    # Notify Student
+    exam = exam_collection.find_one({"_id": ObjectId(req["exam_id"])})
+    exam_name = exam.get("exam_name", "Unknown Exam") if exam else "Unknown Exam"
+    
+    if status == "rejected":
+        notification_collection.insert_one({
+            "user_id": req["student_id"],
+            "title": "Reschedule Request Rejected",
+            "message": f"Your reschedule request for {exam_name} was rejected. Reason: {admin_feedback}. Contact {admin_email} for questions.",
+            "type": "alert",
+            "is_read": False,
+            "created_at": datetime.utcnow()
+        })
+    elif status == "approved":
+        notification_collection.insert_one({
+            "user_id": req["student_id"],
+            "title": "Reschedule Request Approved",
+            "message": f"Your reschedule request for {exam_name} has been approved!",
+            "type": "alert",
+            "is_read": False,
+            "created_at": datetime.utcnow()
+        })
     
     # 🔥 Add the override to the exam document if approved
     if status == "approved":
@@ -1327,18 +1443,6 @@ def update_reschedule_request(
                 }
             }}
         )
-        
-    # 📌 NOTIFICATION TRIGGER
-    exam_data = exam_collection.find_one({"_id": ObjectId(req["exam_id"])})
-    exam_name = exam_data.get("exam_name", "Exam") if exam_data else "Exam"
-    notification_collection.insert_one({
-        "user_id": req["student_id"],
-        "title": "Reschedule Request " + status.capitalize(),
-        "message": f"Your request to reschedule {exam_name} was {status}.",
-        "type": "alert",
-        "is_read": False,
-        "created_at": datetime.now(timezone.utc)
-    })
     
     student_data = user_collection.find_one({"sub": req["student_id"]}) or user_collection.find_one({"email": req["student_id"]})
     to_email = student_data.get("email") if student_data else req["student_id"]

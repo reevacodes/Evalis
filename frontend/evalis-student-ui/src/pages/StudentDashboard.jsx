@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Folder, FolderOpen, BookOpen, Clock, ChevronRight, ChevronDown, CheckCircle } from "lucide-react";
 import API, { getPastPapers, fetchCurriculum } from "../services/api";
+import Navbar from "../components/Navbar";
 import RescheduleModal from "../components/RescheduleModal";
+import { formatDateOnly, formatTimeOnly } from "../utils/formatDate";
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("live"); // 'live' | 'practice'
@@ -94,11 +96,18 @@ export default function StudentDashboard() {
     setRescheduleData({ isOpen: true, examId });
   };
 
-  const handleRescheduleSubmit = async ({ preferred_time, reason }) => {
+  const handleRescheduleSubmit = async ({ preferred_time, category, reason, proof_file }) => {
     try {
-      await API.post(`/exam/${rescheduleData.examId}/reschedule`, {
-        reason,
-        preferred_time
+      const formData = new FormData();
+      formData.append("preferred_time", preferred_time);
+      formData.append("category", category);
+      formData.append("reason", reason);
+      if (proof_file) {
+        formData.append("proof_file", proof_file);
+      }
+
+      await API.post(`/exam/${rescheduleData.examId}/reschedule`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
       alert("Reschedule request submitted successfully and is pending admin approval.");
       setRescheduleData({ isOpen: false, examId: null });
@@ -204,7 +213,7 @@ export default function StudentDashboard() {
                       <span className="w-5 font-bold opacity-70">📅</span>
                       <span>
                         {exam.start_time 
-                          ? new Date(exam.start_time).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) 
+                          ? formatDateOnly(exam.start_time)
                           : "TBD"}
                       </span>
                     </div>
@@ -212,7 +221,7 @@ export default function StudentDashboard() {
                       <span className="w-5 font-bold opacity-70">⏰</span>
                       <span>
                         {exam.start_time 
-                          ? new Date(exam.start_time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) 
+                          ? formatTimeOnly(exam.start_time)
                           : "TBD"}
                       </span>
                     </div>
@@ -241,7 +250,23 @@ export default function StudentDashboard() {
                           >
                             Not Available Yet
                           </button>
-                          {!exam.is_rescheduled && (
+                          {exam.reschedule_status === "pending" && (
+                            <button
+                              disabled
+                              className="px-4 py-3 rounded-xl font-semibold bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 cursor-not-allowed"
+                            >
+                              Requested
+                            </button>
+                          )}
+                          {exam.reschedule_status === "approved" && (
+                            <button
+                              disabled
+                              className="px-4 py-3 rounded-xl font-semibold bg-green-500/10 text-green-400 border border-green-500/30 cursor-not-allowed"
+                            >
+                              Approved
+                            </button>
+                          )}
+                          {(exam.reschedule_status === "rejected" || !exam.reschedule_status) && !exam.is_rescheduled && (
                             <button
                               onClick={() => openRescheduleModal(exam._id)}
                               className="px-4 py-3 rounded-xl font-semibold bg-orange-600/20 text-orange-400 hover:bg-orange-600/40 border border-orange-500/30 transition-all"

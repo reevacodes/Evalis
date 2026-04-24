@@ -6,6 +6,8 @@ import {
   BarChart, Bar, Cell
 } from "recharts";
 import { LayoutDashboard, BookOpen, Layers, Users, Database, Settings, HelpCircle, Bell, Search, GraduationCap } from "lucide-react";
+import { formatTimeOnly } from "../utils/formatDate";
+
 
 export default function InstructorSubmissions() {
   const { examId } = useParams();
@@ -350,7 +352,7 @@ export default function InstructorSubmissions() {
                                 }
                               </div>
                               <div className="text-xs text-slate-500 mt-1">
-                                {new Date(sub.submitted_at).toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}
+                                {formatTimeOnly(sub.submitted_at)}
                               </div>
                            </td>
                            <td className="px-6 py-4 text-right">

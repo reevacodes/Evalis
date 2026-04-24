@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllExams, deleteExam } from "../services/api";
+import { formatDateTime } from "../utils/formatDate";
 
 export default function TeacherExamDashboard() {
   const [exams, setExams] = useState([]);
@@ -200,7 +201,7 @@ export default function TeacherExamDashboard() {
                 {/* ✅ START TIME */}
                 {exam.start_time && (
                   <p className="text-xs text-blue-400 mt-1">
-                    Starts: {new Date(exam.start_time).toLocaleString()}
+                    Starts: {formatDateTime(exam.start_time)}
                   </p>
                 )}
               </div>

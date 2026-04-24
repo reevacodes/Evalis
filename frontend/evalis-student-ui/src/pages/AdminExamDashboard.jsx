@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
+import { formatDateTime } from "../utils/formatDate";
 
 export default function AdminExamDashboard() {
   const navigate = useNavigate();
@@ -57,6 +58,41 @@ export default function AdminExamDashboard() {
   // =========================
   // SCHEDULE EXAM
   // =========================
+  const handleScheduleWithDefaults = async (examId, startTime, duration) => {
+    const exam = exams.find((e) => e._id === examId);
+
+    const timeStatus = getTimeStatus(exam);
+    if (timeStatus === "active") {
+      alert("Cannot reschedule while exam is live");
+      return;
+    }
+
+    try {
+      await API.put(`/exam/${examId}/schedule`, {
+        start_time: startTime,
+        duration_minutes: duration,
+      });
+
+      setExams((prev) =>
+        prev.map((e) =>
+          e._id === examId
+            ? {
+                ...e,
+                start_time: startTime,
+                duration_minutes: duration,
+                schedule_requested: false,
+              }
+            : e,
+        ),
+      );
+
+      alert("Exam scheduled successfully");
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.detail || "Failed to schedule exam");
+    }
+  };
+
   const handleSchedule = async (examId) => {
     // 🔥 GET CURRENT EXAM
     const exam = exams.find((e) => e._id === examId);
@@ -244,13 +280,21 @@ export default function AdminExamDashboard() {
                   {/* ✅ SHOW START TIME */}
                   {exam.start_time && (
                     <p className="col-span-2 text-blue-400">
-                      Starts: {new Date(exam.start_time).toLocaleString()}
+                      Starts: {formatDateTime(exam.start_time)}
                     </p>
                   )}
                 </div>
                 {exam.schedule_requested && (
-                  <div className="mt-2 text-xs text-purple-400 flex gap-3">
-                    <span>📩 Schedule Requested</span>
+                  <div className="mt-2 text-xs text-purple-400 flex flex-col gap-1">
+                    <span className="font-bold flex items-center gap-1">
+                       <span className="text-sm">📩</span> Schedule Requested by Instructor
+                    </span>
+                    {exam.requested_start_time && (
+                       <span className="text-slate-300 ml-5">
+                          Requested Time: <span className="text-white font-semibold">{formatDateTime(exam.requested_start_time)}</span> 
+                          <span className="text-slate-500 ml-2">({exam.requested_duration_minutes} mins)</span>
+                       </span>
+                    )}
                   </div>
                 )}
 
@@ -266,6 +310,11 @@ export default function AdminExamDashboard() {
                     <div className="flex gap-2 flex-wrap">
                     <input
                       type="datetime-local"
+                      value={
+                         scheduleData[exam._id]?.start_time !== undefined 
+                         ? scheduleData[exam._id]?.start_time 
+                         : (exam.requested_start_time ? new Date(new Date(exam.requested_start_time).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "")
+                      }
                       onChange={(e) =>
                         setScheduleData((prev) => ({
                           ...prev,
@@ -275,12 +324,17 @@ export default function AdminExamDashboard() {
                           },
                         }))
                       }
-                      className="bg-slate-800 px-2 py-1 text-sm rounded"
+                      className="bg-slate-800 px-2 py-1 text-sm rounded text-white"
                     />
 
                     <input
                       type="number"
                       placeholder="Duration (min)"
+                      value={
+                         scheduleData[exam._id]?.duration !== undefined 
+                         ? scheduleData[exam._id]?.duration 
+                         : (exam.requested_duration_minutes || "")
+                      }
                       onChange={(e) =>
                         setScheduleData((prev) => ({
                           ...prev,
@@ -290,11 +344,41 @@ export default function AdminExamDashboard() {
                           },
                         }))
                       }
-                      className="bg-slate-800 px-2 py-1 text-sm rounded w-40"
+                      className="bg-slate-800 px-2 py-1 text-sm rounded w-40 text-white"
                     />
 
                     <button
-                      onClick={() => handleSchedule(exam._id)}
+                      onClick={() => {
+                          // Handle default values if input hasn't triggered onChange
+                          const finalStartTime = scheduleData[exam._id]?.start_time !== undefined 
+                              ? scheduleData[exam._id]?.start_time 
+                              : (exam.requested_start_time ? new Date(exam.requested_start_time).toISOString() : null);
+                          const finalDuration = scheduleData[exam._id]?.duration !== undefined 
+                              ? scheduleData[exam._id]?.duration 
+                              : (exam.requested_duration_minutes || null);
+                              
+                          if(!finalStartTime || !finalDuration) {
+                              alert("Please select a date and duration.");
+                              return;
+                          }
+                          
+                          // Convert local string back to ISO for backend if it came from input
+                          let formattedTime = finalStartTime;
+                          if(finalStartTime.length === 16) {
+                              formattedTime = new Date(finalStartTime).toISOString();
+                          }
+                          
+                          // Mocking handleSchedule to use these explicitly, we need to inject them into the state right before calling if missing.
+                          // Actually, handleSchedule reads from scheduleData directly. So we should set state and call.
+                          setScheduleData(prev => ({
+                             ...prev,
+                             [exam._id]: { start_time: formattedTime, duration: finalDuration }
+                          }));
+                          
+                          // The easiest way is to let handleSchedule pick up from scheduleData OR default.
+                          // Let's rewrite handleSchedule to do this inside.
+                          handleScheduleWithDefaults(exam._id, formattedTime, finalDuration);
+                      }}
                       className="px-3 py-1 text-sm rounded bg-blue-600 hover:bg-blue-700"
                     >
                       Schedule & Map Sets

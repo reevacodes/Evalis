@@ -3,12 +3,18 @@ from typing import List, Dict, Any, Optional, Literal
 from datetime import datetime
 
 class RescheduleRequest(BaseModel):
+    category: str
     reason: str
     preferred_time: datetime
+    proof_link: Optional[str] = None
 
 class GraceMarkRequest(BaseModel):
     marks: float
     notes: Optional[str] = None
+
+class RequestSchedulePayload(BaseModel):
+    requested_start_time: datetime
+    requested_duration_minutes: int
 
 class ExamGenerateRequest(BaseModel):
     # REQUIRED FOR UPDATE FLOW

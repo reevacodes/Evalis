@@ -10,9 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mediapipe/face_mesh": "^0.4.1633559619",
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/vite": "^4.2.1",
     "@tensorflow-models/blazeface": "^0.1.0",
+    "@tensorflow-models/face-landmarks-detection": "^1.0.6",
     "@tensorflow/tfjs": "^4.22.0",
     "@vitejs/plugin-react": "^5.2.0",
     "axios": "^1.13.6",

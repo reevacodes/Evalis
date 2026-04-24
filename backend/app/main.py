@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
+
 from app.routes.question_routes import router as question_router
 from app.routes.curriculum_routes import router as curriculum_router
 from app.routes.exam_routes import router as exam_router
@@ -8,6 +11,9 @@ from app.routes.past_paper_routes import router as past_paper_router
 from app.routes import auth_routes
 
 app = FastAPI()
+
+os.makedirs("uploads/reschedule_proofs", exist_ok=True)
+app.mount("/static/reschedule_proofs", StaticFiles(directory="uploads/reschedule_proofs"), name="reschedule_proofs")
 
 # CORS
 app.add_middleware(

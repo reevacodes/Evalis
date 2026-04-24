@@ -1,6 +1,8 @@
 import StatCard from "../components/StatCard";
 import { useEffect, useState } from "react";
-import { getAllExams, getRescheduleRequests, updateRescheduleRequest } from "../services/api";
+import { getAllExams, getRescheduleRequests, updateRescheduleRequest, deleteRescheduleRequest } from "../services/api";
+import { formatDateTime } from "../utils/formatDate";
+import AdminRejectModal from "../components/AdminRejectModal";
 
 export default function AdminOverview() {
   const [stats, setStats] = useState({
@@ -12,10 +14,34 @@ export default function AdminOverview() {
 
   const [rescheduleRequests, setRescheduleRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [rejectModalData, setRejectModalData] = useState({ isOpen: false, request: null });
+
+  const handleRejectSubmit = async (reason) => {
+    try {
+      await updateRescheduleRequest(rejectModalData.request._id, { 
+        status: "rejected", 
+        admin_feedback: reason 
+      });
+      setRejectModalData({ isOpen: false, request: null });
+      fetchReschedules();
+    } catch (err) {
+      alert("Failed to reject request: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const handleDeleteRequest = async (requestId) => {
+    if(!window.confirm("Are you sure you want to permanently delete this request history?")) return;
+    try {
+      await deleteRescheduleRequest(requestId);
+      fetchReschedules();
+    } catch (err) {
+      alert("Failed to delete request: " + (err.response?.data?.detail || err.message));
+    }
+  };
 
   const fetchReschedules = async () => {
     try {
-        const reqRes = await getRescheduleRequests("pending");
+        const reqRes = await getRescheduleRequests("all");
         if(reqRes.data?.requests) {
            setRescheduleRequests(reqRes.data.requests);
         }
@@ -104,46 +130,62 @@ export default function AdminOverview() {
               </thead>
               <tbody className="divide-y divide-slate-800/50">
                 {rescheduleRequests.map((req) => (
-                  <tr key={req._id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={req._id} className={`hover:bg-slate-800/30 transition-colors ${req.status !== "pending" ? "opacity-50 grayscale-[50%]" : ""}`}>
                     <td className="p-4 font-medium text-white">{req.student_id}</td>
                     <td className="p-4 text-orange-400 font-medium">{req.exam_name}</td>
                     <td className="p-4">
-                       {req.original_time ? new Date(req.original_time).toLocaleString(undefined, {
-                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                       }) : "TBD"}
+                       {req.original_time ? formatDateTime(req.original_time) : "TBD"}
                     </td>
                     <td className="p-4 font-medium text-blue-400">
-                       {new Date(req.preferred_time).toLocaleString(undefined, {
-                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                       })}
+                       {formatDateTime(req.preferred_time)}
                     </td>
-                    <td className="p-4 max-w-xs truncate" title={req.reason}>
-                       {req.reason}
+                    <td className="p-4 align-top">
+                       <ExpandableReason text={req.reason} category={req.category} proofLink={req.proof_link} />
                     </td>
                     <td className="p-4 text-center">
-                       <span className="px-3 py-1 bg-yellow-500/20 text-yellow-500 rounded-full text-xs font-bold uppercase tracking-wider border border-yellow-500/20">
-                         Pending
-                       </span>
+                       {req.status === "pending" && (
+                         <span className="px-3 py-1 bg-yellow-500/20 text-yellow-500 rounded-full text-xs font-bold uppercase tracking-wider border border-yellow-500/20">
+                           Pending
+                         </span>
+                       )}
+                       {req.status === "approved" && (
+                         <span className="px-3 py-1 bg-green-500/20 text-green-500 rounded-full text-xs font-bold uppercase tracking-wider border border-green-500/20">
+                           Approved
+                         </span>
+                       )}
+                       {req.status === "rejected" && (
+                         <span className="px-3 py-1 bg-red-500/20 text-red-500 rounded-full text-xs font-bold uppercase tracking-wider border border-red-500/20">
+                           Rejected
+                         </span>
+                       )}
                     </td>
                     <td className="p-4 flex items-center justify-center gap-2">
-                      <button 
-                         onClick={async () => {
-                             await updateRescheduleRequest(req._id, {status: "approved"});
-                             fetchReschedules();
-                         }}
-                         className="px-4 py-1.5 bg-green-500 text-white hover:bg-green-600 rounded text-xs font-bold shadow-lg shadow-green-500/20 transition-all uppercase tracking-wide"
-                      >
-                        Approve
-                      </button>
-                      <button 
-                         onClick={async () => {
-                             await updateRescheduleRequest(req._id, {status: "rejected"});
-                             fetchReschedules();
-                         }}
-                         className="px-4 py-1.5 bg-red-500 text-white hover:bg-red-600 rounded text-xs font-bold shadow-lg shadow-red-500/20 transition-all uppercase tracking-wide"
-                      >
-                        Reject
-                      </button>
+                      {req.status === "pending" ? (
+                        <>
+                          <button 
+                             onClick={async () => {
+                                 await updateRescheduleRequest(req._id, {status: "approved"});
+                                 fetchReschedules();
+                             }}
+                             className="px-4 py-1.5 bg-green-500 text-white hover:bg-green-600 rounded text-xs font-bold shadow-lg shadow-green-500/20 transition-all uppercase tracking-wide"
+                          >
+                            Approve
+                          </button>
+                          <button 
+                             onClick={() => setRejectModalData({ isOpen: true, request: req })}
+                             className="px-4 py-1.5 bg-red-500 text-white hover:bg-red-600 rounded text-xs font-bold shadow-lg shadow-red-500/20 transition-all uppercase tracking-wide"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      ) : (
+                        <button 
+                           onClick={() => handleDeleteRequest(req._id)}
+                           className="px-4 py-1.5 bg-slate-700 text-slate-300 hover:bg-slate-600 rounded text-xs font-bold transition-all uppercase tracking-wide"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -152,6 +194,55 @@ export default function AdminOverview() {
           </div>
         )}
       </div>
+
+      <AdminRejectModal
+        isOpen={rejectModalData.isOpen}
+        onClose={() => setRejectModalData({ isOpen: false, request: null })}
+        onSubmit={handleRejectSubmit}
+        requestDetails={rejectModalData.request}
+      />
     </div>
   );
 }
+
+// Helper Component to avoid cluttering the UI with massive text
+const ExpandableReason = ({ text, category, proofLink }) => {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text?.length > 60;
+
+  return (
+    <div className="max-w-xs">
+      {category && (
+        <span className="inline-block px-2 py-0.5 bg-slate-800 text-[10px] text-slate-400 font-bold uppercase rounded mb-2 tracking-wider">
+          {category}
+        </span>
+      )}
+      <p className="text-sm text-slate-300 leading-relaxed">
+        {expanded || !isLong ? text : `${text.slice(0, 60)}...`}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs text-orange-400 hover:text-orange-300 mt-1.5 font-bold transition-colors"
+        >
+          {expanded ? "Show Less" : "Read Full Reason"}
+        </button>
+      )}
+      {proofLink && (
+        <div className="mt-3">
+          <a 
+            href={proofLink} 
+            target="_blank" 
+            rel="noreferrer" 
+            className="inline-flex items-center gap-1.5 text-xs text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            View Official Proof
+          </a>
+        </div>
+      )}
+    </div>
+  );
+};

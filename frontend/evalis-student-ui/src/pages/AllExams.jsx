@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../services/api";
+import API, { requestSchedule } from "../services/api";
+import RequestScheduleModal from "../components/RequestScheduleModal";
+import { formatDateTime } from "../utils/formatDate";
 
 export default function AllExams() {
   const [exams, setExams] = useState([]);
+  const [scheduleModalData, setScheduleModalData] = useState({ isOpen: false, examId: null, examName: null });
   const navigate = useNavigate();
 
   const fetchExams = async () => {
@@ -51,16 +54,18 @@ export default function AllExams() {
     }
   };
 
-  // 🔥 NEW: REQUEST SCHEDULE
-  const handleRequestSchedule = async (e, examId) => {
+  // 🔥 NEW: REQUEST SCHEDULE MODAL TRIGGER
+  const handleOpenScheduleModal = (e, exam) => {
     e.stopPropagation();
+    setScheduleModalData({ isOpen: true, examId: exam._id, examName: exam.exam_name });
+  };
+
+  const handleRequestScheduleSubmit = async (payload) => {
     try {
-      await API.put(`/exam/${examId}/request-schedule`);
-
-      // 🔥 REFRESH FROM BACKEND (BEST FIX)
+      await requestSchedule(scheduleModalData.examId, payload);
+      setScheduleModalData({ isOpen: false, examId: null, examName: null });
       fetchExams();
-
-      alert("📩 Schedule request sent to admin");
+      alert("📩 Detailed schedule request sent to admin");
     } catch (err) {
       alert(err.response?.data?.detail || "Request failed");
     }
@@ -82,11 +87,7 @@ export default function AllExams() {
   // 🔥 FORMAT DATE
   const formatDate = (date) => {
     if (!date) return "—";
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+    return formatDateTime(date);
   };
 
   // 🔥 STATUS STYLE
@@ -177,8 +178,8 @@ export default function AllExams() {
             {(exam.status === "finalized" || exam.status === "scheduled") && (
               <div className="mt-4 flex gap-2">
                 <button
-                  onClick={(e) => handleRequestSchedule(e, exam._id)}
-                  disabled={exam.status === "scheduled"}
+                  onClick={(e) => handleOpenScheduleModal(e, exam)}
+                  disabled={exam.status === "scheduled" || exam.schedule_requested}
                   className={`flex-1 text-xs py-2 rounded ${exam.status === "scheduled"
                       ? "bg-gray-600 cursor-not-allowed"
                       : "bg-blue-600 hover:bg-blue-700"
@@ -210,6 +211,13 @@ export default function AllExams() {
           Create your first exam!
         </div>
       )}
+
+      <RequestScheduleModal
+        isOpen={scheduleModalData.isOpen}
+        onClose={() => setScheduleModalData({ isOpen: false, examId: null, examName: null })}
+        onSubmit={handleRequestScheduleSubmit}
+        examName={scheduleModalData.examName}
+      />
     </div>
   );
 }

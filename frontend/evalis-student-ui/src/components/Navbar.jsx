@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
 import { Bell, GraduationCap, Search, User, LogOut, Shield } from "lucide-react";
+import { formatDateTime } from "../utils/formatDate";
 
 export default function Navbar() {
   const { user, setUser } = useAuth();
@@ -12,7 +13,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [openNotifs, setOpenNotifs] = useState(false);
   const [notifications, setNotifications] = useState([]);
-
+  const [expandedNotifId, setExpandedNotifId] = useState(null);
 
   useEffect(() => {
     if (user && user.role === "student") {
@@ -22,13 +23,19 @@ export default function Navbar() {
     }
   }, [user, location.pathname]);
 
-  const markAsRead = async (notif) => {
+  const handleNotifClick = async (notif) => {
     if (!notif.is_read) {
        await API.put(`/notifications/${notif._id}/read`);
        setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, is_read: true } : n));
     }
-    if (notif.link) navigate(notif.link);
-    setOpenNotifs(false);
+    
+    if (notif.link) {
+        navigate(notif.link);
+        setOpenNotifs(false);
+    } else {
+        // Toggle expansion if no link
+        setExpandedNotifId(prev => prev === notif._id ? null : notif._id);
+    }
   };
 
   const markAllRead = async () => {
@@ -133,12 +140,15 @@ export default function Navbar() {
                      notifications.map(n => (
                        <button 
                          key={n._id}
-                         onClick={() => markAsRead(n)}
+                         onClick={() => handleNotifClick(n)}
                          className={`w-full text-left p-3 rounded-xl transition-colors ${!n.is_read ? 'bg-blue-500/10 hover:bg-blue-500/20' : 'hover:bg-white/5'}`}
                        >
                          <p className={`text-sm ${!n.is_read ? 'text-white font-bold' : 'text-gray-300'}`}>{n.title}</p>
-                         <p className="text-xs text-gray-400 mt-1 line-clamp-2">{n.message}</p>
-                         <p className="text-[10px] text-gray-500 mt-2">{new Date(n.created_at).toLocaleString()}</p>
+                         <p className={`text-xs text-gray-400 mt-1 transition-all ${expandedNotifId === n._id ? 'whitespace-pre-wrap' : 'line-clamp-2'}`}>{n.message}</p>
+                         {expandedNotifId === n._id && !n.link && (
+                           <span className="text-[10px] text-blue-400 font-semibold mt-1 block">Read Less</span>
+                         )}
+                         <p className="text-[10px] text-gray-500 mt-2">{formatDateTime(n.created_at)}</p>
                        </button>
                      ))
                    )}

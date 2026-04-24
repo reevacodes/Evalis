@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { Camera, Mic, Maximize, CheckCircle2, ShieldAlert, Video } from "lucide-react";
 import * as tf from "@tensorflow/tfjs";
 import * as blazeface from "@tensorflow-models/blazeface";
+import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
+import '@mediapipe/face_mesh';
 import MCQSection from "../components/MCQSection";
 import CodingSection from "../components/CodingSection";
 import ExamHeader from "../components/ExamHeader";
@@ -172,21 +174,26 @@ export default function ExamPage({ isPractice = false }) {
   useEffect(() => {
     if (isPractice || timeStatus !== "active" || !isProctorSetupComplete || !mediaStream) return;
 
-    let model = null;
+    let blazefaceModel = null;
+    let poseDetector = null;
     let isPredicting = false;
+
+    const consecutivePoseFrames = { current: 0 };
 
     const initAI = async () => {
       try {
         await tf.ready();
-        model = await blazeface.load();
-        console.log("✅ BlazeFace AI Active");
-        
+        blazefaceModel = await blazeface.load();
+
+        console.log("✅ Advanced AI Proctoring Active (Fast BlazeFace)");
+
         aiIntervalRef.current = setInterval(async () => {
-          if (!videoRef.current || !model || isPredicting || submittedRef.current) return;
+          if (!videoRef.current || !blazefaceModel || isPredicting || submittedRef.current) return;
           
           isPredicting = true;
           try {
-             const predictions = await model.estimateFaces(videoRef.current, false);
+             // 1. Face Detection Check
+             const predictions = await blazefaceModel.estimateFaces(videoRef.current, false);
              
              if (predictions.length === 0) {
                  consecutiveMissingFrames.current += 1;
@@ -197,22 +204,60 @@ export default function ExamPage({ isPractice = false }) {
              } else {
                  consecutiveMissingFrames.current = 0;
                  consecutiveMultipleFrames.current = 0;
+
+                 // 2. Head Pose Estimation (Fast computation using BlazeFace landmarks)
+                 const face = predictions[0];
+                 if (face && face.landmarks) {
+                     const rightEye = face.landmarks[0];
+                     const leftEye = face.landmarks[1];
+                     const nose = face.landmarks[2];
+                     const mouth = face.landmarks[3];
+
+                     const eyeY = (leftEye[1] + rightEye[1]) / 2;
+                     const eyeToNoseY = Math.abs(nose[1] - eyeY);
+                     const noseToMouthY = Math.abs(mouth[1] - nose[1]);
+
+                     const leftEyeToNoseX = Math.abs(nose[0] - leftEye[0]);
+                     const rightEyeToNoseX = Math.abs(nose[0] - rightEye[0]);
+
+                     // Pitch
+                     const lookingDown = noseToMouthY < (eyeToNoseY * 0.6); 
+                     const lookingUp = eyeToNoseY < (noseToMouthY * 0.4);
+
+                     // Yaw
+                     const lookingLeft = leftEyeToNoseX > (rightEyeToNoseX * 2.5);
+                     const lookingRight = rightEyeToNoseX > (leftEyeToNoseX * 2.5);
+
+                     if (lookingDown || lookingUp || lookingLeft || lookingRight) {
+                         consecutivePoseFrames.current += 1;
+                     } else {
+                         consecutivePoseFrames.current = 0;
+                     }
+                 }
              }
 
-             if (consecutiveMissingFrames.current >= 6 || consecutiveMultipleFrames.current >= 6) {
+             // Violation Thresholds (Reduced from 6 to 3 frames for faster detection)
+             let violationReason = null;
+
+             if (consecutiveMissingFrames.current >= 3) violationReason = "Face not detected in frame";
+             else if (consecutiveMultipleFrames.current >= 3) violationReason = "Multiple people detected";
+             else if (consecutivePoseFrames.current >= 3) violationReason = "Suspicious head pose (looking away)";
+
+             if (violationReason) {
                  cvWarningCountRef.current += 1;
                  const cvViolations = cvWarningCountRef.current;
-                 const reason = consecutiveMissingFrames.current >= 6 ? "Face not detected in frame" : "Multiple people detected in frame";
                  
+                 // Reset counters after a strike
                  consecutiveMissingFrames.current = 0;
                  consecutiveMultipleFrames.current = 0;
+                 consecutivePoseFrames.current = 0;
 
                  if (cvViolations === 1) {
-                     alert(`⚠️ AI PROCTORING WARNING 1: ${reason}. Please ensure you are clearly visible alone.`);
+                     alert(`⚠️ AI PROCTORING WARNING 1: ${violationReason}. Please ensure a quiet, distraction-free environment.`);
                  } else if (cvViolations === 2) {
-                     alert(`⚠️ AI FINAL WARNING: ${reason}. One more AI violation will auto-submit your exam.`);
+                     alert(`⚠️ AI FINAL WARNING: ${violationReason}. One more violation will auto-submit your exam.`);
                  } else if (cvViolations >= 3) {
-                     alert(`🚨 AI INFRACTION LIMIT EXCEEDED: ${reason}. Your exam is being automatically submitted.`);
+                     alert(`🚨 AI INFRACTION LIMIT EXCEEDED: ${violationReason}. Your exam is being automatically submitted.`);
                      handleAutoSubmit("AI Proctoring limit exceeded. Exam terminated.");
                  }
              }
@@ -224,7 +269,7 @@ export default function ExamPage({ isPractice = false }) {
         }, 500);
 
       } catch(err) {
-        console.error("Failed to load AI model", err);
+        console.error("Failed to load AI models", err);
       }
     };
 

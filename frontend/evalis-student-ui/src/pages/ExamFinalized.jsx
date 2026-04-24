@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchExam, requestSchedule, requestUnlock } from "../services/api";
+import RequestScheduleModal from "../components/RequestScheduleModal";
 
 export default function ExamFinalized() {
   const { examId } = useParams();
@@ -11,6 +12,7 @@ export default function ExamFinalized() {
 
   const [scheduleRequested, setScheduleRequested] = useState(false);
   const [unlockRequested, setUnlockRequested] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
 
 
@@ -40,13 +42,12 @@ export default function ExamFinalized() {
     loadExam();
   }, []);
 
-  const handleRequestSchedule = async () => {
-    if (scheduleRequested) return;
-
+  const handleRequestScheduleSubmit = async (payload) => {
     try {
-      await requestSchedule(examId);
+      await requestSchedule(examId, payload);
       setScheduleRequested(true);
-      alert("Schedule request sent");
+      setIsScheduleModalOpen(false);
+      alert("Detailed schedule request sent to admin");
     } catch (err) {
       alert(err.response?.data?.detail || "Request failed");
     }
@@ -92,7 +93,7 @@ export default function ExamFinalized() {
         {/* ACTION BUTTONS */}
         <div className="flex justify-end gap-3">
           <button
-            onClick={handleRequestSchedule}
+            onClick={() => setIsScheduleModalOpen(true)}
             disabled={scheduleRequested}
             className={`px-6 py-3 rounded-lg ${
               scheduleRequested
@@ -105,6 +106,13 @@ export default function ExamFinalized() {
 
         </div>
       </div>
+
+      <RequestScheduleModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        onSubmit={handleRequestScheduleSubmit}
+        examName={exam.exam_name}
+      />
     </div>
   );
 }
