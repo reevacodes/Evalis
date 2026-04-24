@@ -134,6 +134,8 @@ def submit_practice_attempt(
             "paper_id": paper_id,
             "score": mcq_score,
             "analytics": analytics,
+            "tab_switches": payload.tab_switches,
+            "cv_violations": payload.cv_violations,
             "coding_results": coding_results,
             "created_at": datetime.now(timezone.utc)
         }

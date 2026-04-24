@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Camera, Mic, Maximize, CheckCircle2, ShieldAlert, Video } from "lucide-react";
+import * as tf from "@tensorflow/tfjs";
+import * as blazeface from "@tensorflow-models/blazeface";
 import MCQSection from "../components/MCQSection";
 import CodingSection from "../components/CodingSection";
 import ExamHeader from "../components/ExamHeader";
@@ -41,6 +43,10 @@ export default function ExamPage({ isPractice = false }) {
   const submittedRef = useRef(false);
   const isLoadedRef = useRef(false);
   const warningCountRef = useRef(0);
+  const cvWarningCountRef = useRef(0);
+  const consecutiveMissingFrames = useRef(0);
+  const consecutiveMultipleFrames = useRef(0);
+  const aiIntervalRef = useRef(null);
   const storageKey = `exam_${examId}_answers`;
 
   // ================= LOAD EXAM =================
@@ -162,12 +168,79 @@ export default function ExamPage({ isPractice = false }) {
     };
   }, [timeStatus, isPractice, isProctorSetupComplete]);
 
-  // ✅ Attach video stream once the video element is mounted
+  // ================= PROCTORING: AI COMPUTER VISION LOOP =================
+  useEffect(() => {
+    if (isPractice || timeStatus !== "active" || !isProctorSetupComplete || !mediaStream) return;
+
+    let model = null;
+    let isPredicting = false;
+
+    const initAI = async () => {
+      try {
+        await tf.ready();
+        model = await blazeface.load();
+        console.log("✅ BlazeFace AI Active");
+        
+        aiIntervalRef.current = setInterval(async () => {
+          if (!videoRef.current || !model || isPredicting || submittedRef.current) return;
+          
+          isPredicting = true;
+          try {
+             const predictions = await model.estimateFaces(videoRef.current, false);
+             
+             if (predictions.length === 0) {
+                 consecutiveMissingFrames.current += 1;
+                 consecutiveMultipleFrames.current = 0;
+             } else if (predictions.length > 1) {
+                 consecutiveMultipleFrames.current += 1;
+                 consecutiveMissingFrames.current = 0;
+             } else {
+                 consecutiveMissingFrames.current = 0;
+                 consecutiveMultipleFrames.current = 0;
+             }
+
+             if (consecutiveMissingFrames.current >= 6 || consecutiveMultipleFrames.current >= 6) {
+                 cvWarningCountRef.current += 1;
+                 const cvViolations = cvWarningCountRef.current;
+                 const reason = consecutiveMissingFrames.current >= 6 ? "Face not detected in frame" : "Multiple people detected in frame";
+                 
+                 consecutiveMissingFrames.current = 0;
+                 consecutiveMultipleFrames.current = 0;
+
+                 if (cvViolations === 1) {
+                     alert(`⚠️ AI PROCTORING WARNING 1: ${reason}. Please ensure you are clearly visible alone.`);
+                 } else if (cvViolations === 2) {
+                     alert(`⚠️ AI FINAL WARNING: ${reason}. One more AI violation will auto-submit your exam.`);
+                 } else if (cvViolations >= 3) {
+                     alert(`🚨 AI INFRACTION LIMIT EXCEEDED: ${reason}. Your exam is being automatically submitted.`);
+                     handleAutoSubmit("AI Proctoring limit exceeded. Exam terminated.");
+                 }
+             }
+          } catch (e) {
+             console.log("AI Prediction error", e);
+          } finally {
+             isPredicting = false;
+          }
+        }, 500);
+
+      } catch(err) {
+        console.error("Failed to load AI model", err);
+      }
+    };
+
+    initAI();
+
+    return () => {
+        if (aiIntervalRef.current) clearInterval(aiIntervalRef.current);
+    };
+  }, [isProctorSetupComplete, mediaStream, timeStatus, isPractice]);
+
+  // ✅ Attach video stream once the video element is mounted (and re-attach when entering Exam mode)
   useEffect(() => {
     if (mediaGranted && mediaStream && videoRef.current) {
         videoRef.current.srcObject = mediaStream;
     }
-  }, [mediaGranted, mediaStream]);
+  }, [mediaGranted, mediaStream, isProctorSetupComplete]);
 
   useEffect(() => {
     if (!isLoadedRef.current) return;
@@ -208,11 +281,19 @@ export default function ExamPage({ isPractice = false }) {
 
     submittedRef.current = true;
 
+    // Stop camera and AI once submitted
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+    }
+    if (aiIntervalRef.current) clearInterval(aiIntervalRef.current);
+
     try {
       if (isPractice) {
           const res = await submitPractice(examId, {
               mcq_answers: answers,
-              coding_answers: codingAnswers
+              coding_answers: codingAnswers,
+              tab_switches: warningCountRef.current,
+              cv_violations: cvWarningCountRef.current
           });
           
           setSuccessMessage("Practice Exam Finished! Analytics Generated.");
@@ -228,6 +309,8 @@ export default function ExamPage({ isPractice = false }) {
             examId,
             mcq_answers: answers,
             coding_answers: codingAnswers,
+            tab_switches: warningCountRef.current,
+            cv_violations: cvWarningCountRef.current
           });
 
           setSuccessMessage("Your exam data has been securely recorded.");
@@ -250,11 +333,19 @@ export default function ExamPage({ isPractice = false }) {
 
     submittedRef.current = true;
 
+    // Stop camera and AI once submitted
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+    }
+    if (aiIntervalRef.current) clearInterval(aiIntervalRef.current);
+
     try {
       if (isPractice) {
           const res = await submitPractice(examId, {
             mcq_answers: answers,
             coding_answers: codingAnswers,
+            tab_switches: warningCountRef.current,
+            cv_violations: cvWarningCountRef.current
           });
           setSuccessMessage(customMessage || "Time expired! Practice Exam Finished.");
           setShowSuccessModal(true);
@@ -268,6 +359,8 @@ export default function ExamPage({ isPractice = false }) {
             examId,
             mcq_answers: answers,
             coding_answers: codingAnswers,
+            tab_switches: warningCountRef.current,
+            cv_violations: cvWarningCountRef.current
           });
 
           setSuccessMessage(customMessage || "Time expired! Your exam was auto-submitted.");
@@ -497,6 +590,23 @@ export default function ExamPage({ isPractice = false }) {
         timeLeft={timeLeft}
         onSubmit={() => setShowSubmitModal(true)}
       />
+
+      {/* FLOATING PROCTORING CAMERA */}
+      {mediaGranted && isProctorSetupComplete && mediaStream && (
+        <div className="fixed bottom-6 right-6 w-48 aspect-video bg-black rounded-xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.8)] border border-white/10 z-50">
+           <video 
+              ref={videoRef} 
+              autoPlay 
+              muted 
+              playsInline 
+              className="w-full h-full object-cover scale-[1.02]"
+           />
+           <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse"></div>
+              <span className="text-[9px] font-bold text-white uppercase tracking-wider">Live AI</span>
+           </div>
+        </div>
+      )}
 
       {/* SECTION SWITCH */}
       <div className="flex gap-2 p-2 border-b border-slate-800">

@@ -734,6 +734,8 @@ def submit_exam_api(
             "mcq_score": mcq_score,
             "total_score": mcq_score, 
             "analytics": analytics,
+            "tab_switches": payload.tab_switches,
+            "cv_violations": payload.cv_violations,
             "pending_manual_review": len(payload.coding_answers) > 0,
             "submitted_at": datetime.now(timezone.utc)
         }

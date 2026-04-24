@@ -276,6 +276,7 @@ export default function InstructorSubmissions() {
                      <th className="px-6 py-4">Student Identity</th>
                      <th className="px-6 py-4">Total Score</th>
                      <th className="px-6 py-4">Score Analytics</th>
+                     <th className="px-6 py-4">Integrity Profile</th>
                      <th className="px-6 py-4">Status & Time</th>
                      <th className="px-6 py-4 text-right">Action</th>
                    </tr>
@@ -312,6 +313,36 @@ export default function InstructorSubmissions() {
                               <span className="text-[10px] mt-1 font-semibold text-slate-400 block">{acc}% Accuracy</span>
                            </td>
                            <td className="px-6 py-4">
+                             {(() => {
+                               const tabSwitches = sub.tab_switches || 0;
+                               const cvViolations = sub.cv_violations || 0;
+                               const totalInfractions = tabSwitches + cvViolations;
+                               
+                               if (totalInfractions === 0) {
+                                  return (
+                                     <div className="flex flex-col">
+                                        <span className="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 w-max">🟢 Validated</span>
+                                        <span className="text-[10px] text-slate-500 mt-1 font-semibold">High Trust</span>
+                                     </div>
+                                  );
+                               } else if (totalInfractions >= 3) {
+                                  return (
+                                     <div className="flex flex-col">
+                                        <span className="text-red-400 font-bold text-xs bg-red-500/10 px-2 py-1 rounded border border-red-500/20 w-max">🔴 Terminated</span>
+                                        <span className="text-[10px] text-slate-400 mt-1 font-semibold">{cvViolations} CV, {tabSwitches} Tabs</span>
+                                     </div>
+                                  );
+                               } else {
+                                  return (
+                                     <div className="flex flex-col">
+                                        <span className="text-orange-400 font-bold text-xs bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 w-max">🟠 Suspicious</span>
+                                        <span className="text-[10px] text-slate-400 mt-1 font-semibold">{cvViolations} CV, {tabSwitches} Tabs</span>
+                                     </div>
+                                  );
+                               }
+                             })()}
+                           </td>
+                           <td className="px-6 py-4">
                               <div className="text-sm font-medium text-slate-300">
                                 {sub.pending_manual_review 
                                    ? <span className="text-orange-400 font-bold text-xs bg-orange-500/10 px-2 py-1 rounded">Needs Review</span> 
@@ -331,7 +362,7 @@ export default function InstructorSubmissions() {
                       )})
                    ) : (
                      <tr>
-                        <td colSpan="5" className="px-6 py-12 text-center">
+                        <td colSpan="6" className="px-6 py-12 text-center">
                            <div className="flex flex-col items-center">
                               <span className="text-4xl opacity-20 mb-3">🗂️</span>
                               <p className="text-slate-500 font-medium text-sm">No submissions have been aggregated yet.</p>
