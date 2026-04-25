@@ -12,6 +12,8 @@ from app.services.exam_service import generate_exam
 from app.database import (
     exam_collection,
     question_collection,
+    mock_question_collection,
+    past_papers_collection,
     user_collection,
     reschedule_collection,
     exam_submission_collection,
@@ -1527,3 +1529,102 @@ def apply_grace_marks(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ==========================
+# 🚀 MOCK TEST GENERATOR
+# ==========================
+from app.schemas.exam_schema import MockTestGeneratePayload
+
+@router.post("/mock-tests/generate")
+def generate_mock_test(payload: MockTestGeneratePayload, user=Depends(get_current_user)):
+    # 1. Base constraints
+    if payload.pattern == "mixed":
+        mcq_count = 30 if payload.duration_preset == "Midsem" else 60
+        coding_count = 2 if payload.duration_preset == "Midsem" else 4
+    else: # mcq
+        mcq_count = 50 if payload.duration_preset == "Midsem" else 100
+        coding_count = 0
+        
+    duration = 90 if payload.duration_preset == "Midsem" else 180
+
+    # Expand topics to handle both string/int and prefixed strings ("Unit 1", etc.)
+    expanded_topics = []
+    for t in payload.topics:
+        expanded_topics.append(t)
+        if t.isdigit():
+            expanded_topics.append(int(t))
+            expanded_topics.append(f"Unit {t}")
+            expanded_topics.append(f"Chapter {t}")
+
+    # 2. Aggregation pipeline against mock collection (isolated from real exam questions)
+    mcq_pipeline = [
+        {"$match": {
+            "subject_code": payload.subject_code,
+            "unit": {"$in": expanded_topics}, 
+            "type": "mcq"
+        }},
+        {"$sample": {"size": mcq_count}}
+    ]
+    coding_pipeline = [
+        {"$match": {
+            "subject_code": payload.subject_code,
+            "unit": {"$in": expanded_topics}, 
+            "type": "coding"
+        }},
+        {"$sample": {"size": coding_count}}
+    ]
+
+    mcqs = list(mock_question_collection.aggregate(mcq_pipeline))
+    codings = list(mock_question_collection.aggregate(coding_pipeline))
+
+    for m in mcqs:
+        m["id"] = str(m.pop("_id", uuid.uuid4()))
+    for c in codings:
+        c["id"] = str(c.pop("_id", uuid.uuid4()))
+
+    sections = []
+    if mcqs:
+        sections.append({
+            "type": "mcq",
+            "count": len(mcqs),
+            "marks_per_question": mcqs[0].get("marks", 1),
+            "questions": mcqs
+        })
+    if codings:
+        sections.append({
+            "type": "coding",
+            "count": len(codings),
+            "marks_per_question": codings[0].get("marks", 5),
+            "questions": codings
+        })
+
+    if not sections:
+        raise HTTPException(status_code=400, detail="No questions found for the selected chapters. Please try different chapters.")
+
+    # 3. Handle Scheduling Mode
+    start_time = datetime.now(timezone.utc) if payload.start_mode == "instant" else payload.scheduled_time
+
+    # 4. Create Exam Object
+    exam_doc = {
+        "exam_name": f"Mock Practice: {payload.subject_code}",
+        "subject": "Data Structures using C",
+        "course_code": payload.subject_code,
+        "exam_type": "Practice",
+        "status": "published",
+        "duration_minutes": duration,
+        "start_time": start_time,
+        "is_instant": payload.start_mode == "instant",
+        "created_by": user["sub"],
+        "teacher_name": "System Generator",
+        "sections": sections,
+        "assigned_to": [user["sub"]],
+        "created_at": datetime.now(timezone.utc)
+    }
+
+    result = past_papers_collection.insert_one(exam_doc)
+
+    return {
+        "message": "Mock test generated successfully",
+        "exam_id": str(result.inserted_id)
+    }
+

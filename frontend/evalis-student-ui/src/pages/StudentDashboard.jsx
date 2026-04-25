@@ -1,16 +1,19 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Folder, FolderOpen, BookOpen, Clock, ChevronRight, ChevronDown, CheckCircle } from "lucide-react";
-import API, { getPastPapers, fetchCurriculum } from "../services/api";
+import { Folder, FolderOpen, BookOpen, Clock, ChevronRight, ChevronDown, CheckCircle, BarChart2, Calendar, Target } from "lucide-react";
+import API, { getPastPapers, fetchCurriculum, getPracticeHistory } from "../services/api";
 import Navbar from "../components/Navbar";
 import RescheduleModal from "../components/RescheduleModal";
+import MockTestGenerator from "../components/MockTestGenerator";
 import { formatDateOnly, formatTimeOnly } from "../utils/formatDate";
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("live"); // 'live' | 'practice'
+  const [mockTab, setMockTab] = useState("curriculum"); // 'curriculum' | 'topic'
   const [exams, setExams] = useState([]);
   const [pastPapers, setPastPapers] = useState([]);
+  const [practiceHistory, setPracticeHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingPractice, setLoadingPractice] = useState(false);
   
@@ -66,10 +69,14 @@ export default function StudentDashboard() {
   const fetchPracticePapers = async () => {
     setLoadingPractice(true);
     try {
-      const res = await getPastPapers();
-      setPastPapers(res.data || []);
+      const [resPapers, resHistory] = await Promise.all([
+        getPastPapers(),
+        getPracticeHistory()
+      ]);
+      setPastPapers(resPapers.data || []);
+      setPracticeHistory(resHistory || []);
     } catch (err) {
-      console.error("Failed to fetch past papers", err);
+      console.error("Failed to fetch practice data", err);
     } finally {
       setLoadingPractice(false);
     }
@@ -150,7 +157,7 @@ export default function StudentDashboard() {
           onClick={() => setActiveTab("practice")}
           className={`text-xl font-semibold transition-colors ${activeTab === 'practice' ? 'text-white border-b-2 border-purple-500 pb-2 -mb-[14px]' : 'text-slate-500 hover:text-slate-300'}`}
         >
-          Previous Year Papers
+          Mock Tests
         </button>
       </div>
 
@@ -295,13 +302,112 @@ export default function StudentDashboard() {
       </>
       ) : (
         /* 🟠 PRACTICE ARENA HIERARCHY TAB */
-        <PracticeHierarchy 
-            pastPapers={pastPapers} 
-            loadingPractice={loadingPractice} 
-            navigate={navigate} 
-            expandedNodes={expandedNodes}
-            toggleNode={toggleNode}
-        />
+        <>
+          <div className="mt-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <h3 className="text-xl font-bold text-white">Mock Library</h3>
+              <div className="bg-slate-900 border border-slate-700/50 rounded-lg p-1 flex">
+                 <button 
+                    onClick={() => setMockTab('curriculum')}
+                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'curriculum' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                 >
+                    Year-wise Mocks
+                 </button>
+                 <button 
+                    onClick={() => setMockTab('chapter')}
+                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'chapter' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                 >
+                    Chapter-wise Mocks
+                 </button>
+              </div>
+            </div>
+            {mockTab === 'curriculum' ? (
+              <PracticeHierarchy 
+                  pastPapers={pastPapers} 
+                  loadingPractice={loadingPractice} 
+                  navigate={navigate} 
+                  expandedNodes={expandedNodes}
+                  toggleNode={toggleNode}
+              />
+            ) : (
+              <div className="space-y-8">
+                <MockTestGenerator navigate={navigate} />
+                
+                {pastPapers.filter(p => p.exam_type === "Practice" && p.is_instant === false).length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-4">Scheduled Mock Tests</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {pastPapers.filter(p => p.exam_type === "Practice" && p.is_instant === false).map(mock => {
+                        const isReady = new Date(mock.start_time) <= new Date();
+                        return (
+                          <div key={mock._id} className="bg-slate-900 border border-slate-700/50 rounded-xl p-4 flex justify-between items-center shadow-lg">
+                            <div>
+                              <h4 className="text-lg font-bold text-white">{mock.exam_name}</h4>
+                              <div className="flex gap-4 text-sm text-slate-400 mt-2">
+                                <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatDateOnly(mock.start_time)} • {formatTimeOnly(mock.start_time)}</span>
+                                <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> {mock.duration_minutes} Mins</span>
+                              </div>
+                            </div>
+                            <button
+                              disabled={!isReady}
+                              onClick={() => navigate(`/student/practice/${mock._id}`)}
+                              className={`px-6 py-2 rounded-lg font-bold transition-all ${
+                                isReady 
+                                  ? "bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]" 
+                                  : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                              }`}
+                            >
+                              {isReady ? "Start Now" : "Waiting"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 🔥 PRACTICE HISTORY BLOCK */}
+          {practiceHistory.length > 0 && (
+            <div className="mt-12 mb-8">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                 <BarChart2 className="w-5 h-5 text-indigo-400" /> Practice History
+              </h3>
+              <div className="grid gap-3">
+                {practiceHistory.map((attempt) => (
+                   <div key={attempt._id} className="bg-[#111116] border border-white/5 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-white/10 transition-colors">
+                      <div>
+                         <h4 className="font-bold text-slate-200">{attempt.exam_name}</h4>
+                         <p className="text-sm text-slate-500 mt-1 flex items-center gap-2">
+                           <Calendar className="w-3.5 h-3.5" /> {formatDateOnly(attempt.created_at)} at {formatTimeOnly(attempt.created_at)}
+                         </p>
+                      </div>
+                      <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
+                         <div className="text-center">
+                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Score</p>
+                            <p className="font-black text-xl text-white">{attempt.score}</p>
+                         </div>
+                         <div className="text-center">
+                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Accuracy</p>
+                            <p className={`font-black text-xl ${attempt.analytics.accuracy >= 70 ? 'text-emerald-400' : attempt.analytics.accuracy >= 40 ? 'text-amber-400' : 'text-rose-400'}`}>
+                               {attempt.analytics.accuracy}%
+                            </p>
+                         </div>
+                         <button 
+                            onClick={() => navigate(`/student/practice-result/${attempt.paper_id}`, { state: attempt })}
+                            className="px-4 py-2 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 rounded-xl font-bold transition-colors text-sm"
+                         >
+                            View Analytics
+                         </button>
+                      </div>
+                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* 🔥 GUIDELINES MODAL */}

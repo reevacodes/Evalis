@@ -13,6 +13,7 @@ print("Connected DB:", db.name)
 # COLLECTIONS
 
 question_collection = db["questions"]
+mock_question_collection = db["mock_question_collection"]
 exam_collection = db["exams"]
 curriculum_collection = db["curriculum"]
 

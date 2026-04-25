@@ -28,6 +28,25 @@ def get_all_past_papers(user=Depends(get_current_user)):
 
 
 # ==========================
+# 🔥 GET PRACTICE HISTORY
+# ==========================
+@router.get("/practice/history")
+def get_practice_history(user=Depends(get_current_user)):
+    try:
+        attempts = list(practice_attempts_collection.find({"user_id": user["sub"]}).sort("created_at", -1))
+        
+        # Enrich with exam names
+        for a in attempts:
+            a["_id"] = str(a["_id"])
+            paper = past_papers_collection.find_one({"_id": ObjectId(a["paper_id"])}, {"exam_name": 1})
+            a["exam_name"] = paper.get("exam_name", "Unknown Practice Paper") if paper else "Unknown Practice Paper"
+            
+        return attempts
+    except Exception as e:
+        print("ERROR:", e)
+        raise HTTPException(status_code=500, detail="Failed to retrieve history")
+
+# ==========================
 # 🔥 GET SINGLE PAST PAPER
 # ==========================
 @router.get("/{paper_id}")
@@ -50,8 +69,11 @@ def get_single_past_paper(paper_id: str, user=Depends(get_current_user)):
             paper.pop("sets", None)
 
         return paper
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to retrieve past paper")
+        print(f"ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve past paper: {str(e)}")
 
 
 # ==========================
@@ -125,7 +147,10 @@ def submit_practice_attempt(
             "correct_mcqs": correct_count,
             "strong_topics": strong_topics,
             "weak_topics": weak_topics,
-            "topic_breakdown": topic_stats
+            "topic_breakdown": topic_stats,
+            "time_spent_mcq": payload.time_spent_mcq,
+            "time_spent_coding": payload.time_spent_coding,
+            "time_spent_total": payload.time_spent_total
         }
 
         # Save to optional practice_attempts collection

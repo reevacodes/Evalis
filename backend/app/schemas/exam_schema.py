@@ -16,6 +16,15 @@ class RequestSchedulePayload(BaseModel):
     requested_start_time: datetime
     requested_duration_minutes: int
 
+class MockTestGeneratePayload(BaseModel):
+    subject_code: str
+    topics: List[str]
+    duration_preset: str
+    pattern: Literal["mixed", "mcq"] = "mixed"
+    start_mode: Literal["instant", "scheduled"] = "instant"
+    scheduled_time: Optional[datetime] = None
+
+
 class ExamGenerateRequest(BaseModel):
     # REQUIRED FOR UPDATE FLOW
     exam_id: str
@@ -60,3 +69,6 @@ class SubmissionRequest(BaseModel):
     coding_answers: Dict[str, dict] = {}
     tab_switches: int = 0
     cv_violations: int = 0
+    time_spent_mcq: int = 0
+    time_spent_coding: int = 0
+    time_spent_total: int = 0

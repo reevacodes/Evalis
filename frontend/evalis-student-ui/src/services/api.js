@@ -149,6 +149,11 @@ export const fetchPastPaper = async (paperId) => {
 export const submitPractice = (paperId, payload) =>
   API.post(`/past-papers/${paperId}/practice-attempts`, payload);
 
+export const getPracticeHistory = async () => {
+  const res = await API.get("/past-papers/practice/history");
+  return res.data;
+};
+
 // =========================
 // 🌐 CURRICULUM
 // =========================
@@ -242,6 +247,7 @@ export const resetPasswordToken = (data) =>
 // =========================
 // 📚 PAST PAPER APIs
 // =========================
+
 export const uploadPastPaperJSON = async (payload) => {
   const res = await API.post("/past-papers/upload/json", payload);
   return res.data;

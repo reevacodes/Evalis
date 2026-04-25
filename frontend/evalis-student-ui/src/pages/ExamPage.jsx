@@ -44,6 +44,14 @@ export default function ExamPage({ isPractice = false }) {
 
   const submittedRef = useRef(false);
   const isLoadedRef = useRef(false);
+  
+  // ✅ TIME TRACKING
+  const timeTrackingRef = useRef({
+    mcq: 0,
+    coding: 0,
+    lastTick: Date.now()
+  });
+
   const warningCountRef = useRef(0);
   const cvWarningCountRef = useRef(0);
   const consecutiveMissingFrames = useRef(0);
@@ -78,9 +86,10 @@ export default function ExamPage({ isPractice = false }) {
         // Bypass time constraints entirely for practice mode.
         setTimeStatus(isPractice || data.mode === "practice" ? "active" : (data.time_status || "scheduled"));
         
-        // ✅ NEW: calculate start & end time (Past papers optionally have a duration_minutes)
+        // ✅ NEW: calculate start & end time
         if (data.start_time || isPractice) {
-          const start = data.start_time ? new Date(data.start_time) : new Date();
+          // If it's an instant mock test or just a generic practice, timer starts RIGHT NOW
+          const start = data.is_instant ? new Date() : (data.start_time ? new Date(data.start_time) : new Date());
           const end = new Date(start.getTime() + (data.duration_minutes || 60) * 60000);
 
           setStartTime(start);
@@ -114,13 +123,30 @@ export default function ExamPage({ isPractice = false }) {
   }, [mcqQuestions, codingQuestions]);
 
   // ================= TIMER =================
+  const activeSectionRef = useRef(activeSection);
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
+
   useEffect(() => {
     if (!endTime) return;
 
+    timeTrackingRef.current.lastTick = Date.now();
+
     const interval = setInterval(() => {
       const now = new Date();
-      const remaining = Math.floor((endTime - now) / 1000);
+      
+      // Update section timing
+      const delta = Math.floor((now.getTime() - timeTrackingRef.current.lastTick) / 1000);
+      timeTrackingRef.current.lastTick = now.getTime();
+      
+      if (activeSectionRef.current === "mcq") {
+        timeTrackingRef.current.mcq += delta;
+      } else if (activeSectionRef.current === "coding") {
+        timeTrackingRef.current.coding += delta;
+      }
 
+      const remaining = Math.floor((endTime - now) / 1000);
       setTimeLeft(remaining > 0 ? remaining : 0);
     }, 1000);
 
@@ -338,7 +364,10 @@ export default function ExamPage({ isPractice = false }) {
               mcq_answers: answers,
               coding_answers: codingAnswers,
               tab_switches: warningCountRef.current,
-              cv_violations: cvWarningCountRef.current
+              cv_violations: cvWarningCountRef.current,
+              time_spent_mcq: timeTrackingRef.current.mcq,
+              time_spent_coding: timeTrackingRef.current.coding,
+              time_spent_total: timeTrackingRef.current.mcq + timeTrackingRef.current.coding
           });
           
           setSuccessMessage("Practice Exam Finished! Analytics Generated.");
@@ -355,7 +384,10 @@ export default function ExamPage({ isPractice = false }) {
             mcq_answers: answers,
             coding_answers: codingAnswers,
             tab_switches: warningCountRef.current,
-            cv_violations: cvWarningCountRef.current
+            cv_violations: cvWarningCountRef.current,
+            time_spent_mcq: timeTrackingRef.current.mcq,
+            time_spent_coding: timeTrackingRef.current.coding,
+            time_spent_total: timeTrackingRef.current.mcq + timeTrackingRef.current.coding
           });
 
           setSuccessMessage("Your exam data has been securely recorded.");
@@ -390,7 +422,10 @@ export default function ExamPage({ isPractice = false }) {
             mcq_answers: answers,
             coding_answers: codingAnswers,
             tab_switches: warningCountRef.current,
-            cv_violations: cvWarningCountRef.current
+            cv_violations: cvWarningCountRef.current,
+            time_spent_mcq: timeTrackingRef.current.mcq,
+            time_spent_coding: timeTrackingRef.current.coding,
+            time_spent_total: timeTrackingRef.current.mcq + timeTrackingRef.current.coding
           });
           setSuccessMessage(customMessage || "Time expired! Practice Exam Finished.");
           setShowSuccessModal(true);
@@ -405,7 +440,10 @@ export default function ExamPage({ isPractice = false }) {
             mcq_answers: answers,
             coding_answers: codingAnswers,
             tab_switches: warningCountRef.current,
-            cv_violations: cvWarningCountRef.current
+            cv_violations: cvWarningCountRef.current,
+            time_spent_mcq: timeTrackingRef.current.mcq,
+            time_spent_coding: timeTrackingRef.current.coding,
+            time_spent_total: timeTrackingRef.current.mcq + timeTrackingRef.current.coding
           });
 
           setSuccessMessage(customMessage || "Time expired! Your exam was auto-submitted.");
@@ -430,8 +468,8 @@ export default function ExamPage({ isPractice = false }) {
 
   if (!examExists) {
     return (
-      <div className="h-screen flex items-center justify-center text-white">
-        No Exam
+      <div className="h-screen flex items-center justify-center text-white bg-slate-950">
+        No Exam Found
       </div>
     );
   }
@@ -443,7 +481,7 @@ export default function ExamPage({ isPractice = false }) {
   // ⏳ NOT STARTED (Only if NOT practice mode)
   if (timeStatus === "scheduled" && !isPractice) {
     return (
-      <div className="h-screen flex items-center justify-center text-white flex-col gap-2">
+      <div className="h-screen flex items-center justify-center text-white flex-col gap-2 bg-slate-950">
         <p className="text-lg text-blue-400">Exam not started yet</p>
         <p className="text-sm text-slate-400">
           Please wait for the scheduled time
@@ -455,7 +493,7 @@ export default function ExamPage({ isPractice = false }) {
   // ⛔ EXPIRED
   if (timeStatus === "expired") {
     return (
-      <div className="h-screen flex items-center justify-center text-white flex-col gap-2">
+      <div className="h-screen flex items-center justify-center text-white flex-col gap-2 bg-slate-950">
         <p className="text-lg text-red-400">Exam expired</p>
         <p className="text-sm text-slate-400">
           You can no longer attempt this exam
@@ -466,7 +504,7 @@ export default function ExamPage({ isPractice = false }) {
 
   if (timeStatus === "unscheduled") {
     return (
-      <div className="h-screen flex items-center justify-center text-white flex-col gap-2">
+      <div className="h-screen flex items-center justify-center text-white flex-col gap-2 bg-slate-950">
         <p className="text-lg text-yellow-400">Exam not scheduled yet</p>
         <p className="text-sm text-slate-400">Please contact admin</p>
       </div>
