@@ -213,7 +213,7 @@ export default function QuestionBank() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-6">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
@@ -223,7 +223,7 @@ export default function QuestionBank() {
             selection.topic) && (
             <button
               onClick={goBack}
-              className="bg-slate-800 px-3 py-2 rounded flex items-center gap-2 hover:bg-slate-700"
+              className="bg-white dark:bg-slate-800 px-3 py-2 rounded flex items-center gap-2 hover:bg-gray-100 dark:bg-slate-700"
             >
               <ArrowLeft size={16} /> Back
             </button>
@@ -243,7 +243,7 @@ export default function QuestionBank() {
 
       {/* FILTERS */}
       {getView() === "questions" && (
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 bg-slate-900 border border-slate-700 rounded-xl">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl">
           <div className="flex items-center flex-wrap gap-3 w-full md:w-auto">
             {/* TAGS INPUT */}
             <input
@@ -251,13 +251,13 @@ export default function QuestionBank() {
               placeholder="Search tags (e.g. CO1, tricky...)"
               value={selection.tags || ""}
               onChange={(e) => updateSelection({ tags: e.target.value })}
-              className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500 w-full md:w-64"
+              className="px-3 py-2 bg-white dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 w-full md:w-64"
             />
             {/* DIFFICULTY DROPDOWN */}
             <select
               value={selection.difficulty || ""}
               onChange={(e) => updateSelection({ difficulty: e.target.value })}
-              className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
+              className="px-3 py-2 bg-white dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
             >
               <option value="">All Difficulties</option>
               <option value="easy">Easy</option>
@@ -274,8 +274,8 @@ export default function QuestionBank() {
               const nextType = order[(currentIndex + 1) % order.length];
               updateSelection({ type: nextType });
             }}
-            className="flex items-center gap-2 bg-slate-950 border border-slate-700 
-            px-3 py-2 rounded-lg hover:bg-slate-800 transition"
+            className="flex items-center gap-2 bg-white dark:bg-slate-950 border border-gray-300 dark:border-slate-700 
+            px-3 py-2 rounded-lg hover:bg-white dark:bg-slate-800 transition"
           >
             <ArrowUpDown size={16} className="text-gray-400" />
             <span className="text-sm font-medium">
@@ -323,7 +323,7 @@ export default function QuestionBank() {
                 <div
                   key={s.code}
                   onClick={() => updateSelection({ subject: s.code })}
-                  className="p-6 rounded-xl bg-slate-900 border border-slate-700 hover:border-blue-500 cursor-pointer transition"
+                  className="p-6 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 hover:border-blue-500 cursor-pointer transition"
                 >
                   <Layers className="mb-2" />
                   {s.name}
@@ -339,7 +339,7 @@ export default function QuestionBank() {
                 <div
                   key={u.unit_number}
                   onClick={() => updateSelection({ unit: u.unit_number })}
-                  className="p-4 bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-700 transition"
+                  className="p-4 bg-white dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-slate-700 transition"
                 >
                   Unit {u.unit_number}
                 </div>
@@ -358,7 +358,7 @@ export default function QuestionBank() {
                       topic: t.name.trim(),
                     })
                   }
-                  className="p-4 bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-700 transition"
+                  className="p-4 bg-white dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-slate-700 transition"
                 >
                   {t.name}
                 </div>
@@ -407,7 +407,7 @@ export default function QuestionBank() {
                           page: prev.page - 1,
                         }))
                       }
-                      className="px-4 py-2 bg-slate-800 rounded disabled:opacity-40 hover:bg-slate-700"
+                      className="px-4 py-2 bg-white dark:bg-slate-800 rounded disabled:opacity-40 hover:bg-gray-100 dark:bg-slate-700"
                     >
                       Prev
                     </button>
@@ -424,7 +424,7 @@ export default function QuestionBank() {
                           page: prev.page + 1,
                         }))
                       }
-                      className="px-4 py-2 bg-slate-800 rounded disabled:opacity-40 hover:bg-slate-700"
+                      className="px-4 py-2 bg-white dark:bg-slate-800 rounded disabled:opacity-40 hover:bg-gray-100 dark:bg-slate-700"
                     >
                       Next
                     </button>
@@ -438,16 +438,16 @@ export default function QuestionBank() {
 
       {/* 🛒 FLOATING CART FOR BATCH ADD */}
       {fromPreview && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-slate-900 border-t border-slate-700 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-50 flex justify-center">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-50 dark:bg-slate-900 border-t border-gray-300 dark:border-slate-700 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-50 flex justify-center">
             <div className="max-w-4xl w-full flex justify-between items-center px-4">
                 <div>
-                    <h3 className="text-lg font-bold text-white">Adding to Section {String.fromCharCode(65 + fromPreview.section_index)}</h3>
-                    <p className="text-sm text-slate-400">Selected: {selectedIds.length} / {availableSlots} available slots</p>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Adding to Section {String.fromCharCode(65 + fromPreview.section_index)}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Selected: {selectedIds.length} / {availableSlots} available slots</p>
                 </div>
                 <div className="flex gap-4">
                     <button 
                         onClick={() => navigate(`/exam/${fromPreview.exam_id}/edit`)}
-                        className="px-6 py-2 rounded-lg font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition"
+                        className="px-6 py-2 rounded-lg font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:bg-slate-700 transition"
                     >
                         Cancel
                     </button>
@@ -467,8 +467,8 @@ export default function QuestionBank() {
                         }}
                         className={`px-6 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
                             selectedIds.length > 0 
-                                ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/20" 
-                                : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                                ? "bg-indigo-600 text-slate-900 dark:text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/20" 
+                                : "bg-white dark:bg-slate-800 text-slate-500 cursor-not-allowed"
                         }`}
                     >
                         {selectedIds.length > 0 ? "Add to Exam" : "Select Questions"} {selectedIds.length > 0 ? `(${selectedIds.length})` : ''}

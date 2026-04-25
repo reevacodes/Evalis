@@ -47,7 +47,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-[#050505] text-slate-900 dark:text-white flex items-center justify-center font-sans relative overflow-hidden">
       {/* Background Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-blue-600/10 blur-[120px] mix-blend-screen pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-purple-600/10 blur-[120px] mix-blend-screen pointer-events-none" />
@@ -62,7 +62,7 @@ export default function ResetPassword() {
           />
         </div>
 
-        <h2 className="text-2xl font-bold mb-2 text-center text-white">Reset Password</h2>
+        <h2 className="text-2xl font-bold mb-2 text-center text-slate-900 dark:text-white">Reset Password</h2>
         <p className="text-gray-400 text-sm text-center mb-8">Enter your new credentials below</p>
 
         {isSuccess ? (
@@ -117,13 +117,13 @@ export default function ResetPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium hover:from-blue-500 hover:to-indigo-500 transition mt-4 disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-slate-900 dark:text-white py-3 rounded-lg font-medium hover:from-blue-500 hover:to-indigo-500 transition mt-4 disabled:opacity-50"
             >
               {loading ? "Resetting..." : "Reset Password"}
             </button>
 
             <div className="text-center mt-4">
-              <Link to="/" className="text-sm text-gray-400 hover:text-white transition">
+              <Link to="/" className="text-sm text-gray-400 hover:text-slate-900 dark:text-white transition">
                 Return to Login
               </Link>
             </div>

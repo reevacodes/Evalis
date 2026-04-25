@@ -1,20 +1,43 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeStyles } from '../../src/hooks/useThemeStyles';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function ProfileScreen() {
     const [user, setUser] = useState<any>(null);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const router = useRouter();
+    const { styles, isDark, theme: colors } = useThemeStyles(createStyles);
+    const { theme, setThemeSetting } = useTheme();
 
     useEffect(() => {
-        const loadUser = async () => {
-            const stored = await AsyncStorage.getItem('user');
-            if (stored) setUser(JSON.parse(stored));
+        const loadSettings = async () => {
+            const storedUser = await AsyncStorage.getItem('user');
+            if (storedUser) setUser(JSON.parse(storedUser));
+            
+            const storedNotifs = await AsyncStorage.getItem('notificationsEnabled');
+            if (storedNotifs !== null) {
+                setNotificationsEnabled(storedNotifs === 'true');
+            }
         };
-        loadUser();
+        loadSettings();
     }, []);
+
+    const toggleNotifications = async (val: boolean) => {
+        setNotificationsEnabled(val);
+        await AsyncStorage.setItem('notificationsEnabled', String(val));
+    };
+
+    const handlePrivacy = () => {
+        Alert.alert(
+            "Privacy & Security",
+            "Evalis adheres to strict data protection standards. Your performance analytics, exam attempts, and personal identifiers are end-to-end encrypted and never shared with third parties without institutional consent.\n\nFor more details, please review the institutional privacy policy.",
+            [{ text: "Acknowledge", style: "default" }]
+        );
+    };
 
     const handleLogout = async () => {
         Alert.alert(
@@ -55,17 +78,31 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.optionsGroup}>
-                <TouchableOpacity style={styles.optionBtn}>
-                    <Ionicons name="notifications-outline" size={24} color="#cbd5e1" style={styles.optionIcon} />
-                    <Text style={styles.optionText}>Notifications Settings</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.optionBtn}>
-                    <Ionicons name="shield-checkmark-outline" size={24} color="#cbd5e1" style={styles.optionIcon} />
+                <View style={[styles.optionBtn, { justifyContent: 'space-between' }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name={isDark ? "moon-outline" : "sunny-outline"} size={24} color={colors.textSecondary} style={styles.optionIcon} />
+                        <Text style={styles.optionText}>Dark Mode</Text>
+                    </View>
+                    <Switch 
+                        value={isDark} 
+                        onValueChange={(val) => setThemeSetting(val ? 'dark' : 'light')} 
+                        trackColor={{ false: '#cbd5e1', true: colors.primary }}
+                    />
+                </View>
+                <View style={[styles.optionBtn, { justifyContent: 'space-between' }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name="notifications-outline" size={24} color={colors.textSecondary} style={styles.optionIcon} />
+                        <Text style={styles.optionText}>Notifications</Text>
+                    </View>
+                    <Switch 
+                        value={notificationsEnabled} 
+                        onValueChange={toggleNotifications} 
+                        trackColor={{ false: '#cbd5e1', true: colors.primary }}
+                    />
+                </View>
+                <TouchableOpacity style={styles.optionBtn} onPress={handlePrivacy}>
+                    <Ionicons name="shield-checkmark-outline" size={24} color={colors.textSecondary} style={styles.optionIcon} />
                     <Text style={styles.optionText}>Privacy & Security</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.optionBtn}>
-                    <Ionicons name="globe-outline" size={24} color="#cbd5e1" style={styles.optionIcon} />
-                    <Text style={styles.optionText}>Language Region</Text>
                 </TouchableOpacity>
             </View>
 
@@ -80,23 +117,23 @@ export default function ProfileScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#020617', padding: 24, paddingTop: 60 },
+const createStyles = (theme: any) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.background, padding: 24, paddingTop: 60 },
     header: { marginBottom: 30 },
-    headerTitle: { color: 'white', fontSize: 28, fontWeight: 'bold' },
-    card: { backgroundColor: '#0f172a', borderRadius: 20, padding: 30, alignItems: 'center', borderColor: '#1e293b', borderWidth: 1 },
-    avatarBox: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#312e81', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 2, borderColor: '#6366f1' },
-    avatarInitials: { color: 'white', fontSize: 28, fontWeight: 'bold', letterSpacing: 2 },
-    name: { color: 'white', fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
-    email: { color: '#94a3b8', fontSize: 14, marginBottom: 16 },
-    badge: { backgroundColor: '#22c55e20', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#22c55e40' },
-    badgeText: { color: '#22c55e', fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
-    optionsGroup: { marginTop: 30, backgroundColor: '#0f172a', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#1e293b' },
-    optionBtn: { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#1e293b' },
+    headerTitle: { color: theme.text, fontSize: 28, fontWeight: 'bold' },
+    card: { backgroundColor: theme.card, borderRadius: 20, padding: 30, alignItems: 'center', borderColor: theme.border, borderWidth: 1 },
+    avatarBox: { width: 80, height: 80, borderRadius: 40, backgroundColor: theme.primarySoft, justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 2, borderColor: theme.primary },
+    avatarInitials: { color: theme.primary, fontSize: 28, fontWeight: 'bold', letterSpacing: 2 },
+    name: { color: theme.text, fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
+    email: { color: theme.textSecondary, fontSize: 14, marginBottom: 16 },
+    badge: { backgroundColor: theme.successSoft, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: theme.success },
+    badgeText: { color: theme.success, fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
+    optionsGroup: { marginTop: 30, backgroundColor: theme.card, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: theme.border },
+    optionBtn: { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: theme.border },
     optionIcon: { fontSize: 20, marginRight: 16 },
-    optionText: { color: '#cbd5e1', fontSize: 16, fontWeight: '600' },
-    logoutBtn: { backgroundColor: '#ef444420', padding: 20, borderRadius: 16, marginTop: 'auto', alignItems: 'center', borderWidth: 1, borderColor: '#ef444450' },
-    logoutBtnText: { color: '#ef4444', fontSize: 16, fontWeight: 'bold' },
+    optionText: { color: theme.textSecondary, fontSize: 16, fontWeight: '600' },
+    logoutBtn: { backgroundColor: theme.dangerSoft, padding: 20, borderRadius: 16, marginTop: 'auto', alignItems: 'center', borderWidth: 1, borderColor: theme.danger },
+    logoutBtnText: { color: theme.danger, fontSize: 16, fontWeight: 'bold' },
     footer: { alignItems: 'center', marginTop: 24 },
-    footerText: { color: '#475569', fontSize: 12 }
+    footerText: { color: theme.textSecondary, fontSize: 12 }
 });

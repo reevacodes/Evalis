@@ -39,26 +39,26 @@ export default function PublishExam() {
     loadExam();
   }, []);
 
-  if (loading) return <p className="text-white p-6">Loading...</p>;
+  if (loading) return <p className="text-slate-900 dark:text-white p-6">Loading...</p>;
   if (!exam) return <p className="text-red-400 p-6">Exam not found</p>;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-8">
       <div className="max-w-6xl mx-auto">
         {/* HEADER */}
-        <div className="mb-6 border-b border-slate-800 pb-4">
+        <div className="mb-6 border-b border-gray-200 dark:border-slate-800 pb-4">
           <h1 className="text-2xl font-semibold">{exam.exam_name}</h1>
-          <p className="text-slate-400 text-sm">Published Exam</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Published Exam</p>
         </div>
 
         {/* LOCK SCREEN */}
-        <div className="mb-8 bg-slate-900 flex flex-col items-center justify-center p-12 rounded-lg border border-slate-800 text-center">
+        <div className="mb-8 bg-gray-50 dark:bg-slate-900 flex flex-col items-center justify-center p-12 rounded-lg border border-gray-200 dark:border-slate-800 text-center">
           <div className="text-6xl mb-4">🔒</div>
           <h2 className="text-2xl font-bold mb-2">Exam Content Locked</h2>
-          <p className="text-slate-400 max-w-lg mb-6">
+          <p className="text-slate-500 dark:text-slate-400 max-w-lg mb-6">
             For maximum security, this exam operates on a strict Zero-Trust policy. The generated questions cannot be viewed until the students actively begin the test.
           </p>
-          <div className="bg-slate-800 p-4 rounded-lg inline-block text-sm border border-slate-700">
+          <div className="bg-white dark:bg-slate-800 p-4 rounded-lg inline-block text-sm border border-gray-300 dark:border-slate-700">
             <p><strong>Status:</strong> Published & Scheduled</p>
             <p className="mt-1 text-green-400"><strong>Sets A/B/C/D Generated</strong> ✅</p>
           </div>

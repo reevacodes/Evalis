@@ -1,16 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Alert, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Svg, Circle } from 'react-native-svg';
 import API from '../../src/api/client';
+import { useThemeStyles } from '../../src/hooks/useThemeStyles';
 
 export default function PracticeScreen() {
     const [mode, setMode] = useState<'list' | 'play' | 'results'>('list');
+    const [tab, setTab] = useState<'studio' | 'past_papers' | 'history'>('studio');
+    const { styles, theme } = useThemeStyles(createStyles);
     
     // Results State
     const [resultsData, setResultsData] = useState<any>(null);
     
-    // List State
+    // Past Papers State
     const [papers, setPapers] = useState<any[]>([]);
-    const [loadingList, setLoadingList] = useState(true);
+    const [loadingPapers, setLoadingPapers] = useState(false);
+
+    // History State
+    const [history, setHistory] = useState<any[]>([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    
+    // Generator State
+    const [semester, setSemester] = useState<number>(3);
+    const [subjects, setSubjects] = useState<any[]>([]);
+    const [selectedSubject, setSelectedSubject] = useState<any>(null);
+    const [loadingCurriculum, setLoadingCurriculum] = useState(false);
+    const [topics, setTopics] = useState<string[]>([]);
+    const [pattern, setPattern] = useState<'mixed'|'mcq'>('mixed');
+    const [preset, setPreset] = useState<'Midsem'|'Final'>('Midsem');
+    const [generating, setGenerating] = useState(false);
 
     // Play State
     const [selectedPaper, setSelectedPaper] = useState<any>(null);
@@ -24,19 +43,90 @@ export default function PracticeScreen() {
 
     useEffect(() => {
         if (mode === 'list') {
-            fetchPapers();
+            if (tab === 'studio') {
+                loadCurriculum();
+            } else if (tab === 'history') {
+                fetchHistory();
+            } else if (tab === 'past_papers') {
+                fetchPapers();
+            }
         }
-    }, [mode]);
+    }, [mode, semester, tab]);
 
     const fetchPapers = async () => {
-        setLoadingList(true);
+        setLoadingPapers(true);
         try {
             const res = await API.get('/past-papers');
-            setPapers(res.data);
+            setPapers(res.data || []);
         } catch (err) {
             console.error("Failed fetching past papers", err);
         } finally {
-            setLoadingList(false);
+            setLoadingPapers(false);
+        }
+    };
+
+    const fetchHistory = async () => {
+        setLoadingHistory(true);
+        try {
+            const res = await API.get("/past-papers/practice/history");
+            setHistory(res.data || []);
+        } catch (err) {
+            console.error("Failed fetching practice history", err);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
+    const loadCurriculum = async () => {
+        setLoadingCurriculum(true);
+        try {
+            const res = await API.get(`/curriculum/${semester}`);
+            const subjs = res.data?.subjects || [];
+            setSubjects(subjs);
+            if (subjs.length > 0) {
+                setSelectedSubject(subjs[0]);
+            } else {
+                setSelectedSubject(null);
+            }
+            setTopics([]);
+        } catch (error) {
+            console.error("Failed to load curriculum:", error);
+            setSubjects([]);
+            setSelectedSubject(null);
+        } finally {
+            setLoadingCurriculum(false);
+        }
+    };
+
+    const toggleTopic = (t: string) => {
+        if (topics.includes(t)) {
+            setTopics(topics.filter((x) => x !== t));
+        } else {
+            setTopics([...topics, t]);
+        }
+    };
+
+    const handleGenerate = async () => {
+        if (topics.length === 0) return Alert.alert("Missing Selection", "Please select at least one chapter.");
+        if (!selectedSubject) return Alert.alert("Missing Selection", "No subject selected.");
+        
+        setGenerating(true);
+        try {
+            const payload = {
+                subject_code: selectedSubject.code,
+                topics: topics,
+                duration_preset: preset,
+                pattern: pattern,
+                start_mode: "instant",
+                scheduled_time: null
+            };
+            const res = await API.post("/exam/mock-tests/generate", payload);
+            startPractice(res.data.exam_id);
+        } catch (err: any) {
+            console.error(err);
+            Alert.alert("Error", err.response?.data?.detail || "Failed to generate mock test");
+        } finally {
+            setGenerating(false);
         }
     };
 
@@ -79,34 +169,16 @@ export default function PracticeScreen() {
     const handleSelectOption = (option: string) => {
         const qId = questions[currentIndex]?.id || questions[currentIndex]?._id;
         if (!qId) return;
-        
-        setAnswers(prev => ({
-            ...prev,
-            [qId]: option
-        }));
-    };
-
-    const nextQuestion = () => {
-        if (currentIndex < questions.length - 1) {
-            setCurrentIndex(curr => curr + 1);
-        }
-    };
-
-    const prevQuestion = () => {
-        if (currentIndex > 0) {
-            setCurrentIndex(curr => curr - 1);
-        }
+        setAnswers(prev => ({ ...prev, [qId]: option }));
     };
 
     const submitPractice = async () => {
         setSubmitting(true);
         try {
-            // Mock empty coding answers since mobile doesn't support them
             const res = await API.post(`/past-papers/${selectedPaper._id}/practice-attempts`, {
                 mcq_answers: answers,
                 coding_answers: {} 
             });
-            // 🐛 BUGFIX: Backend endpoint directly returns the analytics root, not wrapped in res.data.data
             setResultsData(res.data || null);
             setMode('results');
         } catch (err) {
@@ -117,35 +189,273 @@ export default function PracticeScreen() {
         }
     };
 
-    // ==========================================
-    // RENDER: LISTING MODE
-    // ==========================================
     if (mode === 'list') {
-        if (loadingList) return <View style={styles.center}><ActivityIndicator size="large" color="#6366f1" /></View>;
+        const availableTopics = selectedSubject 
+            ? selectedSubject.units.map((u: any) => {
+                const id = String(u.unit_number);
+                const rawName = u.topics.length > 0 ? u.topics[0].name : 'Overview';
+                const isPrefixed = /^(Chapter|Unit|Ch)\s*\d+/i.test(String(id));
+                const label = isPrefixed ? `${id}: ${rawName}` : `Chapter ${id}: ${rawName}`;
+                return { id, label };
+            })
+            : [];
 
         return (
-            <View style={styles.container}>
-                <Text style={styles.headerTitle}>Practice Arena</Text>
-                <Text style={styles.subtitle}>Select an exam module to practice on the go.</Text>
-                
-                {papers.length === 0 ? (
-                    <Text style={styles.emptyText}>No practice modules available.</Text>
-                ) : (
-                    <ScrollView contentContainerStyle={{ gap: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-                        {papers.map((p: any) => (
+            <ScrollView 
+                style={styles.genContainer} 
+                contentContainerStyle={{ paddingBottom: 60 }}
+                refreshControl={
+                    tab === 'history' ? <RefreshControl refreshing={loadingHistory} onRefresh={fetchHistory} tintColor={theme.primary} /> : 
+                    tab === 'past_papers' ? <RefreshControl refreshing={loadingPapers} onRefresh={fetchPapers} tintColor={theme.primary} /> : 
+                    undefined
+                }
+            >
+                <View style={styles.genHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <Ionicons name="sparkles" size={24} color={theme.primary} />
+                        <Text style={styles.headerTitle}>Mock Test Studio</Text>
+                    </View>
+                    <Text style={styles.subtitle}>
+                        {tab === 'studio' 
+                            ? (selectedSubject ? `${selectedSubject.name} (${selectedSubject.code}) • Practice instantly!` : "Select a subject • Practice instantly!")
+                            : "Review your past mock attempts"}
+                    </Text>
+                </View>
+
+                {/* Tab Switcher */}
+                <View style={styles.tabContainer}>
+                    <TouchableOpacity style={[styles.tabBtn, tab === 'studio' && styles.tabBtnActive]} onPress={() => setTab('studio')}>
+                        <Text style={[styles.tabBtnText, tab === 'studio' && styles.tabBtnTextActive]}>Studio</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.tabBtn, tab === 'past_papers' && styles.tabBtnActive]} onPress={() => setTab('past_papers')}>
+                        <Text style={[styles.tabBtnText, tab === 'past_papers' && styles.tabBtnTextActive]}>Past Papers</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.tabBtn, tab === 'history' && styles.tabBtnActive]} onPress={() => setTab('history')}>
+                        <Text style={[styles.tabBtnText, tab === 'history' && styles.tabBtnTextActive]}>History</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {tab === 'studio' ? (
+                    <>
+                        {/* Semester Selector */}
+                        <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>SEMESTER</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+                        {[1,2,3,4,5,6,7,8].map(s => (
                             <TouchableOpacity 
-                                key={p._id} 
-                                style={styles.paperCard} 
-                                onPress={() => startPractice(p._id)}
-                                activeOpacity={0.7}
+                                key={s} 
+                                style={[styles.bubbleBtn, semester === s && styles.bubbleBtnActive]}
+                                onPress={() => setSemester(s)}
                             >
-                                <Text style={styles.paperTitle}>{p.subject_code} - {p.season} {p.year}</Text>
-                                <Text style={styles.paperSubtitle}>Tap to start interactive MCQ practice</Text>
+                                <Text style={[styles.bubbleText, semester === s && styles.bubbleTextActive]}>Sem {s}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
+                </View>
+
+                {/* Subject Selector */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>SUBJECT</Text>
+                    {loadingCurriculum ? (
+                        <ActivityIndicator size="small" color={theme.primary} style={{ alignSelf: 'flex-start' }} />
+                    ) : subjects.length === 0 ? (
+                        <Text style={styles.emptyText}>No subjects found for this semester.</Text>
+                    ) : (
+                        <View style={{ gap: 8 }}>
+                            {subjects.map(subj => (
+                                <TouchableOpacity 
+                                    key={subj.code} 
+                                    style={[styles.subjectCard, selectedSubject?.code === subj.code && styles.subjectCardActive]}
+                                    onPress={() => setSelectedSubject(subj)}
+                                >
+                                    <View style={[styles.radioCircle, selectedSubject?.code === subj.code && styles.radioCircleActive]} />
+                                    <Text style={[styles.subjectText, selectedSubject?.code === subj.code && styles.subjectTextActive]}>
+                                        {subj.name}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+                </View>
+
+                {/* Chapters */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>SELECT CHAPTERS</Text>
+                    {availableTopics.length === 0 ? (
+                        <View style={styles.emptyBox}>
+                            <Text style={styles.emptyText}>No chapters available.</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.chapterGrid}>
+                            {availableTopics.map((t: any) => {
+                                const isSelected = topics.includes(t.id);
+                                return (
+                                    <TouchableOpacity 
+                                        key={t.id}
+                                        style={[styles.chapterBtn, isSelected && styles.chapterBtnActive]}
+                                        onPress={() => toggleTopic(t.id)}
+                                    >
+                                        <View style={[styles.checkbox, isSelected && styles.checkboxActive]}>
+                                            {isSelected && <Ionicons name="checkmark" size={14} color="#000" />}
+                                        </View>
+                                        <Text style={[styles.chapterText, isSelected && styles.chapterTextActive]} numberOfLines={2}>
+                                            {t.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    )}
+                </View>
+
+                {/* Pattern */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>PAPER PATTERN</Text>
+                    <View style={styles.rowGrid}>
+                        <TouchableOpacity 
+                            style={[styles.toggleBtn, pattern === 'mixed' && styles.toggleBtnActive]}
+                            onPress={() => setPattern('mixed')}
+                        >
+                            <Text style={[styles.toggleText, pattern === 'mixed' && styles.toggleTextActive]}>Mixed (MCQ + Code)</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[styles.toggleBtn, pattern === 'mcq' && styles.toggleBtnActive]}
+                            onPress={() => setPattern('mcq')}
+                        >
+                            <Text style={[styles.toggleText, pattern === 'mcq' && styles.toggleTextActive]}>MCQ Only</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Preset */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>DURATION FORMAT</Text>
+                    <View style={styles.rowGrid}>
+                        <TouchableOpacity 
+                            style={[styles.presetCard, preset === 'Midsem' && styles.presetCardActive]}
+                            onPress={() => setPreset('Midsem')}
+                        >
+                            <Ionicons name="time-outline" size={24} color={preset === 'Midsem' ? "#60a5fa" : theme.icon} />
+                            <Text style={[styles.presetTitle, preset === 'Midsem' && styles.presetTitleActive]}>Midsem</Text>
+                            <Text style={styles.presetDesc}>90 Mins • {pattern === 'mixed' ? "30 MCQ, 2 Code" : "50 MCQ"}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[styles.presetCard, preset === 'Final' && styles.presetCardActive]}
+                            onPress={() => setPreset('Final')}
+                        >
+                            <Ionicons name="book-outline" size={24} color={preset === 'Final' ? "#60a5fa" : theme.icon} />
+                            <Text style={[styles.presetTitle, preset === 'Final' && styles.presetTitleActive]}>Final</Text>
+                            <Text style={styles.presetDesc}>180 Mins • {pattern === 'mixed' ? "60 MCQ, 4 Code" : "100 MCQ"}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Generate Button */}
+                <TouchableOpacity 
+                    style={[styles.generateFinalBtn, topics.length === 0 && { opacity: 0.5 }]}
+                    onPress={handleGenerate}
+                    disabled={generating || topics.length === 0}
+                >
+                    {generating ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.generateFinalBtnText}>Generate Practice Exam</Text>
+                    )}
+                </TouchableOpacity>
+
+                    </>
+                ) : tab === 'past_papers' ? (
+                    <View style={styles.historyContainer}>
+                        {loadingPapers && papers.length === 0 ? (
+                            <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }} />
+                        ) : papers.length === 0 ? (
+                            <View style={styles.emptyBox}>
+                                <Text style={styles.emptyText}>No past papers available.</Text>
+                            </View>
+                        ) : (
+                            Object.entries(
+                                papers.reduce((acc: any, p: any) => {
+                                    const y = p.year ? String(p.year) : "General";
+                                    if (!acc[y]) acc[y] = [];
+                                    acc[y].push(p);
+                                    return acc;
+                                }, {})
+                            )
+                            .sort(([a], [b]) => (a === "General" ? 1 : b === "General" ? -1 : parseInt(b as string) - parseInt(a as string)))
+                            .map(([year, items]: any) => (
+                                <View key={year} style={{ marginBottom: 20 }}>
+                                    <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 12, marginLeft: 4}}>
+                                        <View style={{width: 4, height: 16, backgroundColor: '#60a5fa', borderRadius: 2, marginRight: 8}} />
+                                        <Text style={{ color: theme.text, fontSize: 18, fontWeight: 'bold' }}>{year === "General" ? "Other Papers" : `${year} Papers`}</Text>
+                                    </View>
+                                    {items.map((p: any) => (
+                                        <View key={p._id} style={styles.attemptCard}>
+                                            <View style={styles.cardHeader}>
+                                                <View style={{ flex: 1, paddingRight: 12 }}>
+                                                    <Text style={styles.examName} numberOfLines={1}>{p.exam_name || "Official Past Paper"}</Text>
+                                                    <Text style={styles.examSubject} numberOfLines={1}>{p.subject || p.subject_name || "General"} • {p.course_code || p.subject_code || "N/A"}</Text>
+                                                </View>
+                                                <View style={[styles.badge, { borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.15)', alignSelf: 'flex-start' }]}>
+                                                    <Text style={{ color: '#3b82f6', fontSize: 12, fontWeight: 'bold' }}>{p.duration_minutes} Mins</Text>
+                                                </View>
+                                            </View>
+                                            <View style={[styles.cardFooter, {justifyContent: 'space-between'}]}>
+                                                <Text style={{color: theme.textSecondary, fontSize: 13}}>Format: {(p.exam_type || "Mixed").toUpperCase()}</Text>
+                                                <TouchableOpacity onPress={() => startPractice(p._id)} style={{flexDirection:'row', alignItems:'center'}}>
+                                                    <Text style={styles.viewBtnText}>Start Practice</Text>
+                                                    <Ionicons name="play" size={14} color={theme.primary} style={{marginLeft: 4}}/>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            ))
+                        )}
+                    </View>
+                ) : (
+                    /* History Tab Content */
+                    <View style={styles.historyContainer}>
+                        {loadingHistory && history.length === 0 ? (
+                            <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }} />
+                        ) : history.length === 0 ? (
+                            <View style={styles.emptyBox}>
+                                <Text style={styles.emptyText}>No mock exams taken yet.</Text>
+                            </View>
+                        ) : (
+                            history.map((hItem: any, idx: number) => {
+                                const acc = hItem.analytics?.accuracy ?? 0;
+                                const accColor = acc >= 70 ? theme.success : acc >= 40 ? theme.warning : theme.danger;
+                                const rawDate = hItem.created_at || new Date().toISOString();
+                                const d = new Date(rawDate.endsWith('Z') ? rawDate : rawDate + 'Z');
+                                return (
+                                    <TouchableOpacity 
+                                        key={hItem._id || idx} 
+                                        style={styles.attemptCard}
+                                        onPress={() => {
+                                            setResultsData(hItem);
+                                            setMode('results');
+                                        }}
+                                    >
+                                        <View style={styles.cardHeader}>
+                                            <View style={{ flex: 1, paddingRight: 12 }}>
+                                                <Text style={styles.examName} numberOfLines={1}>{hItem.exam_name || `Attempt ${history.length - idx}`}</Text>
+                                                <Text style={styles.examSubject} numberOfLines={1}>{d.toLocaleDateString()} • {d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
+                                            </View>
+                                            <View style={[styles.badge, { borderColor: accColor, backgroundColor: accColor + '15', alignSelf: 'flex-start' }]}>
+                                                <Text style={{ color: accColor, fontSize: 12, fontWeight: 'bold' }}>{acc}% Acc</Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.cardFooter}>
+                                            <Text style={styles.viewBtnText}>View Analytics</Text>
+                                            <Ionicons name="chevron-forward" size={16} color={theme.primary} />
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })
+                        )}
+                    </View>
                 )}
-            </View>
+            </ScrollView>
         );
     }
 
@@ -153,33 +463,87 @@ export default function PracticeScreen() {
     // RENDER: RESULTS MODE
     // ==========================================
     if (mode === 'results' && resultsData) {
-        const { score, analytics } = resultsData;
-        const accColor = analytics?.accuracy >= 80 ? '#10b981' : analytics?.accuracy >= 50 ? '#eab308' : '#ef4444';
+        const { score, analytics, coding_results } = resultsData;
+        const finalScore = score || 0;
+        const totalMarks = resultsData.total_marks || (analytics?.total_mcqs || 0);
+        const acc = analytics?.accuracy || 0;
+        
+        const mcqScore = analytics?.correct_mcqs || 0;
+        const codingScore = finalScore - mcqScore > 0 ? finalScore - mcqScore : 0;
+        const attemptedMcqs = analytics?.attempted_mcqs || 0;
+        const totalMcqs = analytics?.total_mcqs || 0;
+
+        const radius = 60;
+        const circumference = 2 * Math.PI * radius;
+        const strokeDashoffset = circumference - (acc / 100) * circumference;
 
         return (
-            <ScrollView contentContainerStyle={styles.container}>
-                <Text style={styles.headerTitle}>Practice Analytics</Text>
-                <Text style={styles.subtitle}>Your performance evaluation</Text>
-
-                <View style={styles.scoreBoard}>
-                    <Text style={styles.scoreTitle}>MCQ SCORE</Text>
-                    <Text style={[styles.scoreValue, { color: accColor }]}>{score} <Text style={styles.scoreSub}>pts</Text></Text>
+            <ScrollView style={styles.genContainer} contentContainerStyle={{ paddingBottom: 60 }}>
+                <View style={styles.headerRow}>
+                    <TouchableOpacity onPress={() => setMode('list')} style={{ padding: 4 }}>
+                        <Ionicons name="arrow-back" size={24} color={theme.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.headerTitle, { fontSize: 18 }]}>Score Card</Text>
+                    <View style={{ width: 24 }} />
                 </View>
 
-                <View style={styles.metricsGrid}>
-                    <View style={styles.metricCard}>
-                        <Text style={styles.metricLabel}>Accuracy</Text>
-                        <Text style={[styles.metricValue, { color: accColor }]}>{analytics?.accuracy}%</Text>
+                <Text style={styles.examTitle}>Mock Assessment</Text>
+                
+                {/* Score Chart */}
+                <View style={styles.chartContainer}>
+                    <Svg width={150} height={150} viewBox="0 0 150 150">
+                        {/* Background Ring */}
+                        <Circle
+                            cx="75" cy="75" r={radius}
+                            stroke={theme.border}
+                            strokeWidth="15"
+                            fill="transparent"
+                        />
+                        {/* Progress Ring */}
+                        <Circle
+                            cx="75" cy="75" r={radius}
+                            stroke={acc >= 70 ? theme.success : acc >= 40 ? theme.warning : theme.danger}
+                            strokeWidth="15"
+                            fill="transparent"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={strokeDashoffset}
+                            strokeLinecap="round"
+                            transform="rotate(-90 75 75)"
+                        />
+                    </Svg>
+                    <View style={styles.chartTextContainer}>
+                        <Text style={styles.chartPercentage}>{acc}%</Text>
+                        <Text style={styles.chartSub}>Mastery</Text>
                     </View>
-                    <View style={styles.metricCard}>
-                        <Text style={styles.metricLabel}>Attempted</Text>
-                        <Text style={styles.metricValue}>{analytics?.attempted_mcqs} / {analytics?.total_mcqs}</Text>
+                </View>
+
+                {/* Score Breakdown Cards */}
+                <View style={styles.grid}>
+                    <View style={styles.gridCard}>
+                        <Ionicons name="analytics" size={24} color={theme.primary} />
+                        <Text style={styles.gridLabel}>Total Score</Text>
+                        <Text style={styles.gridValue}>{finalScore} / {totalMarks}</Text>
+                    </View>
+                    <View style={styles.gridCard}>
+                        <Ionicons name="layers" size={24} color={theme.success} />
+                        <Text style={styles.gridLabel}>MCQ Score</Text>
+                        <Text style={styles.gridValue}>{mcqScore}</Text>
+                    </View>
+                    <View style={styles.gridCard}>
+                        <Ionicons name="code-slash" size={24} color={theme.warning} />
+                        <Text style={styles.gridLabel}>Coding Score</Text>
+                        <Text style={styles.gridValue}>{codingScore}</Text>
+                    </View>
+                    <View style={styles.gridCard}>
+                        <Ionicons name="checkmark-circle-outline" size={24} color="#3b82f6" />
+                        <Text style={styles.gridLabel}>MCQ Attempted</Text>
+                        <Text style={styles.gridValue}>{attemptedMcqs} / {totalMcqs}</Text>
                     </View>
                 </View>
 
                 {analytics?.weak_topics && analytics.weak_topics.length > 0 && (
                     <View style={styles.topicBox}>
-                        <Text style={styles.topicTitle}>⚠️ Weak Topics Detected</Text>
+                        <Text style={styles.topicTitle}>⚠️ Weak Topics</Text>
                         {analytics.weak_topics.map((t: string, idx: number) => (
                             <Text key={idx} style={styles.topicItem}>• {t}</Text>
                         ))}
@@ -196,10 +560,24 @@ export default function PracticeScreen() {
                 )}
 
                 <TouchableOpacity 
-                    style={[styles.submitBtn, { marginTop: 20, alignItems: 'center' }]} 
+                    style={[styles.generateFinalBtn, {marginTop: 10}]}
+                    onPress={() => {
+                        const pid = resultsData?.paper_id || resultsData?.exam_id || selectedPaper?._id;
+                        if (pid) {
+                            startPractice(pid);
+                        } else {
+                            setMode('list');
+                        }
+                    }}
+                >
+                    <Text style={styles.generateFinalBtnText}>Reattempt</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={{marginTop: 16, alignItems: 'center', padding: 10}}
                     onPress={() => setMode('list')}
                 >
-                    <Text style={styles.submitBtnText}>Return to Module List</Text>
+                    <Text style={{color: theme.textSecondary, fontWeight: 'bold'}}>Back to Studio</Text>
                 </TouchableOpacity>
             </ScrollView>
         );
@@ -208,7 +586,7 @@ export default function PracticeScreen() {
     // ==========================================
     // RENDER: PLAY MODE
     // ==========================================
-    if (loadingPaper) return <View style={styles.center}><ActivityIndicator size="large" color="#6366f1" /></View>;
+    if (loadingPaper) return <View style={styles.center}><ActivityIndicator size="large" color={theme.primary} /></View>;
     if (questions.length === 0) {
         return (
             <View style={styles.center}>
@@ -240,7 +618,6 @@ export default function PracticeScreen() {
                             {submitting ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.topSubmitBtnText}>Submit</Text>}
                         </TouchableOpacity>
                     </View>
-                    {/* Progress Text gracefully removed from header -> moved to Q body */}
                 </View>
             </View>
 
@@ -252,7 +629,6 @@ export default function PracticeScreen() {
                 <ScrollView contentContainerStyle={styles.optionsContainer}>
                     {currentQuestion.options?.map((opt: string, index: number) => {
                         const isSelected = answers[qId] === opt;
-
                         return (
                             <TouchableOpacity 
                                 key={index} 
@@ -270,7 +646,7 @@ export default function PracticeScreen() {
             {isLastQuestion && hasCoding && (
                 <View style={styles.laptopWarning}>
                     <Text style={styles.laptopWarningText}>
-                        💻 This module contains advanced Coding logic designed for Desktop browsers. Please hop on your laptop to run coding executions!
+                        💻 This module contains Coding questions. Please login to the Web App to execute your code.
                     </Text>
                 </View>
             )}
@@ -278,7 +654,7 @@ export default function PracticeScreen() {
             <View style={styles.navRow}>
                 <TouchableOpacity 
                     style={[styles.navBtn, currentIndex === 0 && { opacity: 0.5 }]} 
-                    onPress={prevQuestion}
+                    onPress={() => { if(currentIndex > 0) setCurrentIndex(c => c - 1); }}
                     disabled={currentIndex === 0}
                 >
                     <Text style={styles.navBtnText}>Prev</Text>
@@ -289,7 +665,7 @@ export default function PracticeScreen() {
                         {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Finish Exam</Text>}
                     </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity style={styles.navBtn} onPress={nextQuestion}>
+                    <TouchableOpacity style={styles.navBtn} onPress={() => { if(currentIndex < questions.length - 1) setCurrentIndex(c => c + 1); }}>
                         <Text style={styles.navBtnText}>Next</Text>
                     </TouchableOpacity>
                 )}
@@ -299,48 +675,105 @@ export default function PracticeScreen() {
 
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#020617', padding: 24, paddingTop: 60 },
-    center: { flex: 1, backgroundColor: '#020617', justifyContent: 'center', alignItems: 'center' },
-    emptyText: { color: '#64748b', fontSize: 16 },
-    subtitle: { color: '#94a3b8', fontSize: 16, marginBottom: 20 },
-    headerTitle: { color: 'white', fontSize: 28, fontWeight: 'bold', marginBottom: 5 },
+const createStyles = (theme: any) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.background, padding: 24, paddingTop: 60 },
+    genContainer: { flex: 1, backgroundColor: theme.background, padding: 20, paddingTop: 60 },
+    center: { flex: 1, backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' },
+    
+    genHeader: { marginBottom: 24 },
+    headerTitle: { color: theme.text, fontSize: 24, fontWeight: 'bold' },
+    subtitle: { color: theme.textSecondary, fontSize: 14, marginTop: 4 },
+    
+    section: { marginBottom: 24 },
+    sectionLabel: { color: theme.textSecondary, fontSize: 12, fontWeight: 'bold', letterSpacing: 1, marginBottom: 12 },
+    
+    bubbleBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: theme.cardLight, borderWidth: 1, borderColor: theme.border },
+    bubbleBtnActive: { backgroundColor: theme.primarySoft, borderColor: theme.primary },
+    bubbleText: { color: theme.textSecondary, fontWeight: '600' },
+    bubbleTextActive: { color: theme.primary },
+
+    subjectCard: { flexDirection: 'row', alignItems: 'center', padding: 14, backgroundColor: theme.card, borderRadius: 12, borderWidth: 1, borderColor: theme.border },
+    subjectCardActive: { borderColor: theme.primary, backgroundColor: theme.primarySoft },
+    radioCircle: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: theme.textSecondary, marginRight: 12 },
+    radioCircleActive: { borderColor: theme.primary, backgroundColor: theme.primary },
+    subjectText: { color: theme.textSecondary, fontSize: 15 },
+    subjectTextActive: { color: theme.text, fontWeight: 'bold' },
+
+    emptyBox: { padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.border, borderStyle: 'dashed', alignItems: 'center' },
+    emptyText: { color: theme.textSecondary, fontSize: 14 },
+
+    chapterGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    chapterBtn: { flexDirection: 'row', alignItems: 'center', padding: 12, backgroundColor: theme.card, borderRadius: 10, borderWidth: 1, borderColor: theme.border, width: '48%' },
+    chapterBtnActive: { backgroundColor: theme.primarySoft, borderColor: theme.primary },
+    checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1, borderColor: theme.textSecondary, marginRight: 10, alignItems: 'center', justifyContent: 'center' },
+    checkboxActive: { backgroundColor: theme.primary, borderColor: theme.primary },
+    chapterText: { color: theme.textSecondary, fontSize: 13, flex: 1 },
+    chapterTextActive: { color: theme.primary, fontWeight: 'bold' },
+
+    rowGrid: { flexDirection: 'row', gap: 10 },
+    toggleBtn: { flex: 1, padding: 14, backgroundColor: theme.card, borderRadius: 10, borderWidth: 1, borderColor: theme.border, alignItems: 'center' },
+    toggleBtnActive: { backgroundColor: theme.primarySoft, borderColor: theme.primary },
+    toggleText: { color: theme.textSecondary, fontWeight: 'bold', fontSize: 13 },
+    toggleTextActive: { color: theme.primary },
+
+    presetCard: { flex: 1, padding: 16, backgroundColor: theme.card, borderRadius: 12, borderWidth: 1, borderColor: theme.border, alignItems: 'center', gap: 8 },
+    presetCardActive: { backgroundColor: theme.primarySoft, borderColor: theme.primary },
+    presetTitle: { color: theme.text, fontWeight: 'bold', fontSize: 16 },
+    presetTitleActive: { color: theme.primary },
+    presetDesc: { color: theme.textSecondary, fontSize: 11, textAlign: 'center' },
+
+    generateFinalBtn: { backgroundColor: theme.primary, padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10 },
+    generateFinalBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+
+    // Play Mode & Results Mode Styles 
     headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    progressText: { color: '#6366f1', fontSize: 16, fontWeight: 'bold' },
-    closeBtn: { padding: 8, backgroundColor: '#1e293b', borderRadius: 8 },
-    closeBtnText: { color: '#f87171', fontWeight: 'bold' },
-    topSubmitBtn: { paddingVertical: 8, paddingHorizontal: 12, backgroundColor: '#10b981', borderRadius: 8 },
+    closeBtn: { padding: 8, backgroundColor: theme.cardLight, borderRadius: 8 },
+    closeBtnText: { color: theme.danger, fontWeight: 'bold' },
+    topSubmitBtn: { paddingVertical: 8, paddingHorizontal: 12, backgroundColor: theme.success, borderRadius: 8 },
     topSubmitBtnText: { color: 'white', fontWeight: 'bold' },
-    backBtn: { marginTop: 20, padding: 12, backgroundColor: '#334155', borderRadius: 8 },
-    backBtnText: { color: 'white', fontWeight: 'bold' },
-    paperCard: { backgroundColor: '#0f172a', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#1e293b' },
-    paperTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginBottom: 4 },
-    paperSubtitle: { color: '#64748b', fontSize: 14 },
-    card: { backgroundColor: '#0f172a', borderRadius: 20, padding: 24, borderWidth: 1, borderColor: '#1e293b', flex: 1, marginBottom: 20 },
-    questionText: { color: 'white', fontSize: 20, fontWeight: 'bold', lineHeight: 30, marginBottom: 30 },
+    backBtn: { marginTop: 20, padding: 12, backgroundColor: theme.cardLight, borderRadius: 8 },
+    backBtnText: { color: theme.text, fontWeight: 'bold' },
+    card: { backgroundColor: theme.card, borderRadius: 20, padding: 24, borderWidth: 1, borderColor: theme.border, flex: 1, marginBottom: 20 },
+    questionText: { color: theme.text, fontSize: 20, fontWeight: 'bold', lineHeight: 30, marginBottom: 30 },
     optionsContainer: { gap: 12, paddingBottom: 20 },
-    optionCard: { backgroundColor: '#1e293b', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#334155' },
-    optionSelected: { backgroundColor: '#312e81', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#4338ca' },
-    optionText: { color: 'white', fontSize: 16 },
+    optionCard: { backgroundColor: theme.cardLight, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.border },
+    optionSelected: { backgroundColor: theme.primary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.primarySoft },
+    optionText: { color: theme.text, fontSize: 16 },
     optionTextDark: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-    laptopWarning: { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: '#ef4444', borderWidth: 1, padding: 12, borderRadius: 12, marginBottom: 16 },
-    laptopWarningText: { color: '#fca5a5', fontSize: 13, lineHeight: 20, textAlign: 'center' },
+    laptopWarning: { backgroundColor: theme.dangerSoft, borderColor: theme.danger, borderWidth: 1, padding: 12, borderRadius: 12, marginBottom: 16 },
+    laptopWarningText: { color: theme.danger, fontSize: 13, lineHeight: 20, textAlign: 'center' },
     navRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-    navBtn: { backgroundColor: '#334155', paddingVertical: 16, paddingHorizontal: 30, borderRadius: 12 },
-    navBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-    submitBtn: { backgroundColor: '#10b981', paddingVertical: 16, paddingHorizontal: 30, borderRadius: 12 },
+    navBtn: { backgroundColor: theme.cardLight, paddingVertical: 16, paddingHorizontal: 30, borderRadius: 12 },
+    navBtnText: { color: theme.text, fontSize: 16, fontWeight: 'bold' },
+    submitBtn: { backgroundColor: theme.success, paddingVertical: 16, paddingHorizontal: 30, borderRadius: 12 },
     submitBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
 
-    // Results screen styles
-    scoreBoard: { backgroundColor: '#0f172a', borderRadius: 20, padding: 30, alignItems: 'center', borderWidth: 1, borderColor: '#1e293b', marginBottom: 20, shadowColor: '#10b981', shadowOpacity: 0.1, shadowRadius: 20 },
-    scoreTitle: { color: '#64748b', fontSize: 14, fontWeight: 'bold', letterSpacing: 2, marginBottom: 10 },
-    scoreValue: { fontSize: 56, fontWeight: 'bold' },
-    scoreSub: { fontSize: 24, fontWeight: 'normal', color: '#64748b' },
-    metricsGrid: { flexDirection: 'row', gap: 16, marginBottom: 20 },
-    metricCard: { flex: 1, backgroundColor: '#0f172a', borderRadius: 16, padding: 24, borderWidth: 1, borderColor: '#1e293b', alignItems: 'center' },
-    metricLabel: { color: '#64748b', fontSize: 13, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 8 },
-    metricValue: { color: 'white', fontSize: 24, fontWeight: 'bold' },
-    topicBox: { backgroundColor: '#0f172a', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#1e293b', marginBottom: 16 },
-    topicTitle: { color: 'white', fontSize: 16, fontWeight: 'bold', marginBottom: 12 },
-    topicItem: { color: '#94a3b8', fontSize: 15, marginBottom: 6, paddingLeft: 8 }
+    tabContainer: { flexDirection: 'row', backgroundColor: theme.card, borderRadius: 12, padding: 4, marginBottom: 24, borderWidth: 1, borderColor: theme.border },
+    tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
+    tabBtnActive: { backgroundColor: theme.cardLight },
+    tabBtnText: { color: theme.textSecondary, fontWeight: 'bold' },
+    tabBtnTextActive: { color: theme.text },
+
+    historyContainer: { gap: 16 },
+    attemptCard: { backgroundColor: theme.card, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: theme.border },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
+    examName: { color: theme.text, fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+    examSubject: { color: theme.textSecondary, fontSize: 13, fontWeight: '600' },
+    badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1 },
+    cardFooter: { borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
+    viewBtnText: { color: theme.primary, fontSize: 14, fontWeight: 'bold' },
+
+    examTitle: { color: theme.text, fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 40 },
+    chartContainer: { alignItems: 'center', position: 'relative', marginBottom: 40 },
+    chartTextContainer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
+    chartPercentage: { color: theme.text, fontSize: 32, fontWeight: 'bold' },
+    chartSub: { color: theme.textSecondary, fontSize: 12, fontWeight: '600', textTransform: 'uppercase' },
+
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 20 },
+    gridCard: { width: '45%', backgroundColor: theme.card, padding: 20, borderRadius: 16, borderWidth: 1, borderColor: theme.border, alignItems: 'center' },
+    gridLabel: { color: theme.textSecondary, fontSize: 12, marginTop: 12, textTransform: 'uppercase', fontWeight: 'bold', textAlign: 'center' },
+    gridValue: { color: theme.text, fontSize: 20, fontWeight: 'bold', marginTop: 4 },
+    topicBox: { backgroundColor: theme.card, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: theme.border, marginBottom: 16 },
+    topicTitle: { color: theme.text, fontSize: 16, fontWeight: 'bold', marginBottom: 12 },
+    topicItem: { color: theme.textSecondary, fontSize: 15, marginBottom: 6, paddingLeft: 8 }
 });

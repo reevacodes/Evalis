@@ -6,7 +6,7 @@ export default function Pagination({ total, filters, setFilters }) {
       <button
         disabled={filters.page === 1}
         onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
-        className="bg-slate-700 px-3 py-1 rounded hover:bg-slate-600 disabled:opacity-50"
+        className="bg-gray-100 dark:bg-slate-700 px-3 py-1 rounded hover:bg-slate-600 disabled:opacity-50"
       >
         Prev
       </button>
@@ -18,7 +18,7 @@ export default function Pagination({ total, filters, setFilters }) {
       <button
         disabled={filters.page === totalPages}
         onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
-        className="bg-slate-700 px-3 py-1 rounded hover:bg-slate-600 disabled:opacity-50"
+        className="bg-gray-100 dark:bg-slate-700 px-3 py-1 rounded hover:bg-slate-600 disabled:opacity-50"
       >
         Next
       </button>

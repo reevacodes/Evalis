@@ -50,7 +50,7 @@ export default function InstructorSubmissions() {
   };
 
   const NavItem = ({ icon: Icon, text, active }) => (
-    <div className={`flex items-center gap-4 px-6 py-3 cursor-pointer border-l-2 transition-all ${active ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>
+    <div className={`flex items-center gap-4 px-6 py-3 cursor-pointer border-l-2 transition-all ${active ? 'border-blue-500 text-blue-400 bg-blue-500/10' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-300'}`}>
       <Icon size={20} strokeWidth={2} className={active ? "text-blue-400" : "text-slate-500"}/>
       <span className="font-semibold text-sm">{text}</span>
     </div>
@@ -111,7 +111,7 @@ export default function InstructorSubmissions() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center text-slate-500 dark:text-slate-400">
          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
          Aggregating Instructor Dashboard...
       </div>
@@ -119,7 +119,7 @@ export default function InstructorSubmissions() {
   }
 
   return (
-    <div className="bg-[#0b0f19] text-white flex font-sans">
+    <div className="bg-[#0b0f19] text-slate-900 dark:text-white flex font-sans">
       {/* 🚀 MAIN CONTENT */}
       <main className="flex-1 flex flex-col min-h-screen overflow-y-auto w-full">
         
@@ -130,8 +130,8 @@ export default function InstructorSubmissions() {
           
           <div className="mb-8 flex justify-between items-end">
              <div>
-                <h1 className="text-2xl font-bold text-white mb-1">Instructor Ledger Dashboard</h1>
-                <p className="text-sm text-slate-400">Tracking aggregate cohort analytics for <span className="text-blue-400 font-medium">{examTitle}</span>.</p>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Instructor Ledger Dashboard</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Tracking aggregate cohort analytics for <span className="text-blue-400 font-medium">{examTitle}</span>.</p>
              </div>
              <div className="flex gap-3">
                  <button 
@@ -146,7 +146,7 @@ export default function InstructorSubmissions() {
                  >
                    ⚡ Issue Grace Override
                  </button>
-                 <button onClick={() => navigate(-1)} className="px-5 py-2.5 rounded-full bg-[#151c2c] border border-slate-800 text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+                 <button onClick={() => navigate(-1)} className="px-5 py-2.5 rounded-full bg-[#151c2c] border border-gray-200 dark:border-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-slate-800 transition-colors">
                    ← Back to Exams
                  </button>
              </div>
@@ -154,9 +154,9 @@ export default function InstructorSubmissions() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* KPI 1: Needs Grading */}
-            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
+            <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
                <div className="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-               <h3 className="text-sm font-bold text-slate-400 mb-6 flex items-center gap-2">
+               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-blue-500"></div> Need to Grade
                </h3>
                <div className="flex items-center gap-6 mt-auto">
@@ -177,25 +177,25 @@ export default function InstructorSubmissions() {
             </div>
 
             {/* KPI 2: Active Students */}
-            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
-               <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
+            <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Active Students
                </h3>
                <div className="space-y-4 mt-6">
-                  <div className="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
-                    <span className="text-xs font-semibold text-slate-400">Total Submissions</span>
+                  <div className="flex justify-between items-center bg-white dark:bg-slate-950 p-3 rounded-xl border border-gray-200 dark:border-slate-800">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Submissions</span>
                     <span className="text-xl font-bold text-emerald-400">{totalSubmissions}</span>
                   </div>
-                  <div className="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
-                    <span className="text-xs font-semibold text-slate-400">Pending Review</span>
+                  <div className="flex justify-between items-center bg-white dark:bg-slate-950 p-3 rounded-xl border border-gray-200 dark:border-slate-800">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Pending Review</span>
                     <span className="text-xl font-bold text-orange-400">{pendingReviewCount}</span>
                   </div>
                </div>
             </div>
 
             {/* KPI 3: Max Payload */}
-            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
-               <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2">
+            <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                  <div className="w-2 h-2 rounded-full bg-purple-500"></div> Max Exam Payload
                </h3>
                <div className="flex items-end gap-5 mt-6">
@@ -217,8 +217,8 @@ export default function InstructorSubmissions() {
           {/* CHARTS GRID */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             
-            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 shadow-lg">
-              <h3 className="text-base font-bold text-slate-200 mb-6 font-sans">Exam Taken Times</h3>
+            <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-6 font-sans">Exam Taken Times</h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -241,8 +241,8 @@ export default function InstructorSubmissions() {
               </div>
             </div>
 
-            <div className="bg-[#151c2c] border border-slate-800 rounded-2xl p-6 shadow-lg">
-              <h3 className="text-base font-bold text-slate-200 mb-6">Average Results Distribution</h3>
+            <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-6">Average Results Distribution</h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={scoreDistribution} layout="vertical" margin={{ top: 0, right: 10, left: 20, bottom: 0 }}>
@@ -266,15 +266,15 @@ export default function InstructorSubmissions() {
           </div>
 
           {/* TABLE */}
-          <div className="bg-[#151c2c] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-             <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
-                <h3 className="text-base font-bold text-slate-200">Browse test results</h3>
+          <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+             <div className="px-6 py-5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Browse test results</h3>
              </div>
 
              <div className="overflow-x-auto">
                <table className="w-full text-left border-collapse">
                  <thead>
-                   <tr className="bg-slate-950 border-b border-slate-800 text-[10px] uppercase font-bold tracking-widest text-slate-500">
+                   <tr className="bg-white dark:bg-slate-950 border-b border-gray-200 dark:border-slate-800 text-[10px] uppercase font-bold tracking-widest text-slate-500">
                      <th className="px-6 py-4">Student Identity</th>
                      <th className="px-6 py-4">Total Score</th>
                      <th className="px-6 py-4">Score Analytics</th>
@@ -288,9 +288,9 @@ export default function InstructorSubmissions() {
                       submissions.map((sub, idx) => {
                         const acc = sub.analytics?.accuracy || 0;
                         return (
-                        <tr key={idx} className="hover:bg-slate-800/40 transition-colors group cursor-pointer">
+                        <tr key={idx} className="hover:bg-white dark:bg-slate-800/40 transition-colors group cursor-pointer">
                            <td className="px-6 py-4">
-                             <div className="font-semibold text-slate-200 flex items-center gap-3">
+                             <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-3">
                                <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20 uppercase">
                                  {sub.student_email ? sub.student_email[0] : "S"}
                                </div>
@@ -301,18 +301,18 @@ export default function InstructorSubmissions() {
                              </div>
                            </td>
                            <td className="px-6 py-4">
-                             <span className="text-lg font-black text-slate-200">
+                             <span className="text-lg font-black text-slate-800 dark:text-slate-200">
                                {sub.total_score ?? sub.mcq_score}
                              </span>
                            </td>
                            <td className="px-6 py-4">
-                              <div className="w-32 bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                              <div className="w-32 bg-white dark:bg-slate-950 rounded-full h-2 overflow-hidden border border-gray-200 dark:border-slate-800">
                                 <div 
                                   className={`h-full ${acc > 70 ? 'bg-emerald-500' : acc > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
                                   style={{ width: `${acc}%` }}
                                 ></div>
                               </div>
-                              <span className="text-[10px] mt-1 font-semibold text-slate-400 block">{acc}% Accuracy</span>
+                              <span className="text-[10px] mt-1 font-semibold text-slate-500 dark:text-slate-400 block">{acc}% Accuracy</span>
                            </td>
                            <td className="px-6 py-4">
                              {(() => {
@@ -331,21 +331,21 @@ export default function InstructorSubmissions() {
                                   return (
                                      <div className="flex flex-col">
                                         <span className="text-red-400 font-bold text-xs bg-red-500/10 px-2 py-1 rounded border border-red-500/20 w-max">🔴 Terminated</span>
-                                        <span className="text-[10px] text-slate-400 mt-1 font-semibold">{cvViolations} CV, {tabSwitches} Tabs</span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">{cvViolations} CV, {tabSwitches} Tabs</span>
                                      </div>
                                   );
                                } else {
                                   return (
                                      <div className="flex flex-col">
                                         <span className="text-orange-400 font-bold text-xs bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 w-max">🟠 Suspicious</span>
-                                        <span className="text-[10px] text-slate-400 mt-1 font-semibold">{cvViolations} CV, {tabSwitches} Tabs</span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">{cvViolations} CV, {tabSwitches} Tabs</span>
                                      </div>
                                   );
                                }
                              })()}
                            </td>
                            <td className="px-6 py-4">
-                              <div className="text-sm font-medium text-slate-300">
+                              <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                 {sub.pending_manual_review 
                                    ? <span className="text-orange-400 font-bold text-xs bg-orange-500/10 px-2 py-1 rounded">Needs Review</span> 
                                    : <span className="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-1 rounded">Validated</span>

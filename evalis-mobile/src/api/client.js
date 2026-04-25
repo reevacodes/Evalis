@@ -8,9 +8,8 @@ const getBaseUrl = () => {
     if (Platform.OS === 'web') {
         return 'http://localhost:8000';
     }
-    // We utilize the exact Home Wi-Fi IP rather than the Emulator loopback
-    // Update (Ngrok Tunnel): Public URL for Mentor APK Demo
-    return 'https://uncouple-plant-contend.ngrok-free.dev';
+    // Local Wi-Fi IP for physical device testing
+    return 'http://192.168.1.10:8000';
 };
 
 const API = axios.create({

@@ -31,7 +31,7 @@ export default function StudentResults() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center text-slate-500 dark:text-slate-400">
          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mr-3"></div>
          Aggregating Performance Analytics...
       </div>
@@ -40,7 +40,7 @@ export default function StudentResults() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-red-400">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center text-red-400">
         Failed to locate submission record.
       </div>
     );
@@ -48,21 +48,21 @@ export default function StudentResults() {
 
   if (!data.is_published) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-white">
-        <div className="bg-slate-900 border border-slate-800/60 p-8 rounded-2xl md:w-[500px] text-center shadow-xl">
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center p-6 text-slate-900 dark:text-white">
+        <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800/60 p-8 rounded-2xl md:w-[500px] text-center shadow-xl">
           <div className="w-20 h-20 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner">
             🔒
           </div>
           <h2 className="text-2xl font-bold mb-3 tracking-wide text-slate-100">
             Results Locked
           </h2>
-          <p className="text-slate-400 text-sm leading-relaxed mb-8">
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8">
             Your instructor has not yet verified the final coding submissions and published the global analytics graph. 
             Check back later!
           </p>
           <button
             onClick={() => navigate("/student")}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl transition font-medium shadow-lg shadow-indigo-600/20"
+            className="w-full bg-indigo-600 hover:bg-indigo-500 text-slate-900 dark:text-white py-3 rounded-xl transition font-medium shadow-lg shadow-indigo-600/20"
           >
             Return to Dashboard
           </button>
@@ -98,14 +98,14 @@ export default function StudentResults() {
   const strokeDashoffset = circumference - (accuracy / 100) * circumference;
 
   const NavItem = ({ icon: Icon, text, active }) => (
-    <div className={`flex items-center gap-4 px-6 py-3 cursor-pointer border-l-2 transition-all ${active ? 'border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>
+    <div className={`flex items-center gap-4 px-6 py-3 cursor-pointer border-l-2 transition-all ${active ? 'border-indigo-500 text-indigo-400 bg-indigo-500/10' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-300'}`}>
       <Icon size={20} strokeWidth={2} className={active ? "text-indigo-400" : "text-slate-500"}/>
       <span className="font-semibold text-sm">{text}</span>
     </div>
   );
 
   return (
-    <div className="bg-[#0b0f19] text-white flex font-sans">
+    <div className="bg-[#0b0f19] text-slate-900 dark:text-white flex font-sans">
       {/* 🚀 MAIN CONTENT */}
       <main className="flex-1 flex flex-col min-h-screen overflow-y-auto w-full">
         {/* HEADER MOVED TO GLOBAL NAVBAR */}
@@ -115,10 +115,10 @@ export default function StudentResults() {
           
           <div className="mb-8 flex justify-between items-end">
              <div>
-                <h1 className="text-2xl font-bold text-white mb-1">Performance Analytics</h1>
-                <p className="text-sm text-slate-400">Deep dive into your attempt for <span className="text-indigo-400 font-medium">{data.exam_title}</span>.</p>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Performance Analytics</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Deep dive into your attempt for <span className="text-indigo-400 font-medium">{data.exam_title}</span>.</p>
              </div>
-             <button onClick={() => navigate("/student")} className="px-5 py-2.5 rounded-full bg-[#151c2c] border border-white/10 text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+             <button onClick={() => navigate("/student")} className="px-5 py-2.5 rounded-full bg-[#151c2c] border border-white/10 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-slate-800 transition-colors">
                ← Back
              </button>
           </div>
@@ -127,7 +127,7 @@ export default function StudentResults() {
             {/* KPI 1: Accuracy */}
             <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
                <div className="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-               <h3 className="text-sm font-bold text-slate-400 mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div> System Accuracy</h3>
+               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div> System Accuracy</h3>
                <div className="flex items-center gap-6 mt-auto">
                  <div className="relative w-20 h-20">
                     <svg className="w-full h-full transform -rotate-90">
@@ -147,22 +147,22 @@ export default function StudentResults() {
 
             {/* KPI 2: MCQs */}
             <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
-               <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> MCQ Interactions</h3>
+               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> MCQ Interactions</h3>
                <div className="space-y-4 mt-6">
                   <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/10">
-                    <span className="text-xs font-semibold text-slate-400">Total Valid Output</span>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Valid Output</span>
                     <span className="text-lg font-bold text-emerald-400">{analytics.correct_mcqs}</span>
                   </div>
                   <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/10">
-                    <span className="text-xs font-semibold text-slate-400">Attempted</span>
-                    <span className="text-lg font-bold text-slate-200">{analytics.attempted_mcqs} / {analytics.total_mcqs}</span>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Attempted</span>
+                    <span className="text-lg font-bold text-slate-800 dark:text-slate-200">{analytics.attempted_mcqs} / {analytics.total_mcqs}</span>
                   </div>
                </div>
             </div>
 
             {/* KPI 3: Coding */}
             <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
-               <h3 className="text-sm font-bold text-slate-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-orange-500"></div> Coding Submissions</h3>
+               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-orange-500"></div> Coding Submissions</h3>
                <div className="flex items-end gap-5 mt-6">
                  <div>
                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Recorded</p>
@@ -183,7 +183,7 @@ export default function StudentResults() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             
             <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 shadow-lg">
-              <h3 className="text-base font-bold text-slate-200 mb-6">Performance Timeline</h3>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-6">Performance Timeline</h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -207,7 +207,7 @@ export default function StudentResults() {
             </div>
 
             <div className="bg-[#151c2c] border border-white/10 rounded-2xl p-6 shadow-lg">
-              <h3 className="text-base font-bold text-slate-200 mb-6">Topic Breakdown (SWOT)</h3>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-6">Topic Breakdown (SWOT)</h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={topicData} layout="vertical" margin={{ top: 0, right: 10, left: 20, bottom: 0 }}>
@@ -233,7 +233,7 @@ export default function StudentResults() {
           {/* TABLE */}
           <div className="bg-[#151c2c] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
              <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
-                <h3 className="text-base font-bold text-slate-200">Coding Solutions Ledger</h3>
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Coding Solutions Ledger</h3>
                 {sub.pending_manual_review ? (
                    <span className="px-3 py-1 flex items-center gap-2 text-xs font-bold rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
                      <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span> Pending Review
@@ -258,9 +258,9 @@ export default function StudentResults() {
                  <tbody className="divide-y divide-[#1e293b]">
                    {Object.keys(sub.coding_answers || {}).length > 0 ? (
                       Object.entries(sub.coding_answers).map(([key, cData], idx) => (
-                        <tr key={key} className="hover:bg-slate-800 transition-colors group cursor-pointer">
+                        <tr key={key} className="hover:bg-white dark:bg-slate-800 transition-colors group cursor-pointer">
                            <td className="px-6 py-4">
-                             <div className="font-semibold text-slate-200 flex items-center gap-3">
+                             <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-3">
                                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs border border-indigo-500/20">
                                  {idx + 1}
                                </div>
@@ -268,12 +268,12 @@ export default function StudentResults() {
                              </div>
                            </td>
                            <td className="px-6 py-4">
-                             <span className="px-2.5 py-1 text-xs font-medium rounded-md bg-[#1e293b] border border-slate-700 text-slate-300 font-mono">
+                             <span className="px-2.5 py-1 text-xs font-medium rounded-md bg-[#1e293b] border border-gray-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono">
                                {cData.language || "python"}
                              </span>
                            </td>
                            <td className="px-6 py-4">
-                             <span className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                             <span className="text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">
                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Code Stored
                              </span>
                            </td>

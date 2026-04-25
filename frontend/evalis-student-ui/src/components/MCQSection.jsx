@@ -52,21 +52,21 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
   const getColor = (i) => {
     const qId = questions[i]?._id || questions[i]?.id || i;
 
-    if (i === current) return "bg-blue-600 text-white";
+    if (i === current) return "bg-blue-600 text-slate-900 dark:text-white";
 
-    if (review[i] && answers[qId]) return "bg-purple-600 text-white";
+    if (review[i] && answers[qId]) return "bg-purple-600 text-slate-900 dark:text-white";
 
     if (review[i]) return "bg-yellow-500 text-black";
 
-    if (answers[qId]) return "bg-green-600 text-white";
+    if (answers[qId]) return "bg-green-600 text-slate-900 dark:text-white";
 
-    return "bg-slate-700 hover:bg-slate-600 text-gray-200";
+    return "bg-gray-100 dark:bg-slate-700 hover:bg-slate-600 text-gray-200";
   };
 
   return (
-    <div className="grid grid-cols-4 gap-6 h-full text-white">
+    <div className="grid grid-cols-4 gap-6 h-full text-slate-900 dark:text-white">
       {/* QUESTION PALETTE */}
-      <div className="bg-slate-900 border border-slate-700 p-4 rounded-lg shadow-lg">
+      <div className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-4 rounded-lg shadow-lg">
         <h3 className="font-semibold mb-4 text-gray-200">Questions</h3>
 
         <div className="grid grid-cols-4 gap-2">
@@ -106,7 +106,7 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
       </div>
 
       {/* QUESTION PANEL */}
-      <div className="col-span-3 bg-slate-900 border border-slate-700 p-6 rounded-lg shadow-lg">
+      <div className="col-span-3 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-6 rounded-lg shadow-lg">
         <h3 className="font-semibold mb-4 text-lg text-gray-100">
           Question {current + 1}
         </h3>
@@ -120,7 +120,7 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
             q.options.map((opt, i) => (
               <label
                 key={i}
-                className="flex items-center gap-3 border border-slate-700 p-3 rounded-md cursor-pointer transition hover:bg-slate-800"
+                className="flex items-center gap-3 border border-gray-300 dark:border-slate-700 p-3 rounded-md cursor-pointer transition hover:bg-white dark:bg-slate-800"
               >
                 <input
                   type="radio"
@@ -142,7 +142,7 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
         <div className="flex gap-3 mt-8">
           <button
             onClick={() => setCurrent((prev) => Math.max(prev - 1, 0))}
-            className="bg-slate-700 hover:bg-slate-600 transition px-3 py-2 rounded-md"
+            className="bg-gray-100 dark:bg-slate-700 hover:bg-slate-600 transition px-3 py-2 rounded-md"
           >
             Previous
           </button>
@@ -151,7 +151,7 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
             onClick={() =>
               setCurrent((prev) => Math.min(prev + 1, questions.length - 1))
             }
-            className="bg-slate-700 hover:bg-slate-600 transition px-3 py-2 rounded-md"
+            className="bg-gray-100 dark:bg-slate-700 hover:bg-slate-600 transition px-3 py-2 rounded-md"
           >
             Next
           </button>
@@ -165,7 +165,7 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
 
           <button
             onClick={clearResponse}
-            className="bg-red-500 hover:bg-red-600 transition text-white px-3 py-2 rounded-md"
+            className="bg-red-500 hover:bg-red-600 transition text-slate-900 dark:text-white px-3 py-2 rounded-md"
           >
             Clear Response
           </button>

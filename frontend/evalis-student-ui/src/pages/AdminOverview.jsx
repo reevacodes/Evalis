@@ -79,7 +79,7 @@ export default function AdminOverview() {
   }, []);
 
   if (loading) {
-    return <div className="text-white p-6">Loading dashboard...</div>;
+    return <div className="text-slate-900 dark:text-white p-6">Loading dashboard...</div>;
   }
 
   return (
@@ -87,7 +87,7 @@ export default function AdminOverview() {
       {/* HEADER */}
       <div>
         <h1 className="text-3xl font-semibold">Dashboard Overview</h1>
-        <p className="text-gray-400 mt-1">
+        <p className="text-slate-600 dark:text-gray-400 mt-1">
           Monitor exams, activity, and system performance
         </p>
       </div>
@@ -109,15 +109,15 @@ export default function AdminOverview() {
       </div>
 
       {/* TABLE SECTION */}
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-xl mt-8">
+      <div className="bg-gray-50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-6 rounded-xl mt-8 shadow-sm dark:shadow-none">
         <h3 className="mb-6 font-semibold text-xl">Student Reschedule Requests</h3>
 
         {rescheduleRequests.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">No pending requests at the moment.</p>
+          <p className="text-sm text-slate-600 dark:text-gray-400 text-center py-8">No pending requests at the moment.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300 border-collapse">
-              <thead className="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider">
+            <table className="w-full text-left text-sm text-slate-700 dark:text-slate-300 border-collapse">
+              <thead className="bg-white dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
                 <tr>
                   <th className="p-4 font-medium rounded-tl-lg">Student ID</th>
                   <th className="p-4 font-medium">Exam Name</th>
@@ -130,8 +130,8 @@ export default function AdminOverview() {
               </thead>
               <tbody className="divide-y divide-slate-800/50">
                 {rescheduleRequests.map((req) => (
-                  <tr key={req._id} className={`hover:bg-slate-800/30 transition-colors ${req.status !== "pending" ? "opacity-50 grayscale-[50%]" : ""}`}>
-                    <td className="p-4 font-medium text-white">{req.student_id}</td>
+                  <tr key={req._id} className={`hover:bg-white dark:bg-slate-800/30 transition-colors ${req.status !== "pending" ? "opacity-50 grayscale-[50%]" : ""}`}>
+                    <td className="p-4 font-medium text-slate-900 dark:text-white">{req.student_id}</td>
                     <td className="p-4 text-orange-400 font-medium">{req.exam_name}</td>
                     <td className="p-4">
                        {req.original_time ? formatDateTime(req.original_time) : "TBD"}
@@ -181,7 +181,7 @@ export default function AdminOverview() {
                       ) : (
                         <button 
                            onClick={() => handleDeleteRequest(req._id)}
-                           className="px-4 py-1.5 bg-slate-700 text-slate-300 hover:bg-slate-600 rounded text-xs font-bold transition-all uppercase tracking-wide"
+                           className="px-4 py-1.5 bg-gray-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600 rounded text-xs font-bold transition-all uppercase tracking-wide"
                         >
                           Delete
                         </button>
@@ -213,11 +213,11 @@ const ExpandableReason = ({ text, category, proofLink }) => {
   return (
     <div className="max-w-xs">
       {category && (
-        <span className="inline-block px-2 py-0.5 bg-slate-800 text-[10px] text-slate-400 font-bold uppercase rounded mb-2 tracking-wider">
+        <span className="inline-block px-2 py-0.5 bg-white dark:bg-slate-800 text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase rounded mb-2 tracking-wider">
           {category}
         </span>
       )}
-      <p className="text-sm text-slate-300 leading-relaxed">
+      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
         {expanded || !isLong ? text : `${text.slice(0, 60)}...`}
       </p>
       {isLong && (

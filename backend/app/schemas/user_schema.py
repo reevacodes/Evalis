@@ -11,6 +11,10 @@ class UserSignup(BaseModel):
     password: str = Field(..., min_length=8, max_length=100)
     name: str
     role: Literal["student", "teacher"]
+    semester: int | None = None
+    college_email: EmailStr | None = None
+    college_name: str | None = None
+    student_id: str | None = None
 
     @field_validator('password')
     @classmethod

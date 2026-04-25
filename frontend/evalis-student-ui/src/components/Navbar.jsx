@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
-import { Bell, GraduationCap, Search, User, LogOut, Shield } from "lucide-react";
+import { Bell, GraduationCap, Search, User, LogOut, Shield, Sun, Moon } from "lucide-react";
 import { formatDateTime } from "../utils/formatDate";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Navbar() {
   const { user, setUser } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -78,7 +80,7 @@ export default function Navbar() {
     navigate("/login");
   };
   return (
-    <div className="sticky top-0 z-50 h-20 bg-[#0b0f19]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 md:px-10 text-white font-sans transition-all">
+    <div className="sticky top-0 z-50 h-20 bg-[#0b0f19]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 md:px-10 text-slate-900 dark:text-white font-sans transition-all">
       {/* LEFT: Branding & Links */}
       <div className="flex items-center gap-8">
         <div
@@ -96,7 +98,7 @@ export default function Navbar() {
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 isActive(item.path)
                   ? "bg-blue-600/20 text-blue-400 border border-blue-500/20 shadow-inner"
-                  : "text-gray-400 hover:bg-white/5 border border-transparent hover:border-white/10 hover:text-white"
+                  : "text-gray-400 hover:bg-white/5 border border-transparent hover:border-white/10 hover:text-slate-900 dark:text-white"
               }`}
             >
               {item.name}
@@ -113,11 +115,13 @@ export default function Navbar() {
            <input type="text" placeholder="Search Evalis..." className="bg-transparent border-none outline-none text-sm text-gray-300 ml-3 w-full placeholder-gray-500 focus:ring-0" />
          </div>
 
+         {/* THEME TOGGLE MOVED TO PROFILE DROPDOWN */}
+
          {/* NOTIFICATIONS */}
          <div className="relative">
            <button 
              onClick={() => { setOpenNotifs(!openNotifs); setOpen(false); }}
-             className="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
+             className="relative text-gray-400 hover:text-slate-900 dark:text-white transition-colors p-2 rounded-full hover:bg-white/10"
            >
              <Bell size={20} />
              {notifications.some(n => !n.is_read) && (
@@ -128,7 +132,7 @@ export default function Navbar() {
            {openNotifs && (
              <div className="absolute right-0 mt-3 w-80 bg-[#0b0f19] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in z-50">
                 <div className="p-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
-                   <p className="text-sm font-bold text-white">Notifications</p>
+                   <p className="text-sm font-bold text-slate-900 dark:text-white">Notifications</p>
                    {notifications.some(n => !n.is_read) && (
                      <button onClick={markAllRead} className="text-xs text-blue-400 hover:text-blue-300">Mark all read</button>
                    )}
@@ -143,7 +147,7 @@ export default function Navbar() {
                          onClick={() => handleNotifClick(n)}
                          className={`w-full text-left p-3 rounded-xl transition-colors ${!n.is_read ? 'bg-blue-500/10 hover:bg-blue-500/20' : 'hover:bg-white/5'}`}
                        >
-                         <p className={`text-sm ${!n.is_read ? 'text-white font-bold' : 'text-gray-300'}`}>{n.title}</p>
+                         <p className={`text-sm ${!n.is_read ? 'text-slate-900 dark:text-white font-bold' : 'text-gray-300'}`}>{n.title}</p>
                          <p className={`text-xs text-gray-400 mt-1 transition-all ${expandedNotifId === n._id ? 'whitespace-pre-wrap' : 'line-clamp-2'}`}>{n.message}</p>
                          {expandedNotifId === n._id && !n.link && (
                            <span className="text-[10px] text-blue-400 font-semibold mt-1 block">Read Less</span>
@@ -173,7 +177,7 @@ export default function Navbar() {
              </div>
 
              <div className="text-left hidden md:block leading-tight">
-               <p className="text-sm font-bold text-gray-200 group-hover:text-white transition-colors capitalize">
+               <p className="text-sm font-bold text-gray-200 group-hover:text-slate-900 dark:text-white transition-colors capitalize">
                  {user?.name || user?.email.split('@')[0]}
                </p>
                <p className="text-[10px] uppercase tracking-wider text-blue-400 font-bold">{user.role}</p>
@@ -183,14 +187,14 @@ export default function Navbar() {
            {open && (
              <div className="absolute right-0 mt-3 w-56 bg-[#0b0f19] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
                <div className="p-4 border-b border-white/10 bg-white/5">
-                  <p className="text-sm font-bold text-white truncate capitalize">{user?.name || user?.email.split('@')[0]}</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white truncate capitalize">{user?.name || user?.email.split('@')[0]}</p>
                   <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                </div>
                
                <div className="p-2 space-y-1">
                  <button
                    onClick={() => { setOpen(false); navigate("/profile"); }}
-                   className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-white/10 rounded-xl text-sm font-semibold text-gray-300 hover:text-white transition-colors"
+                   className="flex items-center gap-3 w-full text-left px-3 py-2 hover:bg-white/10 rounded-xl text-sm font-semibold text-gray-300 hover:text-slate-900 dark:text-white transition-colors"
                  >
                    <User size={16} className="text-gray-400" /> Profile Settings
                  </button>
@@ -203,6 +207,22 @@ export default function Navbar() {
                      <Shield size={16} /> Admin Panel
                    </button>
                  )}
+
+                 <div 
+                    onClick={(e) => { e.stopPropagation(); toggleTheme(); }}
+                    className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                 >
+                    <div className="flex items-center gap-3 text-sm font-semibold text-gray-300 hover:text-slate-900 dark:text-white">
+                       {theme === 'dark' ? <Moon size={16} className="text-gray-400" /> : <Sun size={16} className="text-gray-400" />}
+                       Dark Mode
+                    </div>
+                    {/* Toggle Switch */}
+                    <button 
+                        className={`w-10 h-5 rounded-full relative transition-colors ${theme === 'dark' ? 'bg-blue-500' : 'bg-gray-400'}`}
+                    >
+                        <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-transform ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </button>
+                 </div>
                </div>
 
                <div className="border-t border-white/10 p-2">

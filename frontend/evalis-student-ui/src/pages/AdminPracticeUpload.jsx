@@ -112,34 +112,34 @@ export default function AdminPracticeUpload() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent"> Practice Archive Setup </h1>
-          <p className="text-gray-400 mt-2">Rigidly ingest previous year papers mapped directly to live syllabus structures.</p>
+          <p className="text-slate-600 dark:text-gray-400 mt-2">Rigidly ingest previous year papers mapped directly to live syllabus structures.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* LEFT COMPONENT: CONFIGURATOR */}
-        <div className="lg:col-span-1 space-y-6 bg-white/5 border border-white/10 p-6 rounded-2xl shadow-xl h-fit">
-          <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><UploadCloud size={20} className="text-blue-400"/> Topology Gate</h2>
+        <div className="lg:col-span-1 space-y-6 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-6 rounded-2xl shadow-sm dark:shadow-xl h-fit">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><UploadCloud size={20} className="text-blue-400"/> Topology Gate</h2>
           
           <div>
             <label className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2 block">Semester</label>
-            <input type="number" min="1" max="8" value={semester} onChange={e => setSemester(e.target.value)} className="w-full bg-[#0b0f19] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500" />
+            <input type="number" min="1" max="8" value={semester} onChange={e => setSemester(e.target.value)} className="w-full bg-white dark:bg-[#0b0f19] border border-gray-300 dark:border-white/10 rounded-lg p-3 text-slate-900 dark:text-white outline-none focus:border-blue-500" />
           </div>
 
           <div>
             <label className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2 block">Subject Nomenclature</label>
-            <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className="w-full bg-[#0b0f19] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500" />
+            <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className="w-full bg-white dark:bg-[#0b0f19] border border-gray-300 dark:border-white/10 rounded-lg p-3 text-slate-900 dark:text-white outline-none focus:border-blue-500" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2 block">Year</label>
-              <input type="number" value={year} onChange={e => setYear(e.target.value)} className="w-full bg-[#0b0f19] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500" />
+              <input type="number" value={year} onChange={e => setYear(e.target.value)} className="w-full bg-white dark:bg-[#0b0f19] border border-gray-300 dark:border-white/10 rounded-lg p-3 text-slate-900 dark:text-white outline-none focus:border-blue-500" />
             </div>
             <div>
               <label className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2 block">Exam Type</label>
-              <select value={examType} onChange={e => setExamType(e.target.value)} className="w-full bg-[#0b0f19] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500">
+              <select value={examType} onChange={e => setExamType(e.target.value)} className="w-full bg-white dark:bg-[#0b0f19] border border-gray-300 dark:border-white/10 rounded-lg p-3 text-slate-900 dark:text-white outline-none focus:border-blue-500">
                 <option value="MST">MST</option>
                 <option value="Final">Final</option>
               </select>
@@ -148,7 +148,7 @@ export default function AdminPracticeUpload() {
 
           <div>
             <label className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2 block">Structural Pattern</label>
-            <select value={pattern} onChange={e => setPattern(e.target.value)} className="w-full bg-[#0b0f19] border border-white/10 rounded-lg p-3 text-white outline-none focus:border-blue-500">
+            <select value={pattern} onChange={e => setPattern(e.target.value)} className="w-full bg-white dark:bg-[#0b0f19] border border-gray-300 dark:border-white/10 rounded-lg p-3 text-slate-900 dark:text-white outline-none focus:border-blue-500">
               <option value="MCQ">MCQ Only</option>
               <option value="Coding">Coding Only</option>
               <option value="Mixed">Mixed Assembly</option>
@@ -157,17 +157,17 @@ export default function AdminPracticeUpload() {
           
           <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mt-6">
              <p className="text-sm text-blue-400 font-semibold mb-1">Active Constraint Target:</p>
-             <p className="text-xs text-gray-300">You must supply exactly <b>{req.mcq} MCQs</b> and <b>{req.coding} Coding</b> definitions to pass the platform validation layer.</p>
+             <p className="text-xs text-slate-700 dark:text-gray-300">You must supply exactly <b>{req.mcq} MCQs</b> and <b>{req.coding} Coding</b> definitions to pass the platform validation layer.</p>
           </div>
         </div>
 
         {/* RIGHT COMPONENT: JSON DROP & SUBMIT */}
         <div className="lg:col-span-2 space-y-6">
-           <div className="bg-[#0b0f19] border border-white/10 rounded-2xl shadow-xl overflow-hidden flex flex-col h-[550px]">
-              <div className="bg-white/5 border-b border-white/10 p-4 flex justify-between items-center">
+           <div className="bg-white dark:bg-[#0b0f19] border border-gray-300 dark:border-white/10 rounded-2xl shadow-sm dark:shadow-xl overflow-hidden flex flex-col h-[550px]">
+              <div className="bg-gray-50 dark:bg-white/5 border-b border-gray-300 dark:border-white/10 p-4 flex justify-between items-center">
                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-200 flex items-center gap-2"><FileJson size={16} className="text-green-400"/> AI Syllabus Output (JSON)</span>
-                    <span className="text-xs text-gray-500">Paste your generated syllabus array here</span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-gray-200 flex items-center gap-2"><FileJson size={16} className="text-green-500 dark:text-green-400"/> AI Syllabus Output (JSON)</span>
+                    <span className="text-xs text-slate-500 dark:text-gray-500">Paste your generated syllabus array here</span>
                  </div>
                  <button onClick={injectMockData} className="px-4 py-1.5 text-xs font-bold bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 rounded-lg border border-indigo-500/20 transition-colors flex items-center gap-2">
                     <Beaker size={14} /> Simulate JSON
@@ -176,7 +176,7 @@ export default function AdminPracticeUpload() {
               <textarea 
                  value={jsonText}
                  onChange={e => setJsonText(e.target.value)}
-                 className="flex-1 w-full bg-transparent p-6 text-sm text-gray-300 font-mono outline-none resize-none"
+                 className="flex-1 w-full bg-transparent p-6 text-sm text-slate-700 dark:text-gray-300 font-mono outline-none resize-none"
                  placeholder={`[\n  {\n    "type": "mcq",\n    "questions": [...]\n  }\n]`}
                  spellCheck="false"
               />

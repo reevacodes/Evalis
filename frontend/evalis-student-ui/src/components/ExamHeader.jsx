@@ -11,7 +11,7 @@ export default function ExamHeader({ timeLeft, onSubmit }) {
   };
 
   return (
-    <div className="h-16 border-b border-slate-700 flex items-center justify-between px-8 bg-slate-900 text-white">
+    <div className="h-16 border-b border-gray-300 dark:border-slate-700 flex items-center justify-between px-8 bg-gray-50 dark:bg-slate-900 text-slate-900 dark:text-white">
       {/* LEFT */}
       <div className="flex items-center gap-3">
         <span className="text-3xl font-bold tracking-wide">Evalis</span>

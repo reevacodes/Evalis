@@ -10,10 +10,8 @@ from app.utils.auth_dependency import get_current_user
 from app.database import get_db
 from app.models.user_model import update_user_role, update_user_password
 from app.utils.auth_dependency import get_current_user, require_admin
-from app.services.email_service import send_password_reset_email
+from app.services.email_service import send_password_reset_email, send_welcome_email
 from pydantic import BaseModel
-import random
-import string
 
 class ForgotPasswordRequest(BaseModel):
     email: str
@@ -40,12 +38,24 @@ def signup(user: UserSignup):
             email=user.email,
             hashed_password=hashed_password,
             role=user.role,
-            name=user.name
+            name=user.name,
+            semester=user.semester,
+            college_email=user.college_email,
+            college_name=user.college_name,
+            student_id=user.student_id
         )
     except DuplicateKeyError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
+        )
+        
+    # Send welcome email asynchronously (or synchronously here)
+    if user.role == "student":
+        send_welcome_email(
+            primary_email=user.email,
+            college_email=user.college_email,
+            name=user.name
         )
 
     return {

@@ -226,13 +226,13 @@ export default function CodingSection({
 
     if (attemptedMap[i]) return "bg-yellow-500 text-black";
 
-    return "bg-slate-700 hover:bg-slate-600";
+    return "bg-gray-100 dark:bg-slate-700 hover:bg-slate-600";
   };
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden text-white bg-slate-950">
+    <div className="h-full w-full flex flex-col overflow-hidden text-slate-900 dark:text-white bg-white dark:bg-slate-950">
       {/* HEADER */}
-      <div className="p-3 flex gap-2 border-b border-slate-800">
+      <div className="p-3 flex gap-2 border-b border-gray-200 dark:border-slate-800">
         {problems.map((_, i) => (
           <button
             key={i}
@@ -247,7 +247,7 @@ export default function CodingSection({
       <Split sizes={[40, 60]} className="flex flex-1 h-full overflow-hidden">
         {/* KEEP EVERYTHING BELOW SAME */}
         {/* LEFT PANEL */}
-        <div className="h-full overflow-y-auto p-5 bg-slate-900 border-r border-slate-800 space-y-6">
+        <div className="h-full overflow-y-auto p-5 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 space-y-6">
           <h2 className="text-xl font-bold">Problem {currentProblem + 1}</h2>
 
           {/* DESCRIPTION */}
@@ -293,7 +293,7 @@ export default function CodingSection({
 
               <div className="space-y-3">
                 {problem.test_cases.map((tc, i) => (
-                  <div key={i} className="bg-slate-800 p-3 rounded text-sm">
+                  <div key={i} className="bg-white dark:bg-slate-800 p-3 rounded text-sm">
                     <p>
                       <span className="text-gray-400">Input:</span> {tc.input}
                     </p>
@@ -316,12 +316,12 @@ export default function CodingSection({
           className="flex flex-col h-full"
         >
           {/* EDITOR */}
-          <div className="flex flex-col bg-slate-900">
-            <div className="p-2 flex gap-2 border-b border-slate-800">
+          <div className="flex flex-col bg-gray-50 dark:bg-slate-900">
+            <div className="p-2 flex gap-2 border-b border-gray-200 dark:border-slate-800">
               <select
                 value={language}
                 onChange={handleLanguageChange}
-                className="bg-slate-700 px-2 py-1 text-sm"
+                className="bg-gray-100 dark:bg-slate-700 px-2 py-1 text-sm"
               >
                 <option value="python">Python</option>
                 <option value="cpp">C++</option>
@@ -345,7 +345,7 @@ export default function CodingSection({
               </button>
 
               {verdict && (
-                <span className="ml-auto text-xs px-2 py-1 rounded bg-slate-700">
+                <span className="ml-auto text-xs px-2 py-1 rounded bg-gray-100 dark:bg-slate-700">
                   {verdict}
                 </span>
               )}
@@ -361,7 +361,7 @@ export default function CodingSection({
           </div>
 
           {/* CONSOLE / TESTS */}
-          <div className="flex flex-col bg-slate-950 border-t border-slate-800 relative">
+          <div className="flex flex-col bg-white dark:bg-slate-950 border-t border-gray-200 dark:border-slate-800 relative">
             {loading && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 text-sm">
                 {loadingType === "run"
@@ -370,7 +370,7 @@ export default function CodingSection({
               </div>
             )}
 
-            <div className="flex text-sm border-b border-slate-800">
+            <div className="flex text-sm border-b border-gray-200 dark:border-slate-800">
               <button
                 onClick={() => setActiveTab("console")}
                 className={`px-4 py-2 ${
@@ -400,11 +400,11 @@ export default function CodingSection({
                   <textarea
                     value={customInput}
                     onChange={(e) => setCustomInput(e.target.value)}
-                    className="w-full bg-slate-800 p-2 mb-3 text-xs rounded"
+                    className="w-full bg-white dark:bg-slate-800 p-2 mb-3 text-xs rounded"
                     rows={3}
                   />
 
-                  <div className="bg-slate-900 p-3 rounded text-gray-200 whitespace-pre-wrap border border-slate-800">
+                  <div className="bg-gray-50 dark:bg-slate-900 p-3 rounded text-gray-200 whitespace-pre-wrap border border-gray-200 dark:border-slate-800">
                     {output || "Run your code to see output"}
                   </div>
                 </>
@@ -418,11 +418,11 @@ export default function CodingSection({
                     return (
                       <div
                         key={i}
-                        className="border border-slate-800 rounded overflow-hidden"
+                        className="border border-gray-200 dark:border-slate-800 rounded overflow-hidden"
                       >
                         <div
                           onClick={() => setExpandedTest(isOpen ? null : i)}
-                          className="flex justify-between items-center px-3 py-2 cursor-pointer bg-slate-900 hover:bg-slate-800"
+                          className="flex justify-between items-center px-3 py-2 cursor-pointer bg-gray-50 dark:bg-slate-900 hover:bg-white dark:bg-slate-800"
                         >
                           <span>Test Case {i + 1}</span>
 
@@ -440,24 +440,24 @@ export default function CodingSection({
                         </div>
 
                         {isOpen && t.input && (
-                          <div className="p-3 text-xs bg-slate-950 space-y-2">
+                          <div className="p-3 text-xs bg-white dark:bg-slate-950 space-y-2">
                             <div>
                               <div className="text-gray-400">Input</div>
-                              <div className="bg-slate-800 p-2 rounded">
+                              <div className="bg-white dark:bg-slate-800 p-2 rounded">
                                 {t.input}
                               </div>
                             </div>
 
                             <div>
                               <div className="text-gray-400">Expected</div>
-                              <div className="bg-slate-800 p-2 rounded">
+                              <div className="bg-white dark:bg-slate-800 p-2 rounded">
                                 {t.expected}
                               </div>
                             </div>
 
                             <div>
                               <div className="text-gray-400">Your Output</div>
-                              <div className="bg-slate-800 p-2 rounded">
+                              <div className="bg-white dark:bg-slate-800 p-2 rounded">
                                 {t.output}
                               </div>
                             </div>

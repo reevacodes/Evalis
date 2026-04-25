@@ -3,7 +3,7 @@ export default function Filters({ filters, setFilters }) {
     <div className="flex gap-4 flex-wrap">
       <input
         placeholder="Subject"
-        className="p-2 bg-slate-800 border border-slate-700 rounded text-white"
+        className="p-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded text-slate-900 dark:text-white"
         value={filters.subject}
         onChange={(e) =>
           setFilters({ ...filters, subject: e.target.value, page: 1 })
@@ -11,7 +11,7 @@ export default function Filters({ filters, setFilters }) {
       />
 
       <select
-        className="p-2 bg-slate-800 border border-slate-700 rounded text-white"
+        className="p-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded text-slate-900 dark:text-white"
         value={filters.difficulty}
         onChange={(e) =>
           setFilters({ ...filters, difficulty: e.target.value, page: 1 })

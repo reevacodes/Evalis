@@ -118,8 +118,8 @@ export default function CreateExam() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex justify-center items-start p-8">
-      <div className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-xl p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white flex justify-center items-start p-8">
+      <div className="w-full max-w-5xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-8">
         {/* HEADER */}
         <h1 className="text-2xl font-semibold mb-6">
           {isEdit ? "Edit Examination" : "Create Examination"}
@@ -149,7 +149,7 @@ export default function CreateExam() {
               value={form.instructor_email}
               disabled
               onChange={handleChange}
-              className="opacity-70 bg-slate-800/50 cursor-not-allowed"
+              className="opacity-70 bg-white dark:bg-slate-800/50 cursor-not-allowed"
             />
             <Input
               label="Semester"
@@ -191,7 +191,7 @@ export default function CreateExam() {
             />
 
             <div>
-              <label className="text-sm text-slate-400">Target Units (Comma Separated)</label>
+              <label className="text-sm text-slate-500 dark:text-slate-400">Target Units (Comma Separated)</label>
               <input
                 value={unitsInput}
                 onChange={handleUnitsChange}
@@ -202,7 +202,7 @@ export default function CreateExam() {
 
             {/* REAL-TIME MATH FEEDBACK */}
             {form.exam_type && (
-              <div className="bg-slate-800/40 border border-slate-700 p-4 rounded-xl mt-6">
+              <div className="bg-white dark:bg-slate-800/40 border border-gray-300 dark:border-slate-700 p-4 rounded-xl mt-6">
                 <span className="block text-xs uppercase font-bold text-slate-500 tracking-wider mb-1">
                   System Policy Locked
                 </span>
@@ -244,7 +244,7 @@ export default function CreateExam() {
 
 const Input = ({ label, name, value, onChange }) => (
   <div>
-    <label className="text-sm text-slate-400">{label}</label>
+    <label className="text-sm text-slate-500 dark:text-slate-400">{label}</label>
     <input
       name={name}
       value={value}
@@ -256,7 +256,7 @@ const Input = ({ label, name, value, onChange }) => (
 
 const Select = ({ label, name, value, onChange, options }) => (
   <div>
-    <label className="text-sm text-slate-400">{label}</label>
+    <label className="text-sm text-slate-500 dark:text-slate-400">{label}</label>
     <select
       name={name}
       value={value}

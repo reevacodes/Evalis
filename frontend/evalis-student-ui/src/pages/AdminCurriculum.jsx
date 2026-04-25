@@ -123,12 +123,12 @@ export default function AdminCurriculum() {
   // =========================
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-6">
       <h1 className="text-2xl mb-6 font-bold">⚙️ Curriculum Admin Panel</h1>
 
       {/* SEM SELECT */}
       <select
-        className="p-2 bg-slate-800 rounded mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="p-2 bg-white dark:bg-slate-800 rounded mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
         onChange={(e) => setSemester(e.target.value)}
       >
         <option value="">Select Semester</option>
@@ -141,7 +141,7 @@ export default function AdminCurriculum() {
 
       {/* EMPTY STATE */}
       {!semester && (
-        <div className="text-center mt-20 text-slate-400">
+        <div className="text-center mt-20 text-slate-500 dark:text-slate-400">
           <h2 className="text-xl font-semibold mb-2">
             Select a semester to begin
           </h2>
@@ -153,7 +153,7 @@ export default function AdminCurriculum() {
 
       {/* LOADING */}
       {loading && (
-        <div className="text-center mt-10 text-slate-400">
+        <div className="text-center mt-10 text-slate-500 dark:text-slate-400">
           Loading curriculum...
         </div>
       )}
@@ -163,7 +163,7 @@ export default function AdminCurriculum() {
         <>
           {/* HEADER ACTIONS */}
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold text-slate-300">
+            <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-300">
               Subjects Overview
             </h2>
 
@@ -188,14 +188,14 @@ export default function AdminCurriculum() {
           {curriculum?.subjects?.map((sub, sIndex) => (
             <div
               key={sIndex}
-              className="mb-6 p-4 bg-slate-900 rounded border border-slate-800"
+              className="mb-6 p-4 bg-gray-50 dark:bg-slate-900 rounded border border-gray-200 dark:border-slate-800"
             >
               {/* SUBJECT HEADER */}
               <div className="flex justify-between items-center mb-2">
                 <input
                   value={sub.name}
                   onChange={(e) => updateSubjectName(sIndex, e.target.value)}
-                  className="w-full p-2 bg-slate-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2 bg-white dark:bg-slate-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
 
                 <button
@@ -248,7 +248,7 @@ export default function AdminCurriculum() {
                           onChange={(e) =>
                             updateTopic(sIndex, uIndex, tIndex, e.target.value)
                           }
-                          className="w-full p-2 my-1 bg-slate-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full p-2 my-1 bg-white dark:bg-slate-800 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
                         <span className="text-xs text-gray-400">

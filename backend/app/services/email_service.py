@@ -149,3 +149,49 @@ Evalis Assessment Platform"""
     except Exception as e:
         logger.error(f"Failed to send reschedule email to {to_email}: {str(e)}")
         return False
+
+def send_welcome_email(primary_email: str, college_email: str, name: str):
+    """
+    Sends a welcome email to the student upon successful signup.
+    It attempts to send to both the primary email and college email.
+    """
+    subject = "Welcome to Evalis Assessment Platform!"
+    body = f"""Hello {name},
+
+Welcome to the Evalis Assessment Platform! Your student account has been successfully created.
+
+You can now log in via our web portal or the Evalis mobile app to access your dashboard, upcoming exams, and practice archives.
+
+IMPORTANT: Please log in using your college email address moving forward.
+
+We're excited to have you on board!
+
+Regards,
+Evalis Assessment Platform"""
+
+    emails_to_send = [email for email in [primary_email, college_email] if email]
+
+    if not SMTP_SERVER or not SMTP_USER or not SMTP_PASSWORD:
+        logger.warning(f"SMTP not configured. Mocking welcome email to {emails_to_send}")
+        print(f"\n{'='*40}\n[MOCK EMAIL] To: {', '.join(emails_to_send)}\nSubject: {subject}\n{'='*40}\n")
+        return True
+
+    success = True
+    for to_email in emails_to_send:
+        try:
+            msg = MIMEMultipart()
+            msg['From'] = SMTP_USER
+            msg['To'] = to_email
+            msg['Subject'] = subject
+            msg.attach(MIMEText(body, 'plain'))
+
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.send_message(msg)
+            server.quit()
+        except Exception as e:
+            logger.error(f"Failed to send welcome email to {to_email}: {str(e)}")
+            success = False
+            
+    return success

@@ -32,30 +32,30 @@ export default function AddQuestionModal({ onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-      <div className="bg-slate-900 p-6 rounded-lg border border-slate-700 w-96">
+      <div className="bg-gray-50 dark:bg-slate-900 p-6 rounded-lg border border-gray-300 dark:border-slate-700 w-96">
         <h2 className="text-lg font-semibold mb-4">Add Question</h2>
 
         <input
           placeholder="Subject Code"
-          className="w-full mb-2 p-2 bg-slate-800 rounded"
+          className="w-full mb-2 p-2 bg-white dark:bg-slate-800 rounded"
           onChange={(e) => setForm({ ...form, subject_code: e.target.value })}
         />
 
         <input
           placeholder="Subject Name"
-          className="w-full mb-2 p-2 bg-slate-800 rounded"
+          className="w-full mb-2 p-2 bg-white dark:bg-slate-800 rounded"
           onChange={(e) => setForm({ ...form, subject_name: e.target.value })}
         />
 
         <input
           placeholder="Topic"
-          className="w-full mb-2 p-2 bg-slate-800 rounded"
+          className="w-full mb-2 p-2 bg-white dark:bg-slate-800 rounded"
           onChange={(e) => setForm({ ...form, topic: e.target.value })}
         />
 
         <textarea
           placeholder="Question"
-          className="w-full mb-2 p-2 bg-slate-800 rounded"
+          className="w-full mb-2 p-2 bg-white dark:bg-slate-800 rounded"
           onChange={(e) => setForm({ ...form, question_text: e.target.value })}
         />
 
@@ -63,7 +63,7 @@ export default function AddQuestionModal({ onClose, onSuccess }) {
           <input
             key={i}
             placeholder={`Option ${i + 1}`}
-            className="w-full mb-2 p-2 bg-slate-800 rounded"
+            className="w-full mb-2 p-2 bg-white dark:bg-slate-800 rounded"
             onChange={(e) => {
               const newOptions = [...form.options];
               newOptions[i] = e.target.value;
@@ -74,7 +74,7 @@ export default function AddQuestionModal({ onClose, onSuccess }) {
 
         <input
           placeholder="Correct Answer"
-          className="w-full mb-4 p-2 bg-slate-800 rounded"
+          className="w-full mb-4 p-2 bg-white dark:bg-slate-800 rounded"
           onChange={(e) => setForm({ ...form, correct_answer: e.target.value })}
         />
 

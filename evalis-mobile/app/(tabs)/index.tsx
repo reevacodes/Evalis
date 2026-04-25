@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '../../src/api/client';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeStyles } from '../../src/hooks/useThemeStyles';
 
 export default function DashboardScreen() {
     const [user, setUser] = useState<any>(null);
@@ -12,6 +13,7 @@ export default function DashboardScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const router = useRouter();
+    const { styles, theme } = useThemeStyles(createStyles);
 
     // Reschedule Modal State
     const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
@@ -32,7 +34,15 @@ export default function DashboardScreen() {
             
             // Standardize array shape depending on backend wrapper
             const validExamsArray = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.exams) ? rawData.exams : []);
-            setExams(validExamsArray);
+            
+            // Sort exams: Live (1) -> Upcoming (2) -> Completed/Expired (3)
+            const sortedExams = [...validExamsArray].sort((a, b) => {
+                const rankA = (a.time_status === "active" && !a.has_submitted) ? 1 : (a.time_status === "scheduled" && !a.has_submitted) ? 2 : 3;
+                const rankB = (b.time_status === "active" && !b.has_submitted) ? 1 : (b.time_status === "scheduled" && !b.has_submitted) ? 2 : 3;
+                return rankA - rankB;
+            });
+
+            setExams(sortedExams);
 
             // Fetch Notifications for Unread Tick
             const notifRes = await API.get('/notifications/me');
@@ -77,7 +87,6 @@ export default function DashboardScreen() {
 
         setSubmittingReschedule(true);
         try {
-            // Send exact local time without UTC conversion to prevent timezone shifts on the backend
             const preferred_time = `${rescheduleDate}T${rescheduleTime}:00`;
             await API.post(`/exam/${activeRescheduleId}/reschedule`, { reason: rescheduleReason, preferred_time });
             Alert.alert("Request Sent", "Your instructor will review your reschedule request.");
@@ -85,7 +94,7 @@ export default function DashboardScreen() {
             setRescheduleReason('');
             setRescheduleDate('');
             setRescheduleTime('');
-            loadData(); // Rehydrate list to update badges
+            loadData(); 
         } catch (error) {
             console.error("Reschedule Failed", error);
             Alert.alert("Error", "Failed to submit reschedule request.");
@@ -96,10 +105,10 @@ export default function DashboardScreen() {
 
     const getStatusStyle = (status: string) => {
         switch (status) {
-            case 'active': return { bg: '#22c55e20', text: '#22c55e', border: '#22c55e' }; // Green
-            case 'scheduled': return { bg: '#eab30820', text: '#eab308', border: '#eab308' }; // Yellow
-            case 'expired': return { bg: '#64748b20', text: '#94a3b8', border: '#64748b' }; // Gray
-            default: return { bg: '#334155', text: '#cbd5e1', border: '#475569' };
+            case 'active': return { bg: theme.successSoft, text: theme.success, border: theme.success };
+            case 'scheduled': return { bg: theme.warningSoft, text: theme.warning, border: theme.warning };
+            case 'expired': return { bg: theme.primarySoft, text: theme.textSecondary, border: theme.border };
+            default: return { bg: theme.cardLight, text: theme.text, border: theme.border };
         }
     };
 
@@ -113,7 +122,7 @@ export default function DashboardScreen() {
                 </View>
                 <View style={styles.headerRight}>
                     <TouchableOpacity onPress={() => router.push('/notifications')} style={styles.bellBtn}>
-                        <Ionicons name="notifications-outline" size={24} color="#cbd5e1" />
+                        <Ionicons name="notifications-outline" size={24} color={theme.icon} />
                         {unreadCount > 0 && <View style={styles.unreadBadge} />}
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
@@ -125,12 +134,12 @@ export default function DashboardScreen() {
             <ScrollView 
                 style={styles.scrollArea}
                 contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
             >
                 <Text style={styles.sectionTitle}>Your Examination Load</Text>
 
                 {loading ? (
-                    <ActivityIndicator size="large" color="#6366f1" style={{ marginTop: 40 }}/>
+                    <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }}/>
                 ) : exams.length === 0 ? (
                     <Text style={styles.emptyText}>No exams are currently bridged to your profile.</Text>
                 ) : (
@@ -142,7 +151,6 @@ export default function DashboardScreen() {
 
                         return (
                             <View key={exam._id} style={[styles.examCard, isCompleted && styles.examCardFaded]}>
-                                {/* Top Accent Bar */}
                                 <View style={[styles.topAccent, { backgroundColor: statusColors.border }]} />
                                 
                                 <View style={styles.cardHeader}>
@@ -157,13 +165,11 @@ export default function DashboardScreen() {
                                     </View>
                                 </View>
 
-                                {/* Telemetry Metrics */}
                                 <View style={styles.metricsBox}>
                                     <Text style={styles.metricText}>🕒 Date: {exam.start_time ? new Date(exam.start_time).toLocaleDateString() : 'TBD'}</Text>
                                     <Text style={styles.metricText}>⏳ Duration: {exam.duration_minutes} Minutes</Text>
                                 </View>
 
-                                {/* Logic Actions */}
                                 <View style={styles.actionRow}>
                                     {isLive && (
                                         <View style={styles.liveNotice}>
@@ -190,8 +196,8 @@ export default function DashboardScreen() {
                                     )}
 
                                     {exam.reschedule_status === 'approved' && (
-                                        <View style={[styles.rescheduledBadge, { backgroundColor: '#064e3b' }]}>
-                                            <Text style={[styles.rescheduledBadgeText, { color: '#34d399' }]}>Reschedule Approved</Text>
+                                        <View style={[styles.rescheduledBadge, { backgroundColor: theme.successSoft }]}>
+                                            <Text style={[styles.rescheduledBadgeText, { color: theme.success }]}>Reschedule Approved</Text>
                                         </View>
                                     )}
 
@@ -210,7 +216,6 @@ export default function DashboardScreen() {
                 )}
             </ScrollView>
 
-            {/* Native Reschedule Modal */}
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -228,7 +233,7 @@ export default function DashboardScreen() {
                                 <TextInput
                                     style={[styles.modalInput, styles.modalCompactInput]}
                                     placeholder="YYYY-MM-DD"
-                                    placeholderTextColor="#64748b"
+                                    placeholderTextColor={theme.textSecondary}
                                     value={rescheduleDate}
                                     onChangeText={setRescheduleDate}
                                 />
@@ -239,7 +244,7 @@ export default function DashboardScreen() {
                                 <TextInput
                                     style={[styles.modalInput, styles.modalCompactInput]}
                                     placeholder="HH:MM (24h)"
-                                    placeholderTextColor="#64748b"
+                                    placeholderTextColor={theme.textSecondary}
                                     value={rescheduleTime}
                                     onChangeText={setRescheduleTime}
                                 />
@@ -250,7 +255,7 @@ export default function DashboardScreen() {
                         <TextInput
                             style={[styles.modalInput, { minHeight: 100 }]}
                             placeholder="E.g., Medical emergency, clash with another exam..."
-                            placeholderTextColor="#64748b"
+                            placeholderTextColor={theme.textSecondary}
                             multiline
                             numberOfLines={4}
                             value={rescheduleReason}
@@ -272,52 +277,52 @@ export default function DashboardScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#020617' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, paddingTop: 60, borderBottomWidth: 1, borderBottomColor: '#1e293b' },
+const createStyles = (theme: any) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.background },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, paddingTop: 60, borderBottomWidth: 1, borderBottomColor: theme.border },
     headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    greeting: { color: '#94a3b8', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
-    name: { color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 4 },
-    subtext: { color: '#64748b', fontSize: 12, marginTop: 4 },
-    bellBtn: { padding: 8, backgroundColor: '#1e293b', borderRadius: 20, position: 'relative' },
-    unreadBadge: { position: 'absolute', top: 6, right: 6, width: 8, height: 8, backgroundColor: '#ef4444', borderRadius: 4, borderWidth: 1, borderColor: '#1e293b' },
-    logoutBtn: { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#ef444410', borderRadius: 20 },
-    logoutText: { color: '#ef4444', fontWeight: 'bold', fontSize: 12 },
+    greeting: { color: theme.textSecondary, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
+    name: { color: theme.text, fontSize: 24, fontWeight: 'bold', marginTop: 4 },
+    subtext: { color: theme.textSecondary, fontSize: 12, marginTop: 4 },
+    bellBtn: { padding: 8, backgroundColor: theme.cardLight, borderRadius: 20, position: 'relative' },
+    unreadBadge: { position: 'absolute', top: 6, right: 6, width: 8, height: 8, backgroundColor: theme.danger, borderRadius: 4, borderWidth: 1, borderColor: theme.cardLight },
+    logoutBtn: { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: theme.dangerSoft, borderRadius: 20 },
+    logoutText: { color: theme.danger, fontWeight: 'bold', fontSize: 12 },
     scrollArea: { flex: 1 },
-    sectionTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
-    emptyText: { color: '#64748b', textAlign: 'center', marginTop: 40 },
-    examCard: { backgroundColor: '#0f172a', borderRadius: 16, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: '#1e293b' },
+    sectionTitle: { color: theme.text, fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
+    emptyText: { color: theme.textSecondary, textAlign: 'center', marginTop: 40 },
+    examCard: { backgroundColor: theme.card, borderRadius: 16, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: theme.border },
     examCardFaded: { opacity: 0.6 },
     topAccent: { height: 4, width: '100%' },
     cardHeader: { flexDirection: 'row', padding: 16, justifyContent: 'space-between' },
-    examName: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-    examSubtext: { color: '#3b82f6', fontSize: 12, marginTop: 4, fontWeight: '600' },
+    examName: { color: theme.text, fontSize: 18, fontWeight: 'bold' },
+    examSubtext: { color: theme.primary, fontSize: 12, marginTop: 4, fontWeight: '600' },
     badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start' },
     badgeText: { fontSize: 10, fontWeight: 'bold' },
-    metricsBox: { backgroundColor: '#020617', marginHorizontal: 16, padding: 12, borderRadius: 8, marginBottom: 16 },
-    metricText: { color: '#cbd5e1', fontSize: 13, marginBottom: 4 },
+    metricsBox: { backgroundColor: theme.background, marginHorizontal: 16, padding: 12, borderRadius: 8, marginBottom: 16 },
+    metricText: { color: theme.text, fontSize: 13, marginBottom: 4 },
     actionRow: { padding: 16, paddingTop: 0, gap: 10 },
-    liveNotice: { backgroundColor: '#020617', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#22c55e30' },
-    liveNoticeText: { color: '#22c55e', fontSize: 12, textAlign: 'center', fontWeight: '600' },
-    rescheduleBtn: { backgroundColor: '#ea580c20', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#ea580c40' },
-    rescheduleBtnText: { color: '#f97316', textAlign: 'center', fontWeight: 'bold' },
-    rescheduledBadge: { backgroundColor: '#334155', padding: 12, borderRadius: 8 },
-    rescheduledBadgeText: { color: '#94a3b8', textAlign: 'center', fontWeight: 'bold' },
-    analyticsBtn: { backgroundColor: '#1e293b', padding: 12, borderRadius: 8 },
+    liveNotice: { backgroundColor: theme.background, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: theme.success },
+    liveNoticeText: { color: theme.success, fontSize: 12, textAlign: 'center', fontWeight: '600' },
+    rescheduleBtn: { backgroundColor: theme.warningSoft, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: theme.warning },
+    rescheduleBtnText: { color: theme.warning, textAlign: 'center', fontWeight: 'bold' },
+    rescheduledBadge: { backgroundColor: theme.cardLight, padding: 12, borderRadius: 8 },
+    rescheduledBadgeText: { color: theme.textSecondary, textAlign: 'center', fontWeight: 'bold' },
+    analyticsBtn: { backgroundColor: theme.primary, padding: 12, borderRadius: 8 },
     analyticsBtnText: { color: 'white', textAlign: 'center', fontWeight: 'bold' },
     
     // Modal Styles
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: 20 },
-    modalContainer: { backgroundColor: '#0f172a', borderRadius: 20, padding: 24, borderWidth: 1, borderColor: '#1e293b' },
-    modalTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
-    modalSubtitle: { color: '#94a3b8', fontSize: 13, marginBottom: 20 },
+    modalContainer: { backgroundColor: theme.card, borderRadius: 20, padding: 24, borderWidth: 1, borderColor: theme.border },
+    modalTitle: { color: theme.text, fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
+    modalSubtitle: { color: theme.textSecondary, fontSize: 13, marginBottom: 20 },
     modalGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
-    modalLabel: { color: '#64748b', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 6 },
-    modalInput: { backgroundColor: '#020617', color: 'white', padding: 14, borderRadius: 12, textAlignVertical: 'top', borderWidth: 1, borderColor: '#334155', marginBottom: 16 },
+    modalLabel: { color: theme.textSecondary, fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 6 },
+    modalInput: { backgroundColor: theme.background, color: theme.text, padding: 14, borderRadius: 12, textAlignVertical: 'top', borderWidth: 1, borderColor: theme.border, marginBottom: 16 },
     modalCompactInput: { minHeight: 50, marginBottom: 0 },
-    modalActionRow: { flexDirection: 'row', gap: 12, borderTopWidth: 1, borderTopColor: '#1e293b', paddingTop: 16, marginTop: 4 },
-    modalCancelBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: '#1e293b', alignItems: 'center' },
-    modalCancelText: { color: '#cbd5e1', fontWeight: 'bold' },
-    modalSubmitBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: '#6366f1', alignItems: 'center' },
+    modalActionRow: { flexDirection: 'row', gap: 12, borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 16, marginTop: 4 },
+    modalCancelBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: theme.cardLight, alignItems: 'center' },
+    modalCancelText: { color: theme.text, fontWeight: 'bold' },
+    modalSubmitBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: theme.primary, alignItems: 'center' },
     modalSubmitText: { color: 'white', fontWeight: 'bold' }
 });

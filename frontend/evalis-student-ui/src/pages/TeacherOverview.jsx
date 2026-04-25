@@ -42,7 +42,7 @@ export default function TeacherOverview() {
   }, []);
 
   if (loading) {
-    return <div className="text-white">Loading dashboard...</div>;
+    return <div className="text-slate-900 dark:text-white">Loading dashboard...</div>;
   }
 
   return (

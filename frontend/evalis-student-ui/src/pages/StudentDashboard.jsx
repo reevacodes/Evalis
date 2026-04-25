@@ -143,19 +143,19 @@ export default function StudentDashboard() {
   // UI
   // =========================
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-6">
       
       {/* 🟢 TABS HEADER */}
-      <div className="flex items-center gap-6 mb-8 border-b border-slate-800 pb-3">
+      <div className="flex items-center gap-6 mb-8 border-b border-gray-200 dark:border-slate-800 pb-3">
         <button 
           onClick={() => setActiveTab("live")}
-          className={`text-xl font-semibold transition-colors ${activeTab === 'live' ? 'text-white border-b-2 border-blue-500 pb-2 -mb-[14px]' : 'text-slate-500 hover:text-slate-300'}`}
+          className={`text-xl font-semibold transition-colors ${activeTab === 'live' ? 'text-slate-900 dark:text-white border-b-2 border-blue-500 pb-2 -mb-[14px]' : 'text-slate-500 hover:text-slate-700 dark:text-slate-300'}`}
         >
           Live Exams
         </button>
         <button 
           onClick={() => setActiveTab("practice")}
-          className={`text-xl font-semibold transition-colors ${activeTab === 'practice' ? 'text-white border-b-2 border-purple-500 pb-2 -mb-[14px]' : 'text-slate-500 hover:text-slate-300'}`}
+          className={`text-xl font-semibold transition-colors ${activeTab === 'practice' ? 'text-slate-900 dark:text-white border-b-2 border-purple-500 pb-2 -mb-[14px]' : 'text-slate-500 hover:text-slate-700 dark:text-slate-300'}`}
         >
           Mock Tests
         </button>
@@ -164,9 +164,9 @@ export default function StudentDashboard() {
       {activeTab === "live" ? (
         <>
           {loading ? (
-            <p className="text-slate-400">Loading exams...</p>
+            <p className="text-slate-500 dark:text-slate-400">Loading exams...</p>
           ) : exams.length === 0 ? (
-        <div className="text-center text-slate-400 mt-10">
+        <div className="text-center text-slate-500 dark:text-slate-400 mt-10">
           <p className="text-lg">No exams available</p>
           <p className="text-sm mt-2">
             Check back later or contact your instructor
@@ -174,7 +174,22 @@ export default function StudentDashboard() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-5">
-          {exams.map((exam) => {
+          {[...exams]
+            .sort((a, b) => {
+               const pA = a.time_status === 'active' ? 1 : a.time_status === 'scheduled' ? 2 : 3;
+               const pB = b.time_status === 'active' ? 1 : b.time_status === 'scheduled' ? 2 : 3;
+               
+               if (pA !== pB) return pA - pB;
+               
+               if (pA === 2) {
+                  // Upcoming: closest to now first
+                  return new Date(a.start_time) - new Date(b.start_time);
+               } else {
+                  // Active/Completed: newest first
+                  return new Date(b.start_time) - new Date(a.start_time);
+               }
+            })
+            .map((exam) => {
             const isCompleted = exam.time_status === "expired" || exam.has_submitted;
             const isLive = exam.time_status === "active" && !exam.has_submitted;
             const isUpcoming = exam.time_status === "scheduled" && !exam.has_submitted;
@@ -182,10 +197,10 @@ export default function StudentDashboard() {
             return (
               <div
                 key={exam._id}
-                className={`flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden transition-all duration-300 ${
+                className={`flex flex-col bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden transition-all duration-300 ${
                   isLive 
                     ? "hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20" 
-                    : "hover:border-slate-700"
+                    : "hover:border-gray-300 dark:border-slate-700"
                 } ${isCompleted ? "opacity-60 grayscale-[30%]" : ""}`}
               >
                 {/* 🎨 TOP ACCENT */}
@@ -195,7 +210,7 @@ export default function StudentDashboard() {
                   {/* 🏷 HEADER */}
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h2 className="text-xl font-bold tracking-wide text-white flex items-center gap-2">
+                      <h2 className="text-xl font-bold tracking-wide text-slate-900 dark:text-white flex items-center gap-2">
                          {exam.exam_name}
                          {exam.is_rescheduled && (
                             <span className="px-2 py-0.5 mt-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/20 text-[10px] uppercase font-bold tracking-wider">
@@ -215,8 +230,8 @@ export default function StudentDashboard() {
                   </div>
 
                   {/* 🕒 TIME INFO BOX */}
-                  <div className="bg-slate-950/50 rounded-xl p-4 mb-6 space-y-3 border border-slate-800/50 mt-auto">
-                    <div className="flex items-center text-slate-300 text-sm">
+                  <div className="bg-white dark:bg-slate-950/50 rounded-xl p-4 mb-6 space-y-3 border border-gray-200 dark:border-slate-800/50 mt-auto">
+                    <div className="flex items-center text-slate-700 dark:text-slate-300 text-sm">
                       <span className="w-5 font-bold opacity-70">📅</span>
                       <span>
                         {exam.start_time 
@@ -224,7 +239,7 @@ export default function StudentDashboard() {
                           : "TBD"}
                       </span>
                     </div>
-                    <div className="flex items-center text-slate-300 text-sm">
+                    <div className="flex items-center text-slate-700 dark:text-slate-300 text-sm">
                       <span className="w-5 font-bold opacity-70">⏰</span>
                       <span>
                         {exam.start_time 
@@ -232,7 +247,7 @@ export default function StudentDashboard() {
                           : "TBD"}
                       </span>
                     </div>
-                    <div className="flex items-center text-slate-300 text-sm">
+                    <div className="flex items-center text-slate-700 dark:text-slate-300 text-sm">
                       <span className="w-5 font-bold opacity-70">⏳</span>
                       <span>{exam.duration_minutes} Minutes</span>
                     </div>
@@ -243,7 +258,7 @@ export default function StudentDashboard() {
                     {isLive && (
                       <button
                         onClick={() => handleStartClick(exam)}
-                        className="w-full py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3 rounded-xl font-bold bg-blue-600 text-slate-900 dark:text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
                       >
                        <span className="animate-pulse h-2 w-2 bg-white rounded-full"></span>
                        Start Exam Now
@@ -253,7 +268,7 @@ export default function StudentDashboard() {
                       <div className="flex gap-2">
                           <button
                             disabled
-                            className="flex-1 py-3 rounded-xl font-semibold bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50"
+                            className="flex-1 py-3 rounded-xl font-semibold bg-white dark:bg-slate-800 text-slate-500 cursor-not-allowed border border-gray-300 dark:border-slate-700/50"
                           >
                             Not Available Yet
                           </button>
@@ -305,17 +320,17 @@ export default function StudentDashboard() {
         <>
           <div className="mt-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <h3 className="text-xl font-bold text-white">Mock Library</h3>
-              <div className="bg-slate-900 border border-slate-700/50 rounded-lg p-1 flex">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Mock Library</h3>
+              <div className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700/50 rounded-lg p-1 flex">
                  <button 
                     onClick={() => setMockTab('curriculum')}
-                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'curriculum' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'curriculum' ? 'bg-indigo-600 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}
                  >
                     Year-wise Mocks
                  </button>
                  <button 
                     onClick={() => setMockTab('chapter')}
-                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'chapter' ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'chapter' ? 'bg-purple-600 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}
                  >
                     Chapter-wise Mocks
                  </button>
@@ -335,15 +350,15 @@ export default function StudentDashboard() {
                 
                 {pastPapers.filter(p => p.exam_type === "Practice" && p.is_instant === false).length > 0 && (
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-4">Scheduled Mock Tests</h3>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Scheduled Mock Tests</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {pastPapers.filter(p => p.exam_type === "Practice" && p.is_instant === false).map(mock => {
                         const isReady = new Date(mock.start_time) <= new Date();
                         return (
-                          <div key={mock._id} className="bg-slate-900 border border-slate-700/50 rounded-xl p-4 flex justify-between items-center shadow-lg">
+                          <div key={mock._id} className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700/50 rounded-xl p-4 flex justify-between items-center shadow-lg">
                             <div>
-                              <h4 className="text-lg font-bold text-white">{mock.exam_name}</h4>
-                              <div className="flex gap-4 text-sm text-slate-400 mt-2">
+                              <h4 className="text-lg font-bold text-slate-900 dark:text-white">{mock.exam_name}</h4>
+                              <div className="flex gap-4 text-sm text-slate-500 dark:text-slate-400 mt-2">
                                 <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatDateOnly(mock.start_time)} • {formatTimeOnly(mock.start_time)}</span>
                                 <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> {mock.duration_minutes} Mins</span>
                               </div>
@@ -353,8 +368,8 @@ export default function StudentDashboard() {
                               onClick={() => navigate(`/student/practice/${mock._id}`)}
                               className={`px-6 py-2 rounded-lg font-bold transition-all ${
                                 isReady 
-                                  ? "bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]" 
-                                  : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                                  ? "bg-purple-600 hover:bg-purple-500 text-slate-900 dark:text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]" 
+                                  : "bg-white dark:bg-slate-800 text-slate-500 cursor-not-allowed"
                               }`}
                             >
                               {isReady ? "Start Now" : "Waiting"}
@@ -372,32 +387,32 @@ export default function StudentDashboard() {
           {/* 🔥 PRACTICE HISTORY BLOCK */}
           {practiceHistory.length > 0 && (
             <div className="mt-12 mb-8">
-              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                 <BarChart2 className="w-5 h-5 text-indigo-400" /> Practice History
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                 <BarChart2 className="w-5 h-5 text-indigo-500 dark:text-indigo-400" /> Practice History
               </h3>
               <div className="grid gap-3">
                 {practiceHistory.map((attempt) => (
-                   <div key={attempt._id} className="bg-[#111116] border border-white/5 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-white/10 transition-colors">
+                   <div key={attempt._id} className="bg-gray-50 dark:bg-[#111116] border border-gray-200 dark:border-white/5 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-blue-400 dark:hover:border-white/10 transition-colors shadow-sm dark:shadow-none">
                       <div>
-                         <h4 className="font-bold text-slate-200">{attempt.exam_name}</h4>
+                         <h4 className="font-bold text-slate-900 dark:text-slate-200">{attempt.exam_name}</h4>
                          <p className="text-sm text-slate-500 mt-1 flex items-center gap-2">
                            <Calendar className="w-3.5 h-3.5" /> {formatDateOnly(attempt.created_at)} at {formatTimeOnly(attempt.created_at)}
                          </p>
                       </div>
                       <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
                          <div className="text-center">
-                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Score</p>
-                            <p className="font-black text-xl text-white">{attempt.score}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Score</p>
+                            <p className="font-black text-xl text-slate-900 dark:text-white">{attempt.score}</p>
                          </div>
                          <div className="text-center">
-                            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Accuracy</p>
-                            <p className={`font-black text-xl ${attempt.analytics.accuracy >= 70 ? 'text-emerald-400' : attempt.analytics.accuracy >= 40 ? 'text-amber-400' : 'text-rose-400'}`}>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Accuracy</p>
+                            <p className={`font-black text-xl ${attempt.analytics.accuracy >= 70 ? 'text-emerald-500 dark:text-emerald-400' : attempt.analytics.accuracy >= 40 ? 'text-amber-500 dark:text-amber-400' : 'text-rose-500 dark:text-rose-400'}`}>
                                {attempt.analytics.accuracy}%
                             </p>
                          </div>
                          <button 
                             onClick={() => navigate(`/student/practice-result/${attempt.paper_id}`, { state: attempt })}
-                            className="px-4 py-2 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 rounded-xl font-bold transition-colors text-sm"
+                            className="px-4 py-2 bg-indigo-100 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-600/30 rounded-xl font-bold transition-colors text-sm"
                          >
                             View Analytics
                          </button>
@@ -420,10 +435,10 @@ export default function StudentDashboard() {
 
       {selectedExam && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-slate-900 p-6 rounded-xl max-w-md w-full border border-slate-700">
+          <div className="bg-gray-50 dark:bg-slate-900 p-6 rounded-xl max-w-md w-full border border-gray-300 dark:border-slate-700">
             <h2 className="text-lg font-semibold mb-3">Exam Instructions</h2>
 
-            <ul className="text-sm text-slate-300 space-y-2 mb-4">
+            <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-2 mb-4">
               <li>• Do not refresh or close the tab</li>
               <li>• Timer will start immediately</li>
               <li>• Each question must be answered carefully</li>
@@ -511,7 +526,7 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
         );
     };
 
-    if (loadingPractice) return <p className="text-slate-400">Booting infrastructure...</p>;
+    if (loadingPractice) return <p className="text-slate-500 dark:text-slate-400">Booting infrastructure...</p>;
 
     return (
         <div className="flex flex-col gap-4">
@@ -521,18 +536,18 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                const isFetching = loadingSubjects[sem];
 
                return (
-                <div key={sem} className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-md">
+                <div key={sem} className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-md">
                     
                     {/* 🔹 LEVEL 1: SEMESTER FOLDER */}
                     <button 
                         onClick={() => toggleSemester(sem)}
-                        className="w-full flex justify-between items-center bg-slate-800 p-5 hover:bg-slate-700 transition group"
+                        className="w-full flex justify-between items-center bg-white dark:bg-slate-800 p-5 hover:bg-gray-100 dark:hover:bg-slate-700 transition group"
                     >
-                        <span className="text-xl font-bold text-white flex items-center gap-3">
+                        <span className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                             {semOpen ? <FolderOpen className="text-blue-400 w-6 h-6" /> : <Folder className="text-blue-500 w-6 h-6 group-hover:text-blue-400 transition" />}
                             Semester {sem}
                         </span>
-                        <span className="text-slate-400 text-sm font-semibold flex items-center gap-1">
+                        <span className="text-slate-500 dark:text-slate-400 text-sm font-semibold flex items-center gap-1">
                             {semOpen ? <ChevronDown className="w-5 h-5 text-blue-400" /> : <ChevronRight className="w-5 h-5" />}
                         </span>
                     </button>
@@ -547,7 +562,7 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                             className="overflow-hidden"
                         >
-                        <div className="p-4 pl-10 border-t border-slate-800 bg-slate-950/20 flex flex-col gap-4">
+                        <div className="p-4 pl-10 border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950/20 flex flex-col gap-4">
                             {isFetching ? (
                                 <p className="text-purple-400 animate-pulse font-mono text-sm py-2">Ping: Querying Question Bank for subjects...</p>
                             ) : hasLoadedSubjects && subjectCache[sem].length === 0 ? (
@@ -557,11 +572,11 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                     const subjOpen = expandedSubjects[`${sem}_${subject.code}`];
 
                                     return (
-                                        <div key={subject.code} className="border border-slate-700/50 rounded-lg overflow-hidden bg-slate-900/50">
+                                        <div key={subject.code} className="border border-gray-300 dark:border-slate-700/50 rounded-lg overflow-hidden bg-gray-50 dark:bg-slate-900/50">
                                             
                                             <button 
                                                 onClick={() => toggleSubject(sem, subject.code)} 
-                                                className="w-full text-left p-4 hover:bg-slate-800 transition flex justify-between items-center"
+                                                className="w-full text-left p-4 hover:bg-white dark:hover:bg-slate-800 transition flex justify-between items-center"
                                             >
                                                 <span className="text-lg font-bold text-purple-400 flex items-center gap-2.5">
                                                     <BookOpen className="w-5 h-5 opacity-90" /> {subject.name} <span className="opacity-60 text-sm tracking-wide ml-1">[{subject.code}]</span>
@@ -581,16 +596,16 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                                     transition={{ duration: 0.25, ease: "easeInOut" }}
                                                     className="overflow-hidden"
                                                 >
-                                                <div className="p-4 pl-8 border-t border-slate-700/50 flex flex-col gap-3">
+                                                <div className="p-4 pl-8 border-t border-gray-300 dark:border-slate-700/50 flex flex-col gap-3">
                                                     {years.map(year => {
                                                         const yearOpen = expandedYears[`${sem}_${subject.code}_${year}`];
                                                         const matchingPapers = getPapersForNode(sem, subject.code, year);
 
                                                         return (
-                                                            <div key={year} className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
+                                                            <div key={year} className="bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-lg p-2.5">
                                                                 <button 
                                                                     onClick={() => toggleYear(sem, subject.code, year)} 
-                                                                    className="w-full text-left flex justify-between items-center text-slate-300 font-semibold hover:text-white p-1"
+                                                                    className="w-full text-left flex justify-between items-center text-slate-700 dark:text-slate-300 font-semibold hover:text-slate-900 dark:hover:text-white p-1"
                                                                 >
                                                                     <span className="flex items-center gap-2.5">
                                                                         <Clock className="w-4 h-4 text-slate-500" /> {year} Session
@@ -601,7 +616,7 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                                                         )}
                                                                     </span>
                                                                     <span className="text-slate-600">
-                                                                        {yearOpen ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4" />}
+                                                                        {yearOpen ? <ChevronDown className="w-4 h-4 text-slate-500 dark:text-slate-400" /> : <ChevronRight className="w-4 h-4" />}
                                                                     </span>
                                                                 </button>
 
@@ -615,24 +630,24 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                                                         transition={{ duration: 0.2, ease: "easeInOut" }}
                                                                         className="overflow-hidden"
                                                                     >
-                                                                    <div className="mt-3 flex flex-col gap-3 pl-4 border-l-2 border-slate-800 pt-1 pb-2">
+                                                                    <div className="mt-3 flex flex-col gap-3 pl-4 border-l-2 border-gray-200 dark:border-slate-800 pt-1 pb-2">
                                                                         {matchingPapers.length === 0 ? (
-                                                                            <p className="text-sm text-slate-500 italic p-2 border border-dashed border-slate-800 rounded-lg">
+                                                                            <p className="text-sm text-slate-500 italic p-2 border border-dashed border-gray-200 dark:border-slate-800 rounded-lg">
                                                                                 No sample papers uploaded for this cycle yet.
                                                                             </p>
                                                                         ) : (
                                                                             matchingPapers.map((paper) => (
-                                                                                <div key={paper._id} className="bg-slate-900 border border-slate-700 p-4 rounded-lg flex justify-between items-center hover:border-purple-500 transition shadow-sm">
+                                                                                <div key={paper._id} className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-4 rounded-lg flex justify-between items-center hover:border-purple-500 transition shadow-sm">
                                                                                     <div>
-                                                                                        <h3 className="font-bold text-white text-lg">{paper.exam_name}</h3>
-                                                                                        <p className="text-sm text-slate-400 mt-1">
-                                                                                            Format: <span className="text-white font-mono bg-slate-800 px-2 py-0.5 rounded mr-2">{paper.pattern || 'MIXED'}</span>
+                                                                                        <h3 className="font-bold text-slate-900 dark:text-white text-lg">{paper.exam_name}</h3>
+                                                                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                                                                            Format: <span className="text-slate-900 dark:text-white font-mono bg-white dark:bg-slate-800 px-2 py-0.5 rounded mr-2">{paper.pattern || 'MIXED'}</span>
                                                                                             {paper.duration_minutes} Mins
                                                                                         </p>
                                                                                     </div>
                                                                                     <button 
                                                                                         onClick={() => navigate(`/student/practice/${paper._id}`)}
-                                                                                        className="px-6 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg font-bold hover:bg-purple-600 hover:text-white transition"
+                                                                                        className="px-6 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg font-bold hover:bg-purple-600 hover:text-slate-900 dark:text-white transition"
                                                                                     >
                                                                                         Practice
                                                                                     </button>

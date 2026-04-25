@@ -5,11 +5,11 @@ export default function TeacherView() {
   const exam = state?.exam;
 
   if (!exam) {
-    return <div className="text-white p-8">No exam data</div>;
+    return <div className="text-slate-900 dark:text-white p-8">No exam data</div>;
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-8">
       <h1 className="text-2xl font-bold mb-4 text-blue-500">
         {exam.exam_name}
       </h1>
@@ -22,7 +22,7 @@ export default function TeacherView() {
         Duration: {exam.duration} mins | {exam.exam_type}
       </p>
 
-      <div className="bg-slate-900 p-6 rounded-lg border border-slate-700">
+      <div className="bg-gray-50 dark:bg-slate-900 p-6 rounded-lg border border-gray-300 dark:border-slate-700">
         <h2 className="text-lg font-semibold mb-4">Questions Preview</h2>
 
         {exam.draft_questions?.length > 0 ? (

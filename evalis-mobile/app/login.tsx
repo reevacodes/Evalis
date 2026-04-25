@@ -12,6 +12,10 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [collegeEmail, setCollegeEmail] = useState('');
+    const [collegeName, setCollegeName] = useState('');
+    const [studentId, setStudentId] = useState('');
+    const [semester, setSemester] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
@@ -41,7 +45,16 @@ export default function LoginScreen() {
         try {
             // First: Route Signup Sequence if necessary
             if (!isLogin) {
-                await API.post('/auth/signup', { email, password, role: 'student', name });
+                await API.post('/auth/signup', { 
+                    email, 
+                    password, 
+                    role: 'student', 
+                    name,
+                    college_email: collegeEmail || null,
+                    college_name: collegeName || null,
+                    student_id: studentId || null,
+                    semester: semester ? parseInt(semester) : null
+                });
             }
 
             // Second: Chain standard JSON Login (Fixed 422 Error)
@@ -165,14 +178,52 @@ export default function LoginScreen() {
                             ) : (
                                 <View style={styles.form}>
                                 {!isLogin && (
-                                    <TextInput 
-                                        style={styles.input}
-                                        placeholder="Full Name"
-                                        placeholderTextColor="rgba(255,255,255,0.4)"
-                                        value={name}
-                                        onChangeText={setName}
-                                        autoCapitalize="words"
-                                    />
+                                    <>
+                                        <TextInput 
+                                            style={styles.input}
+                                            placeholder="Full Name"
+                                            placeholderTextColor="rgba(255,255,255,0.4)"
+                                            value={name}
+                                            onChangeText={setName}
+                                            autoCapitalize="words"
+                                        />
+                                        <View style={styles.institutionalBox}>
+                                            <Text style={styles.institutionalLabel}>Institutional Details</Text>
+                                            <TextInput 
+                                                style={styles.input}
+                                                placeholder="College Email Address"
+                                                placeholderTextColor="rgba(255,255,255,0.4)"
+                                                value={collegeEmail}
+                                                onChangeText={setCollegeEmail}
+                                                autoCapitalize="none"
+                                                keyboardType="email-address"
+                                            />
+                                            <TextInput 
+                                                style={styles.input}
+                                                placeholder="College / University Name"
+                                                placeholderTextColor="rgba(255,255,255,0.4)"
+                                                value={collegeName}
+                                                onChangeText={setCollegeName}
+                                            />
+                                            <View style={{flexDirection: 'row', gap: 12}}>
+                                                <TextInput 
+                                                    style={[styles.input, { flex: 1 }]}
+                                                    placeholder="Student ID / Roll No."
+                                                    placeholderTextColor="rgba(255,255,255,0.4)"
+                                                    value={studentId}
+                                                    onChangeText={setStudentId}
+                                                />
+                                                <TextInput 
+                                                    style={[styles.input, { width: 100 }]}
+                                                    placeholder="Semester"
+                                                    placeholderTextColor="rgba(255,255,255,0.4)"
+                                                    value={semester}
+                                                    onChangeText={setSemester}
+                                                    keyboardType="numeric"
+                                                />
+                                            </View>
+                                        </View>
+                                    </>
                                 )}
 
                                 <TextInput 
@@ -435,5 +486,22 @@ const styles = StyleSheet.create({
     toggleLink: {
         color: 'white', 
         fontWeight: 'bold',
+    },
+    institutionalBox: {
+        backgroundColor: 'rgba(255,255,255,0.02)',
+        padding: 16,
+        paddingBottom: 0,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+        marginBottom: 16,
+    },
+    institutionalLabel: {
+        color: '#9ca3af',
+        fontSize: 10,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 12,
     }
 });

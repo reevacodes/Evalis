@@ -1,7 +1,7 @@
 from datetime import datetime
 from bson import ObjectId 
 
-def create_user(db, email: str, hashed_password: str, role: str, name: str):
+def create_user(db, email: str, hashed_password: str, role: str, name: str, semester: int = None, college_email: str = None, college_name: str = None, student_id: str = None):
     """
     Create a new user in the database.
     """
@@ -10,6 +10,10 @@ def create_user(db, email: str, hashed_password: str, role: str, name: str):
         "password": hashed_password,
         "name": name,
         "role": role,
+        "semester": semester,
+        "college_email": college_email,
+        "college_name": college_name,
+        "student_id": student_id,
         "created_at": datetime.utcnow()
     }
     return db.users.insert_one(user)
@@ -17,9 +21,14 @@ def create_user(db, email: str, hashed_password: str, role: str, name: str):
 
 def get_user_by_email(db, email: str):
     """
-    Fetch user by email.
+    Fetch user by email or college_email.
     """
-    return db.users.find_one({"email": email})
+    return db.users.find_one({
+        "$or": [
+            {"email": email},
+            {"college_email": email}
+        ]
+    })
 
 
 def get_user_by_id(db, user_id):

@@ -40,7 +40,7 @@ export default function AuthSuccessModal({ type, onClose }) {
           className="text-5xl mb-4"
         ></motion.div>
 
-        <h2 className="text-xl font-semibold text-white mb-2">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
           {type === "signup" ? "Signup Successful" : "Login Successful"}
         </h2>
 

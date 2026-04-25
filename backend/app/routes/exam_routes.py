@@ -423,17 +423,24 @@ def get_all_exams_api(user=Depends(get_current_user)):
         role = user.get("role")
 
         if role == "admin":
-            exams = list(exam_collection.find({"is_deleted": {"$ne": True}}).sort("created_at", -1))
+            exams = list(exam_collection.find({"is_deleted": {"$ne": True}, "exam_type": {"$ne": "Practice"}}).sort("created_at", -1))
 
         elif role == "teacher":
             exams = list(
-                exam_collection.find({"teacher_name": user["sub"], "is_deleted": {"$ne": True}})
+                exam_collection.find({"teacher_name": user["sub"], "is_deleted": {"$ne": True}, "exam_type": {"$ne": "Practice"}})
                 .sort("created_at", -1)
             )
 
         elif role == "student":   # ✅ ADD THIS BLOCK
+            db_user = user_collection.find_one({"email": user["sub"]})
+            student_semester = db_user.get("semester") if db_user else None
+
+            query = {"status": "published", "is_deleted": {"$ne": True}, "exam_type": {"$ne": "Practice"}}
+            if student_semester is not None:
+                query["semester"] = student_semester
+
             exams = list(
-                exam_collection.find({"status": "published", "is_deleted": {"$ne": True}})
+                exam_collection.find(query)
                 .sort("created_at", -1)
             )
             
@@ -1579,39 +1586,45 @@ def generate_mock_test(payload: MockTestGeneratePayload, user=Depends(get_curren
 
     for m in mcqs:
         m["id"] = str(m.pop("_id", uuid.uuid4()))
+        m["marks"] = 1 # Override to 1 mark
     for c in codings:
         c["id"] = str(c.pop("_id", uuid.uuid4()))
+        c["marks"] = 10 # Override to 10 marks
 
     sections = []
     if mcqs:
         sections.append({
             "type": "mcq",
             "count": len(mcqs),
-            "marks_per_question": mcqs[0].get("marks", 1),
+            "marks_per_question": 1,
             "questions": mcqs
         })
     if codings:
         sections.append({
             "type": "coding",
             "count": len(codings),
-            "marks_per_question": codings[0].get("marks", 5),
+            "marks_per_question": 10,
             "questions": codings
         })
 
     if not sections:
         raise HTTPException(status_code=400, detail="No questions found for the selected chapters. Please try different chapters.")
 
+    # Calculate total dynamic marks
+    total_marks = (len(mcqs) * 1) + (len(codings) * 10)
+
     # 3. Handle Scheduling Mode
     start_time = datetime.now(timezone.utc) if payload.start_mode == "instant" else payload.scheduled_time
 
     # 4. Create Exam Object
     exam_doc = {
-        "exam_name": f"Mock Practice: {payload.subject_code}",
+        "exam_name": f"Mock: {payload.subject_code} (Ch: {', '.join(payload.topics)})",
         "subject": "Data Structures using C",
         "course_code": payload.subject_code,
         "exam_type": "Practice",
         "status": "published",
         "duration_minutes": duration,
+        "total_marks": total_marks,
         "start_time": start_time,
         "is_instant": payload.start_mode == "instant",
         "created_by": user["sub"],

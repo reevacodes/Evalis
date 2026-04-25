@@ -8,82 +8,43 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import { Platform } from 'react-native';
+import { usePushNotifications } from '@/src/hooks/usePushNotifications';
 import API from '@/src/api/client';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+import { useTheme } from '@/src/context/ThemeContext';
+import { Colors } from '@/constants/Colors';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { expoPushToken, notification } = usePushNotifications();
+  const { theme: currentTheme } = useTheme();
+  const isDark = currentTheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
 
   useEffect(() => {
-    registerForPushNotificationsAsync().then(token => {
-      if (token) {
-        API.put('/notifications/push-token', { token })
-          .then(() => console.log('✅ Push Token hooked:', token))
-          .catch(err => console.error('⚠️ Failed hooking token:', err));
-      }
-    });
+    if (expoPushToken?.data) {
+      API.put('/notifications/push-token', { token: expoPushToken.data })
+        .then(() => console.log('✅ Push Token hooked:', expoPushToken.data))
+        .catch(err => console.error('⚠️ Failed hooking token:', err));
+    }
+  }, [expoPushToken]);
 
-    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+  useEffect(() => {
+    if (notification) {
       DeviceEventEmitter.emit('notification_received', notification);
-    });
-
-    return () => {
-      notificationListener.remove();
-    };
-  }, []);
-
-  async function registerForPushNotificationsAsync() {
-    let token;
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#6366f1',
-      });
     }
-
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== 'granted') {
-        console.warn('Failed to get push token for push notification!');
-        return;
-      }
-      // For EAS builds without a projectId injected, we fallback to a dummy or blank.
-      try {
-        token = (await Notifications.getExpoPushTokenAsync({ projectId: "00000000-0000-0000-0000-000000000000" })).data;
-      } catch (error: any) {
-        console.warn("Push notifications are not supported in Expo Go on Android SDK 53+ or require a valid Project ID. Skipping token generation.", error?.message || String(error));
-      }
-    }
-    return token;
-  }
+  }, [notification]);
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#6366f1', // Indigo Evalis color
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.textSecondary,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: '#020617', // slate-950
+          backgroundColor: theme.background,
           borderTopWidth: 1,
-          borderTopColor: '#1e293b', // slate-800
+          borderTopColor: theme.border,
         },
       }}>
       <Tabs.Screen

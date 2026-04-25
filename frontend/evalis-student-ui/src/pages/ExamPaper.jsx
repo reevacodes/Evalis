@@ -119,16 +119,16 @@ export default function ExamPaper() {
     }
   };
 
-  if (loading) return <p className="text-white p-6">Loading...</p>;
+  if (loading) return <p className="text-slate-900 dark:text-white p-6">Loading...</p>;
   if (!exam) return <p className="text-red-400 p-6">Exam not found</p>;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-8">
       <div className="max-w-6xl mx-auto">
         {/* HEADER */}
-        <div className="mb-6 border-b border-slate-800 pb-4">
+        <div className="mb-6 border-b border-gray-200 dark:border-slate-800 pb-4">
           <h1 className="text-2xl font-semibold">{exam.exam_name}</h1>
-          <p className="text-slate-400 text-sm">Generated Exam Paper</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Generated Exam Paper</p>
         </div>
 
         {/* SECTIONS */}
@@ -139,7 +139,7 @@ export default function ExamPaper() {
           return (
             <div
               key={secIdx}
-              className="mb-8 bg-slate-900 p-6 rounded-lg border border-slate-800"
+              className="mb-8 bg-gray-50 dark:bg-slate-900 p-6 rounded-lg border border-gray-200 dark:border-slate-800"
             >
               <h2 className="text-lg font-semibold mb-4">
                 Section {String.fromCharCode(65 + secIdx)} —{" "}
@@ -152,7 +152,7 @@ export default function ExamPaper() {
                 return (
                   <div
                     key={qIdx}
-                    className="mb-4 p-4 bg-slate-800 rounded-lg border border-slate-700"
+                    className="mb-4 p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-300 dark:border-slate-700"
                   >
                     <p className="font-medium mb-3">
                       Q{qIdx + 1}. {getQuestionText(q)}
@@ -171,7 +171,7 @@ export default function ExamPaper() {
                               className={`px-3 py-2 rounded-md border ${
                                 isCorrect
                                   ? "bg-green-600/20 border-green-500 text-green-300 font-semibold"
-                                  : "bg-slate-900 border-slate-700 text-slate-300"
+                                  : "bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-slate-700 text-slate-700 dark:text-slate-300"
                               }`}
                             >
                               {String.fromCharCode(65 + i)}. {opt}
@@ -182,7 +182,7 @@ export default function ExamPaper() {
                     )}
 
                     {section.type === "coding" && (
-                      <div className="text-sm text-slate-400 space-y-1">
+                      <div className="text-sm text-slate-500 dark:text-slate-400 space-y-1">
                         <p>
                           <strong>Difficulty:</strong>{" "}
                           {q.difficulty || "Medium"}
@@ -300,7 +300,7 @@ export default function ExamPaper() {
 
         {/* UNDO */}
         {lastDeleted && (
-          <div className="fixed bottom-6 right-6 bg-slate-800 border border-slate-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
+          <div className="fixed bottom-6 right-6 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
             <span className="text-sm">Question deleted</span>
             <button
               onClick={handleUndoDelete}

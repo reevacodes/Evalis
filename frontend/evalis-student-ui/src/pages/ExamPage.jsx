@@ -463,27 +463,27 @@ export default function ExamPage({ isPractice = false }) {
   // ================= UI STATES =================
 
   if (loading) {
-    return <div className="text-white p-6">Loading...</div>;
+    return <div className="text-slate-900 dark:text-white p-6">Loading...</div>;
   }
 
   if (!examExists) {
     return (
-      <div className="h-screen flex items-center justify-center text-white bg-slate-950">
+      <div className="h-screen flex items-center justify-center text-slate-900 dark:text-white bg-white dark:bg-slate-950">
         No Exam Found
       </div>
     );
   }
 
   if (!timeStatus) {
-    return <div className="text-white p-6">Loading exam status...</div>;
+    return <div className="text-slate-900 dark:text-white p-6">Loading exam status...</div>;
   }
 
   // ⏳ NOT STARTED (Only if NOT practice mode)
   if (timeStatus === "scheduled" && !isPractice) {
     return (
-      <div className="h-screen flex items-center justify-center text-white flex-col gap-2 bg-slate-950">
+      <div className="h-screen flex items-center justify-center text-slate-900 dark:text-white flex-col gap-2 bg-white dark:bg-slate-950">
         <p className="text-lg text-blue-400">Exam not started yet</p>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Please wait for the scheduled time
         </p>
       </div>
@@ -493,9 +493,9 @@ export default function ExamPage({ isPractice = false }) {
   // ⛔ EXPIRED
   if (timeStatus === "expired") {
     return (
-      <div className="h-screen flex items-center justify-center text-white flex-col gap-2 bg-slate-950">
+      <div className="h-screen flex items-center justify-center text-slate-900 dark:text-white flex-col gap-2 bg-white dark:bg-slate-950">
         <p className="text-lg text-red-400">Exam expired</p>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           You can no longer attempt this exam
         </p>
       </div>
@@ -504,9 +504,9 @@ export default function ExamPage({ isPractice = false }) {
 
   if (timeStatus === "unscheduled") {
     return (
-      <div className="h-screen flex items-center justify-center text-white flex-col gap-2 bg-slate-950">
+      <div className="h-screen flex items-center justify-center text-slate-900 dark:text-white flex-col gap-2 bg-white dark:bg-slate-950">
         <p className="text-lg text-yellow-400">Exam not scheduled yet</p>
-        <p className="text-sm text-slate-400">Please contact admin</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Please contact admin</p>
       </div>
     );
   }
@@ -551,11 +551,11 @@ export default function ExamPage({ isPractice = false }) {
                     {mediaGranted && (
                         <div className="absolute top-4 right-4 flex items-center gap-2.5 bg-black/70 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 shadow-lg">
                             <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse"></div>
-                            <span className="text-xs font-bold text-white tracking-widest uppercase">Live</span>
+                            <span className="text-xs font-bold text-slate-900 dark:text-white tracking-widest uppercase">Live</span>
                         </div>
                     )}
                 </div>
-                <p className="text-slate-400 text-[13px] leading-relaxed mt-1 font-light">
+                <p className="text-slate-500 dark:text-slate-400 text-[13px] leading-relaxed mt-1 font-light">
                     Your environment is continuously analyzed by AI to maintain academic integrity. Ensure your face remains visible.
                 </p>
             </div>
@@ -570,11 +570,11 @@ export default function ExamPage({ isPractice = false }) {
                 
                 {/* Hardware Check */}
                 <div className={`p-5 rounded-2xl border flex items-start gap-4 transition-all duration-500 ${mediaGranted ? 'bg-indigo-500/10 border-indigo-500/30 shadow-[0_0_30px_-10px_rgba(99,102,241,0.2)]' : 'bg-[#18181b]/50 border-white/5 hover:border-white/10 hover:bg-[#18181b]'}`}>
-                    <div className={`p-3.5 rounded-full transition-colors duration-500 ${mediaGranted ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400'}`}>
+                    <div className={`p-3.5 rounded-full transition-colors duration-500 ${mediaGranted ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                         {mediaGranted ? <CheckCircle2 className="w-6 h-6" /> : <Camera className="w-6 h-6" />}
                     </div>
                     <div className="flex-1 pt-1">
-                        <h4 className={`text-[15px] font-bold mb-1 transition-colors ${mediaGranted ? 'text-indigo-400' : 'text-slate-200'}`}>Camera & Microphone</h4>
+                        <h4 className={`text-[15px] font-bold mb-1 transition-colors ${mediaGranted ? 'text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>Camera & Microphone</h4>
                         <p className="text-xs text-slate-500 mb-4 font-light leading-relaxed">Grants hardware access for live environment monitoring.</p>
                         {!mediaGranted ? (
                             <button 
@@ -613,11 +613,11 @@ export default function ExamPage({ isPractice = false }) {
 
                 {/* Full Screen Check */}
                 <div className={`p-5 rounded-2xl border flex items-start gap-4 transition-all duration-500 ${isFullScreen ? 'bg-indigo-500/10 border-indigo-500/30 shadow-[0_0_30px_-10px_rgba(99,102,241,0.2)]' : 'bg-[#18181b]/50 border-white/5 hover:border-white/10 hover:bg-[#18181b]'}`}>
-                    <div className={`p-3.5 rounded-full transition-colors duration-500 ${isFullScreen ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400'}`}>
+                    <div className={`p-3.5 rounded-full transition-colors duration-500 ${isFullScreen ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                         {isFullScreen ? <CheckCircle2 className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
                     </div>
                     <div className="flex-1 pt-1">
-                        <h4 className={`text-[15px] font-bold mb-1 transition-colors ${isFullScreen ? 'text-indigo-400' : 'text-slate-200'}`}>Immersive Mode</h4>
+                        <h4 className={`text-[15px] font-bold mb-1 transition-colors ${isFullScreen ? 'text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>Immersive Mode</h4>
                         <p className="text-xs text-slate-500 mb-4 font-light leading-relaxed">Locks your workspace to prevent unauthorized navigation.</p>
                         {!isFullScreen ? (
                             <button 
@@ -667,7 +667,7 @@ export default function ExamPage({ isPractice = false }) {
 
   // ================= MAIN EXAM =================
   return (
-    <div className="h-screen flex flex-col bg-slate-950 text-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-hidden">
       {/* HEADER */}
       <ExamHeader
         timeLeft={timeLeft}
@@ -686,17 +686,17 @@ export default function ExamPage({ isPractice = false }) {
            />
            <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse"></div>
-              <span className="text-[9px] font-bold text-white uppercase tracking-wider">Live AI</span>
+              <span className="text-[9px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Live AI</span>
            </div>
         </div>
       )}
 
       {/* SECTION SWITCH */}
-      <div className="flex gap-2 p-2 border-b border-slate-800">
+      <div className="flex gap-2 p-2 border-b border-gray-200 dark:border-slate-800">
         {mcqQuestions.length > 0 && (
           <button
             onClick={() => setActiveSection("mcq")}
-            className="bg-slate-700 px-3 py-1"
+            className="bg-gray-100 dark:bg-slate-700 px-3 py-1"
           >
             MCQ
           </button>
@@ -704,7 +704,7 @@ export default function ExamPage({ isPractice = false }) {
         {codingQuestions.length > 0 && (
           <button
             onClick={() => setActiveSection("coding")}
-            className="bg-slate-700 px-3 py-1"
+            className="bg-gray-100 dark:bg-slate-700 px-3 py-1"
           >
             Coding
           </button>
@@ -735,10 +735,10 @@ export default function ExamPage({ isPractice = false }) {
       </div>
       {showSubmitModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-slate-900 p-6 rounded-lg w-96 border border-slate-700">
+          <div className="bg-gray-50 dark:bg-slate-900 p-6 rounded-lg w-96 border border-gray-300 dark:border-slate-700">
             <h2 className="text-lg font-semibold mb-4">Confirm Submission</h2>
 
-            <p className="text-sm text-slate-400 mb-3">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
               Type <span className="text-yellow-400 font-semibold">DONE</span>{" "}
               to confirm
             </p>
@@ -748,7 +748,7 @@ export default function ExamPage({ isPractice = false }) {
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="Type DONE"
-              className="w-full p-2 mb-4 bg-slate-800 border border-slate-600 rounded text-white"
+              className="w-full p-2 mb-4 bg-white dark:bg-slate-800 border border-slate-600 rounded text-slate-900 dark:text-white"
             />
 
             <div className="flex justify-end gap-2">

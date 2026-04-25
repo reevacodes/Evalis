@@ -25,8 +25,8 @@ if not GEMINI_API_KEY:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Use Gemini 2.5 Flash for high rate limits and speed
-model = genai.GenerativeModel('gemini-2.5-flash', generation_config={"response_mime_type": "application/json"})
+# Use Gemini 2.5 Flash Lite for high rate limits and speed
+model = genai.GenerativeModel('gemini-2.5-flash-lite', generation_config={"response_mime_type": "application/json"})
 
 def generate_questions(subject_name, subject_code, unit_number, topics_list, missing_mcq, missing_coding):
     prompt = f"""
@@ -53,7 +53,7 @@ def generate_questions(subject_name, subject_code, unit_number, topics_list, mis
           "type": "coding",
           "question_text": "string (clear problem statement)",
           "topic": "string",
-          "marks": 5,
+          "marks": 10,
           "difficulty": "medium|hard",
           "language": "c",
           "input_format": "string",
@@ -97,6 +97,8 @@ def run_ai_seeder():
         
     for curriculum in all_curriculums:
         semester = curriculum.get("semester")
+        if semester != 1:
+            continue
         subjects = curriculum.get("subjects", [])
         
         for subject in subjects:
@@ -121,7 +123,7 @@ def run_ai_seeder():
                     "type": "coding"
                 })
                 
-                target_mcq = 40
+                target_mcq = 60
                 target_coding = 4
                 
                 missing_mcq = max(0, target_mcq - existing_mcq)
@@ -136,8 +138,9 @@ def run_ai_seeder():
                 questions = generate_questions(sub_name, sub_code, unit_number, topics, missing_mcq, missing_coding)
                 
                 if not questions:
-                    print(f"⚠️ Warning: No questions returned for {sub_code} Chapter {unit_number}")
-                    time.sleep(5)
+                    print(f"⚠️ Warning: Rate limit hit or no questions returned for {sub_code} Chapter {unit_number}")
+                    print("💤 Sleeping for 65 seconds to fully reset Google's 1-minute rolling quota...")
+                    time.sleep(65)
                     continue
                 
                 # Format and insert
@@ -155,8 +158,8 @@ def run_ai_seeder():
                     print(f"🎉 INSERTED: {len(docs_to_insert)} questions for {sub_code} Chapter {unit_number}")
                 
                 # RATE LIMITING: Sleep to respect 15 Requests Per Minute (RPM) free tier
-                print("💤 Sleeping for 4.5 seconds to respect rate limits...")
-                time.sleep(4.5)
+                print("💤 Sleeping for 6.5 seconds to respect rate limits...")
+                time.sleep(6.5)
 
     print("✅ AI Mock Generation Complete!")
 

@@ -20,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.evalismobile"
+      "package": "com.anonymous.evalismobile",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",

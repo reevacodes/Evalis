@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 .navigator{
 display:grid;
@@ -45,7 +46,7 @@ color:white;
 }
 
 .input {
-  @apply bg-slate-800 border border-slate-700 px-4 py-2 rounded text-white w-full;
+  @apply bg-white border border-gray-300 px-4 py-2 rounded text-slate-900 w-full dark:bg-slate-800 dark:border-slate-700 dark:text-white;
 }
 
 /* 🔥 Smooth modal animation */
@@ -65,16 +66,5 @@ color:white;
 }
 
 .input-dark {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #334155;
-  background-color: #0f172a;
-  color: white;
-  outline: none;
-}
-
-.input-dark:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 1px #6366f1;
+  @apply w-full p-2.5 rounded-md border border-gray-300 bg-white text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white;
 }

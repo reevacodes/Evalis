@@ -105,7 +105,7 @@ export default function AllExams() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6 text-white">
+    <div className="min-h-screen bg-white dark:bg-slate-950 p-6 text-slate-900 dark:text-white">
       {/* HEADER */}
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-3xl font-bold">All Exams</h2>
@@ -124,7 +124,7 @@ export default function AllExams() {
           <div
             key={exam._id}
             onClick={() => handleExamClick(exam)}
-            className="relative bg-slate-900 border border-slate-800 p-5 rounded-2xl cursor-pointer 
+            className="relative bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-5 rounded-2xl cursor-pointer 
                        hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 
                        transition duration-300 group"
           >
@@ -154,7 +154,7 @@ export default function AllExams() {
             </div>
 
             {/* EXTRA DETAILS */}
-            <div className="mt-3 text-xs text-gray-400 space-y-1 border-t border-slate-800 pt-3">
+            <div className="mt-3 text-xs text-gray-400 space-y-1 border-t border-gray-200 dark:border-slate-800 pt-3">
               <p>{exam.teacher_name || "Unknown"}</p>
               <p>{formatDate(exam.created_at)}</p>
             </div>

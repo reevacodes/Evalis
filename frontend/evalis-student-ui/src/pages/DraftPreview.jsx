@@ -38,14 +38,14 @@ export default function DraftPreview() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-8">
       <h1 className="text-2xl font-bold mb-6">Draft Exam Preview</h1>
 
       <div className="space-y-4">
         {questions.map((q, i) => (
           <div
             key={i}
-            className="bg-slate-900 border border-slate-700 p-4 rounded"
+            className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-4 rounded"
           >
             <input
               value={q.question}

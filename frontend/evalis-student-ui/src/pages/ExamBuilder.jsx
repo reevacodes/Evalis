@@ -81,10 +81,10 @@ export default function ExamBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-6">
       <h1 className="text-2xl font-bold text-blue-500 mb-6">Exam Builder</h1>
 
-      <div className="bg-slate-900 border border-slate-700 p-4 rounded-lg mb-6">
+      <div className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-4 rounded-lg mb-6">
         <h2 className="text-lg font-semibold mb-3">
           Selected Questions ({selectedQuestions.length})
         </h2>
@@ -94,11 +94,11 @@ export default function ExamBuilder() {
           {selectedQuestions.map((q) => (
             <div
               key={q.id}
-              className="flex justify-between items-center bg-slate-800 p-3 rounded-lg hover:border-blue-500 border border-transparent transition"
+              className="flex justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-lg hover:border-blue-500 border border-transparent transition"
             >
               {/* LEFT */}
               <div className="flex flex-col gap-1">
-                <p className="text-gray-200">
+                <p className="text-slate-800 dark:text-gray-200 font-medium">
                   {q.question || "⚠️ Invalid Question"}
                 </p>
 
@@ -109,7 +109,7 @@ export default function ExamBuilder() {
                     {q.source}
                   </span>
 
-                  <span className="bg-slate-700 px-2 py-1 rounded">
+                  <span className="bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-700 dark:text-gray-200">
                     {q.difficulty}
                   </span>
                 </div>
@@ -122,7 +122,7 @@ export default function ExamBuilder() {
                   className={`px-2 py-1 rounded ${
                     important[q.id]
                       ? "bg-yellow-500 text-black"
-                      : "bg-slate-700"
+                      : "bg-gray-100 dark:bg-slate-700"
                   }`}
                 >
                   ⭐
@@ -130,7 +130,7 @@ export default function ExamBuilder() {
 
                 <button
                   onClick={() => removeQuestion(q.id)}
-                  className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
+                  className="bg-red-600 text-white hover:bg-red-700 px-3 py-1 rounded"
                 >
                   Remove
                 </button>
@@ -139,7 +139,7 @@ export default function ExamBuilder() {
           ))}
 
           {selectedQuestions.length === 0 && (
-            <p className="text-gray-400 text-sm">No questions generated yet</p>
+            <p className="text-slate-600 dark:text-gray-400 text-sm">No questions generated yet</p>
           )}
         </div>
 
@@ -147,14 +147,14 @@ export default function ExamBuilder() {
         <div className="flex gap-3 mt-4 flex-wrap">
           <button
             onClick={() => navigate("/question-bank")}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+            className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded"
           >
             Question Bank
           </button>
 
           <button
             onClick={handleGenerateAI}
-            className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded"
+            className="bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 rounded"
           >
             Fill with AI
           </button>
@@ -162,7 +162,7 @@ export default function ExamBuilder() {
           <button
             onClick={handleFinalize}
             disabled={loading}
-            className={`px-4 py-2 rounded ${
+            className={`px-4 py-2 rounded text-white ${
               loading
                 ? "bg-gray-600 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700"

@@ -10,7 +10,7 @@ export default function SuccessModal({
         initial={{ scale: 0.7, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.7, opacity: 0 }}
-        className="bg-slate-900 border border-slate-800 rounded-xl p-8 w-[350px] text-center shadow-xl"
+        className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-8 w-[350px] text-center shadow-xl"
       >
         {/* ✅ Animated Tick */}
         <motion.div
@@ -38,10 +38,10 @@ export default function SuccessModal({
         </motion.div>
 
         {/* ✅ Dynamic Title */}
-        <h2 className="text-xl font-semibold text-white mb-2">{title}</h2>
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">{title}</h2>
 
         {/* ✅ Dynamic Message */}
-        <p className="text-slate-400 text-sm">{message}</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">{message}</p>
       </motion.div>
     </div>
   );

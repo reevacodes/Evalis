@@ -95,17 +95,17 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className={`bg-slate-900 border border-slate-700 rounded-xl overflow-hidden transition ${
+              className={`bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl overflow-hidden transition ${
                 onSelect ? "hover:border-indigo-500 cursor-pointer" : ""
               }`}
             >
               {/* HEADER */}
               <div
                 onClick={() => setExpanded(isOpen ? null : qid)}
-                className="px-4 py-3 flex justify-between items-center hover:bg-slate-800"
+                className="px-4 py-3 flex justify-between items-center hover:bg-white dark:bg-slate-800"
               >
-                <h2 className="text-sm md:text-base font-medium">{preview}</h2>
-                <span className="text-xs text-gray-400">
+                <h2 className="text-sm md:text-base font-medium text-slate-900 dark:text-white">{preview}</h2>
+                <span className="text-xs text-slate-500 dark:text-gray-400">
                   {isOpen ? "▲" : "▼"}
                 </span>
               </div>
@@ -120,14 +120,14 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
                     exit={{ height: 0, opacity: 0 }}
                     className="px-4 pb-4"
                   >
-                    <p className="text-sm text-gray-300 mb-3 whitespace-pre-line">
+                    <p className="text-sm text-slate-700 dark:text-gray-300 mb-3 whitespace-pre-line">
                       {getText(q)}
                     </p>
 
-                    <p className="text-sm text-gray-400 mb-3">
+                    <p className="text-sm text-slate-600 dark:text-gray-400 mb-3">
                       {q.subject_name || "No Subject"} • {q.topic} •{" "}
                       <span className="capitalize">{q.difficulty}</span> •{" "}
-                      <span className="uppercase text-indigo-400 font-semibold">
+                      <span className="uppercase text-indigo-600 dark:text-indigo-400 font-semibold">
                         {q.question_type}
                       </span>
                     </p>
@@ -138,10 +138,10 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
                         {q.tags.map((tag, i) => (
                           <span
                             key={i}
-                            className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                            className={`px-2 py-0.5 text-xs font-semibold rounded border ${
                               tag.toUpperCase().startsWith("CO") 
-                                ? "bg-green-600/20 text-green-400 border border-green-500/30" 
-                                : "bg-indigo-600/20 text-indigo-300 border border-indigo-500/30"
+                                ? "bg-green-600/20 text-green-700 dark:text-green-400 border-green-500/30" 
+                                : "bg-indigo-600/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/30"
                             }`}
                           >
                             {tag}
@@ -152,14 +152,14 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
 
                     {/* MCQ */}
                     {q.question_type === "mcq" && q.options && (
-                      <ul className="mb-3 space-y-1 text-gray-300">
+                      <ul className="mb-3 space-y-1 text-slate-700 dark:text-gray-300">
                         {q.options.map((opt, i) => (
                           <li
                             key={i}
-                            className={`px-2 py-1 rounded ${
+                            className={`px-3 py-1.5 rounded border ${
                               opt === q.correct_answer
-                                ? "bg-green-600/30 text-green-300"
-                                : "bg-slate-800"
+                                ? "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30 dark:border-transparent font-medium"
+                                : "bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-transparent"
                             }`}
                           >
                             {opt}
@@ -170,9 +170,9 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
 
                     {/* CODING */}
                     {q.question_type === "coding" && (
-                      <div className="space-y-4 text-sm text-gray-300">
+                      <div className="space-y-4 text-sm text-slate-700 dark:text-gray-300">
                         <div>
-                          <h3 className="text-indigo-400 font-semibold mb-1">
+                          <h3 className="text-indigo-600 dark:text-indigo-400 font-semibold mb-1">
                             Problem Description
                           </h3>
                           <p className="whitespace-pre-line">
@@ -184,7 +184,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
 
                         {q.input_format && (
                           <div>
-                            <h3 className="text-indigo-400 font-semibold mb-1">
+                            <h3 className="text-indigo-600 dark:text-indigo-400 font-semibold mb-1">
                               Input Format
                             </h3>
                             <p className="whitespace-pre-line">
@@ -195,7 +195,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
 
                         {q.output_format && (
                           <div>
-                            <h3 className="text-indigo-400 font-semibold mb-1">
+                            <h3 className="text-indigo-600 dark:text-indigo-400 font-semibold mb-1">
                               Output Format
                             </h3>
                             <p className="whitespace-pre-line">
@@ -206,7 +206,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
 
                         {q.constraints && (
                           <div>
-                            <h3 className="text-indigo-400 font-semibold mb-1">
+                            <h3 className="text-indigo-600 dark:text-indigo-400 font-semibold mb-1">
                               Constraints
                             </h3>
                             <p className="whitespace-pre-line">
@@ -221,7 +221,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
                     <div className="flex gap-2 mt-4 items-center">
                       {pickerMode && onSelect && (
                          existingIds.includes(qid) ? (
-                            <span className="text-[11px] px-3 py-1.5 font-bold uppercase tracking-wider bg-slate-800 text-slate-500 rounded border border-slate-700 cursor-not-allowed">
+                            <span className="text-[11px] px-3 py-1.5 font-bold uppercase tracking-wider bg-white dark:bg-slate-800 text-slate-500 rounded border border-gray-300 dark:border-slate-700 cursor-not-allowed">
                                 Already in Exam
                             </span>
                          ) : (
@@ -230,7 +230,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
                                 className={`text-[11px] uppercase tracking-wider px-4 py-1.5 font-bold rounded transition ${
                                     selectedIds.includes(qid)
                                         ? "bg-red-500/20 text-red-400 border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]"
-                                        : "bg-indigo-600 text-white border border-indigo-500 hover:bg-indigo-500"
+                                        : "bg-indigo-600 text-slate-900 dark:text-white border border-indigo-500 hover:bg-indigo-500"
                                 }`}
                             >
                                 {selectedIds.includes(qid) ? "− Deselect" : "+ Select Question"}
@@ -241,7 +241,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
                       {!pickerMode && onSelect && (
                          <button
                           onClick={() => handleAdd(q)}
-                          className="text-[11px] uppercase tracking-wider px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-500 border border-indigo-500"
+                          className="text-[11px] uppercase tracking-wider px-3 py-1.5 bg-indigo-600 text-slate-900 dark:text-white rounded hover:bg-indigo-500 border border-indigo-500"
                         >
                           Select
                         </button>
@@ -251,14 +251,14 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
                         <>
                           <button
                             onClick={() => handleEdit(q)}
-                            className="text-xs px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded hover:bg-yellow-500/30"
+                            className="text-xs px-3 py-1 bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30 dark:border-transparent rounded hover:bg-yellow-500/30"
                           >
                             Edit
                           </button>
 
                           <button
                             onClick={() => handleDelete(qid)}
-                            className="text-xs px-3 py-1 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30"
+                            className="text-xs px-3 py-1 bg-red-600/20 text-red-700 dark:text-red-400 border border-red-500/30 dark:border-transparent rounded hover:bg-red-600/30"
                           >
                             Delete
                           </button>

@@ -205,7 +205,7 @@ export default function AdminExamDashboard() {
       return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
     if (status === "published")
       return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-    return "bg-slate-500/20 text-slate-300 border border-slate-500/30";
+    return "bg-slate-500/20 text-slate-700 dark:text-slate-300 border border-slate-500/30";
   };
 
   // ✅ NEW: TIME BADGE
@@ -218,20 +218,20 @@ export default function AdminExamDashboard() {
       return "bg-green-500/20 text-green-400 border border-green-500/30";
     if (t === "expired")
       return "bg-red-500/20 text-red-400 border border-red-500/30";
-    return "bg-slate-600/20 text-slate-400 border border-slate-600/30";
+    return "bg-slate-600/20 text-slate-500 dark:text-slate-400 border border-slate-600/30";
   };
 
   // =========================
   // UI
   // =========================
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-6">
       <h1 className="text-2xl font-semibold mb-6">Admin Exam Dashboard</h1>
 
       {loading ? (
-        <p className="text-slate-400">Loading exams...</p>
+        <p className="text-slate-500 dark:text-slate-400">Loading exams...</p>
       ) : exams.length === 0 ? (
-        <p className="text-slate-400">No exams available</p>
+        <p className="text-slate-500 dark:text-slate-400">No exams available</p>
       ) : (
         <div className="space-y-4">
           {exams.map((exam) => {
@@ -240,13 +240,13 @@ export default function AdminExamDashboard() {
             return (
               <div
                 key={exam._id}
-                className="bg-slate-900 border border-slate-800 p-5 rounded-lg shadow-sm"
+                className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-5 rounded-lg shadow-sm"
               >
                 {/* HEADER */}
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-lg font-medium">{exam.exam_name}</h2>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
                       {exam.subject_code} • Semester {exam.semester}
                     </p>
                   </div>
@@ -272,26 +272,26 @@ export default function AdminExamDashboard() {
                 </div>
 
                 {/* DETAILS */}
-                <div className="mt-3 text-sm text-slate-300 grid grid-cols-2 gap-2">
+                <div className="mt-3 text-sm text-slate-700 dark:text-slate-300 grid grid-cols-2 gap-2">
                   <p>Teacher: {exam.teacher_name}</p>
                   <p>Duration: {exam.duration_minutes} min</p>
                   <p className="col-span-2">Units: {exam.units?.join(", ")}</p>
 
                   {/* ✅ SHOW START TIME */}
                   {exam.start_time && (
-                    <p className="col-span-2 text-blue-400">
+                    <p className="col-span-2 text-blue-600 dark:text-blue-400">
                       Starts: {formatDateTime(exam.start_time)}
                     </p>
                   )}
                 </div>
                 {exam.schedule_requested && (
-                  <div className="mt-2 text-xs text-purple-400 flex flex-col gap-1">
+                  <div className="mt-2 text-xs text-purple-600 dark:text-purple-400 flex flex-col gap-1">
                     <span className="font-bold flex items-center gap-1">
                        <span className="text-sm">📩</span> Schedule Requested by Instructor
                     </span>
                     {exam.requested_start_time && (
-                       <span className="text-slate-300 ml-5">
-                          Requested Time: <span className="text-white font-semibold">{formatDateTime(exam.requested_start_time)}</span> 
+                       <span className="text-slate-700 dark:text-slate-300 ml-5">
+                          Requested Time: <span className="text-slate-900 dark:text-white font-semibold">{formatDateTime(exam.requested_start_time)}</span> 
                           <span className="text-slate-500 ml-2">({exam.requested_duration_minutes} mins)</span>
                        </span>
                     )}
@@ -303,8 +303,8 @@ export default function AdminExamDashboard() {
 
                 {/* ✅ BEFORE PUBLISH → ONLY IF REQUESTED */}
                 {exam.status === "finalized" && exam.schedule_requested && (
-                  <div className="mt-4 p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                    <p className="text-xs text-indigo-400 font-semibold mb-3 flex items-center gap-1.5 whitespace-nowrap">
+                  <div className="mt-4 p-4 rounded-lg bg-white dark:bg-slate-800/50 border border-gray-300 dark:border-slate-700/50">
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mb-3 flex items-center gap-1.5 whitespace-nowrap">
                       <span>⚡</span> Sets A/B/C/D will be dynamically generated upon scheduling.
                     </p>
                     <div className="flex gap-2 flex-wrap">
@@ -324,7 +324,7 @@ export default function AdminExamDashboard() {
                           },
                         }))
                       }
-                      className="bg-slate-800 px-2 py-1 text-sm rounded text-white"
+                      className="bg-white dark:bg-slate-800 px-2 py-1 text-sm rounded border border-gray-300 dark:border-slate-700 text-slate-900 dark:text-white"
                     />
 
                     <input
@@ -344,7 +344,7 @@ export default function AdminExamDashboard() {
                           },
                         }))
                       }
-                      className="bg-slate-800 px-2 py-1 text-sm rounded w-40 text-white"
+                      className="bg-white dark:bg-slate-800 px-2 py-1 text-sm rounded border border-gray-300 dark:border-slate-700 w-40 text-slate-900 dark:text-white"
                     />
 
                     <button
@@ -379,7 +379,7 @@ export default function AdminExamDashboard() {
                           // Let's rewrite handleSchedule to do this inside.
                           handleScheduleWithDefaults(exam._id, formattedTime, finalDuration);
                       }}
-                      className="px-3 py-1 text-sm rounded bg-blue-600 hover:bg-blue-700"
+                      className="px-3 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
                     >
                       Schedule & Map Sets
                     </button>
@@ -401,7 +401,7 @@ export default function AdminExamDashboard() {
                           },
                         }))
                       }
-                      className="bg-slate-800 px-2 py-1 text-sm rounded"
+                      className="bg-white dark:bg-slate-800 px-2 py-1 text-sm rounded border border-gray-300 dark:border-slate-700 text-slate-900 dark:text-white"
                     />
 
                     <input
@@ -416,12 +416,12 @@ export default function AdminExamDashboard() {
                           },
                         }))
                       }
-                      className="bg-slate-800 px-2 py-1 text-sm rounded w-40"
+                      className="bg-white dark:bg-slate-800 px-2 py-1 text-sm rounded border border-gray-300 dark:border-slate-700 w-40 text-slate-900 dark:text-white"
                     />
 
                     <button
                       onClick={() => handleSchedule(exam._id)}
-                      className="px-3 py-1 text-sm rounded bg-blue-600 hover:bg-blue-700"
+                      className="px-3 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
                     >
                       Reschedule
                     </button>
@@ -432,7 +432,7 @@ export default function AdminExamDashboard() {
                   {exam.status === "finalized" && exam.start_time && (
                     <button
                       onClick={() => handlePublish(exam._id)}
-                      className="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded text-sm"
+                      className="bg-emerald-500 text-white hover:bg-emerald-600 px-4 py-2 rounded text-sm"
                     >
                       Publish
                     </button>
@@ -449,7 +449,7 @@ export default function AdminExamDashboard() {
                         className={`text-sm px-4 py-2 rounded transition-colors ${
                           exam.is_results_published
                             ? "bg-purple-600/30 text-purple-400 hover:bg-purple-600/50"
-                            : "bg-slate-700 hover:bg-slate-600"
+                            : "bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200"
                         }`}
                       >
                         {exam.is_results_published ? "Results Public" : "Release Results"}
@@ -457,7 +457,7 @@ export default function AdminExamDashboard() {
 
                       <button
                         onClick={() => navigate(`/admin/exam/${exam._id}/submissions`)}
-                        className="text-sm px-4 py-2 rounded transition-colors bg-blue-600 hover:bg-blue-500 font-semibold"
+                        className="text-sm px-4 py-2 rounded transition-colors bg-blue-600 text-white hover:bg-blue-500 font-semibold"
                       >
                          📋 View Ledger
                       </button>
@@ -465,7 +465,7 @@ export default function AdminExamDashboard() {
                   )}
 
                   {exam.status === "draft" && (
-                    <span className="text-slate-400 text-sm flex items-center">
+                    <span className="text-slate-500 dark:text-slate-400 text-sm flex items-center">
                       Editable by teacher
                     </span>
                   )}
@@ -474,7 +474,7 @@ export default function AdminExamDashboard() {
                   {timeStatus === "expired" && (
                     <button
                       onClick={() => handleArchive(exam._id)}
-                      className="ml-auto bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 px-4 py-2 rounded text-sm transition-colors flex items-center gap-2"
+                      className="ml-auto bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-slate-900 dark:text-white border border-red-500/30 px-4 py-2 rounded text-sm transition-colors flex items-center gap-2"
                     >
                       Archive Exam
                     </button>

@@ -13,7 +13,7 @@ export default function TopicEditor() {
   // 🔥 SAFETY CHECK
   if (!examId) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white flex items-center justify-center">
         Invalid access. Please go back to dashboard.
       </div>
     );
@@ -113,7 +113,7 @@ export default function TopicEditor() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-8">
       <h1 className="text-2xl font-bold mb-6 text-blue-500">
         Edit Extracted Topics
       </h1>
@@ -125,7 +125,7 @@ export default function TopicEditor() {
         {units.map((unit, uIndex) => (
           <div
             key={uIndex}
-            className="bg-slate-900 border border-slate-700 p-4 rounded-lg"
+            className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-4 rounded-lg"
           >
             <h2 className="font-semibold mb-3">{unit.unit}</h2>
 
@@ -135,7 +135,7 @@ export default function TopicEditor() {
                 <input
                   value={topic}
                   onChange={(e) => editTopic(uIndex, tIndex, e.target.value)}
-                  className="flex-1 px-3 py-2 rounded bg-slate-800 border border-slate-700 outline-none focus:border-blue-500"
+                  className="flex-1 px-3 py-2 rounded bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 outline-none focus:border-blue-500"
                 />
 
                 <button
@@ -157,7 +157,7 @@ export default function TopicEditor() {
                     [uIndex]: e.target.value,
                   })
                 }
-                className="px-3 py-2 rounded bg-slate-800 border border-slate-700 outline-none focus:border-green-500"
+                className="px-3 py-2 rounded bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 outline-none focus:border-green-500"
                 placeholder="Add topic"
               />
 

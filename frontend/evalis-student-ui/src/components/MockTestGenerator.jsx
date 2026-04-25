@@ -89,14 +89,14 @@ export default function MockTestGenerator({ navigate }) {
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-700/50 rounded-xl overflow-hidden shadow-xl mt-4">
-      <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 p-6 border-b border-slate-700/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700/50 rounded-xl overflow-hidden shadow-xl mt-4">
+      <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 p-6 border-b border-gray-300 dark:border-slate-700/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Sparkles className="text-purple-400 w-5 h-5" /> 
             Mock Test Studio
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {selectedSubject ? `${selectedSubject.name} (${selectedSubject.code})` : "Select a subject"} • Pick your weak chapters and practice instantly!
           </p>
         </div>
@@ -106,7 +106,7 @@ export default function MockTestGenerator({ navigate }) {
           <select 
              value={semester}
              onChange={(e) => setSemester(Number(e.target.value))}
-             className="bg-slate-950 border border-slate-700 text-white text-sm rounded-lg p-2 focus:border-purple-500 focus:outline-none"
+             className="bg-white dark:bg-slate-950 border border-gray-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm rounded-lg p-2 focus:border-purple-500 focus:outline-none"
           >
              {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={s}>Sem {s}</option>)}
           </select>
@@ -114,7 +114,7 @@ export default function MockTestGenerator({ navigate }) {
           <select
              value={selectedSubject?.code || ""}
              onChange={(e) => setSelectedSubject(subjects.find(s => s.code === e.target.value))}
-             className="bg-slate-950 border border-slate-700 text-white text-sm rounded-lg p-2 focus:border-purple-500 focus:outline-none flex-1 md:w-48"
+             className="bg-white dark:bg-slate-950 border border-gray-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm rounded-lg p-2 focus:border-purple-500 focus:outline-none flex-1 md:w-48"
              disabled={loadingCurriculum || subjects.length === 0}
           >
              {loadingCurriculum ? <option>Loading...</option> : 
@@ -132,7 +132,7 @@ export default function MockTestGenerator({ navigate }) {
             Select Chapters
           </label>
           {availableTopics.length === 0 ? (
-            <div className="text-sm text-slate-400 p-4 border border-dashed border-slate-700 rounded-lg text-center">
+            <div className="text-sm text-slate-500 dark:text-slate-400 p-4 border border-dashed border-gray-300 dark:border-slate-700 rounded-lg text-center">
                No chapters found for this subject. Try another subject or semester.
             </div>
           ) : (
@@ -143,8 +143,8 @@ export default function MockTestGenerator({ navigate }) {
                 onClick={() => toggleTopic(t.id)}
                 className={`p-3 rounded-lg border text-sm text-left font-medium transition-all flex items-start gap-2 ${
                   topics.includes(t.id)
-                    ? "bg-purple-500/20 border-purple-500/50 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
-                    : "bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-600"
+                    ? "bg-purple-500/20 border-purple-500/50 text-purple-700 dark:text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                    : "bg-white dark:bg-slate-950/50 border-gray-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
                 }`}
               >
                 <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
@@ -169,8 +169,8 @@ export default function MockTestGenerator({ navigate }) {
               onClick={() => setPattern("mixed")}
               className={`flex-1 p-3 rounded-lg border transition-all font-bold ${
                 pattern === "mixed"
-                  ? "bg-purple-500/20 border-purple-500/50 text-purple-200"
-                  : "bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-600"
+                  ? "bg-purple-500/20 border-purple-500/50 text-purple-700 dark:text-purple-200"
+                  : "bg-white dark:bg-slate-950/50 border-gray-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
               }`}
             >
               Mixed (MCQ + Code)
@@ -179,8 +179,8 @@ export default function MockTestGenerator({ navigate }) {
               onClick={() => setPattern("mcq")}
               className={`flex-1 p-3 rounded-lg border transition-all font-bold ${
                 pattern === "mcq"
-                  ? "bg-purple-500/20 border-purple-500/50 text-purple-200"
-                  : "bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-600"
+                  ? "bg-purple-500/20 border-purple-500/50 text-purple-700 dark:text-purple-200"
+                  : "bg-white dark:bg-slate-950/50 border-gray-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
               }`}
             >
               MCQ Only
@@ -198,11 +198,11 @@ export default function MockTestGenerator({ navigate }) {
               onClick={() => setPreset("Midsem")}
               className={`flex-1 p-4 rounded-lg border transition-all flex flex-col items-center justify-center gap-2 ${
                 preset === "Midsem"
-                  ? "bg-blue-500/20 border-blue-500/50 text-blue-200"
-                  : "bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-600"
+                  ? "bg-blue-500/20 border-blue-500/50 text-blue-700 dark:text-blue-200"
+                  : "bg-white dark:bg-slate-950/50 border-gray-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
               }`}
             >
-              <Clock className={`w-6 h-6 ${preset === "Midsem" ? "text-blue-400" : "text-slate-500"}`} />
+              <Clock className={`w-6 h-6 ${preset === "Midsem" ? "text-blue-600 dark:text-blue-400" : "text-slate-500"}`} />
               <div className="text-center">
                 <span className="block font-bold">Midsem</span>
                 <span className="text-xs opacity-70">
@@ -215,11 +215,11 @@ export default function MockTestGenerator({ navigate }) {
               onClick={() => setPreset("Final")}
               className={`flex-1 p-4 rounded-lg border transition-all flex flex-col items-center justify-center gap-2 ${
                 preset === "Final"
-                  ? "bg-blue-500/20 border-blue-500/50 text-blue-200"
-                  : "bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-600"
+                  ? "bg-blue-500/20 border-blue-500/50 text-blue-700 dark:text-blue-200"
+                  : "bg-white dark:bg-slate-950/50 border-gray-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
               }`}
             >
-              <BookOpen className={`w-6 h-6 ${preset === "Final" ? "text-blue-400" : "text-slate-500"}`} />
+              <BookOpen className={`w-6 h-6 ${preset === "Final" ? "text-blue-600 dark:text-blue-400" : "text-slate-500"}`} />
               <div className="text-center">
                 <span className="block font-bold">Final</span>
                 <span className="text-xs opacity-70">
@@ -240,8 +240,8 @@ export default function MockTestGenerator({ navigate }) {
               onClick={() => setStartMode("instant")}
               className={`flex-1 p-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${
                 startMode === "instant"
-                  ? "bg-purple-500/20 border-purple-500/50 text-purple-200"
-                  : "bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-600"
+                  ? "bg-purple-500/20 border-purple-500/50 text-purple-700 dark:text-purple-200"
+                  : "bg-white dark:bg-slate-950/50 border-gray-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
               }`}
             >
               <Play className="w-4 h-4" /> Instant
@@ -250,8 +250,8 @@ export default function MockTestGenerator({ navigate }) {
               onClick={() => setStartMode("scheduled")}
               className={`flex-1 p-3 rounded-lg border transition-all flex items-center justify-center gap-2 ${
                 startMode === "scheduled"
-                  ? "bg-purple-500/20 border-purple-500/50 text-purple-200"
-                  : "bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-600"
+                  ? "bg-purple-500/20 border-purple-500/50 text-purple-700 dark:text-purple-200"
+                  : "bg-white dark:bg-slate-950/50 border-gray-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600"
               }`}
             >
               <Clock className="w-4 h-4" /> Schedule Later
@@ -264,7 +264,7 @@ export default function MockTestGenerator({ navigate }) {
                 type="datetime-local"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-purple-500"
+                className="w-full bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl p-3 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
               />
             </div>
           )}

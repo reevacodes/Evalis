@@ -13,6 +13,10 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [collegeEmail, setCollegeEmail] = useState("");
+  const [collegeName, setCollegeName] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [semester, setSemester] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [successType, setSuccessType] = useState(""); // "login" or "signup"
   const navigate = useNavigate();
@@ -50,7 +54,18 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
         setSuccessType("login");
         setShowSuccess(true);
       } else {
-        await signup({ email, password, role, name });
+        await signup({ 
+            email, 
+            password, 
+            role, 
+            name,
+            ...(role === 'student' && {
+                college_email: collegeEmail || null,
+                college_name: collegeName || null,
+                student_id: studentId || null,
+                semester: semester ? parseInt(semester) : null
+            })
+        });
 
         res = await login({ email, password });
 
@@ -158,13 +173,53 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
               )}
 
               {!isLogin && (
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
+                <>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  
+                  {role === "student" && (
+                    <div className="flex flex-col gap-4 mt-2 mb-2 p-4 border border-white/10 rounded-xl bg-white/[0.02]">
+                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Institutional Details</p>
+                        <input
+                            type="email"
+                            placeholder="College Email Address"
+                            className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
+                            value={collegeEmail}
+                            onChange={(e) => setCollegeEmail(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="College / University Name"
+                            className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
+                            value={collegeName}
+                            onChange={(e) => setCollegeName(e.target.value)}
+                        />
+                        <div className="flex gap-4">
+                            <input
+                                type="text"
+                                placeholder="Student ID / Roll No."
+                                className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30 flex-1"
+                                value={studentId}
+                                onChange={(e) => setStudentId(e.target.value)}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Semester"
+                                min="1"
+                                max="10"
+                                className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30 w-32"
+                                value={semester}
+                                onChange={(e) => setSemester(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                  )}
+                </>
               )}
 
               <input

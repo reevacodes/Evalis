@@ -53,7 +53,7 @@ export default function TeacherExamDashboard() {
     if (t === "expired")
       return "bg-red-500/20 text-red-400 border border-red-500/30";
 
-    return "bg-slate-600/20 text-slate-400 border border-slate-600/30";
+    return "bg-slate-600/20 text-slate-500 dark:text-slate-400 border border-slate-600/30";
   };
 
   const getStatusBadge = (exam) => {
@@ -71,7 +71,7 @@ export default function TeacherExamDashboard() {
     if (s === "published")
       return "bg-green-500/20 text-green-400 border border-green-500/30";
 
-    return "bg-slate-600/20 text-slate-400 border border-slate-600/30";
+    return "bg-slate-600/20 text-slate-500 dark:text-slate-400 border border-slate-600/30";
   };
 
   // ================= DELETE =================
@@ -138,7 +138,7 @@ export default function TeacherExamDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white p-8">
+      <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-8">
         Loading exams...
       </div>
     );
@@ -147,26 +147,26 @@ export default function TeacherExamDashboard() {
   const formatStatus = (status) =>
     status?.charAt(0).toUpperCase() + status?.slice(1);
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-8">
       <h1 className="text-2xl font-bold mb-6 text-blue-500">All Exams</h1>
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-slate-900 p-4 rounded-xl border border-slate-700">
-          <p className="text-sm text-gray-400">Total</p>
+        <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-xl border border-gray-300 dark:border-slate-700">
+          <p className="text-sm text-slate-600 dark:text-gray-400">Total</p>
           <h2 className="text-xl font-bold">{stats.total}</h2>
         </div>
 
-        <div className="bg-slate-900 p-4 rounded-xl border border-slate-700">
-          <p className="text-sm text-gray-400">Drafts</p>
+        <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-xl border border-gray-300 dark:border-slate-700">
+          <p className="text-sm text-slate-600 dark:text-gray-400">Drafts</p>
           <h2 className="text-xl font-bold">{stats.drafts}</h2>
         </div>
 
-        <div className="bg-slate-900 p-4 rounded-xl border border-slate-700">
-          <p className="text-sm text-gray-400">Published</p>
+        <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-xl border border-gray-300 dark:border-slate-700">
+          <p className="text-sm text-slate-600 dark:text-gray-400">Published</p>
           <h2 className="text-xl font-bold">{stats.published}</h2>
         </div>
 
-        <div className="bg-slate-900 p-4 rounded-xl border border-slate-700">
-          <p className="text-sm text-gray-400">Active</p>
+        <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-xl border border-gray-300 dark:border-slate-700">
+          <p className="text-sm text-slate-600 dark:text-gray-400">Active</p>
           <h2 className="text-xl font-bold">{stats.active}</h2>
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function TeacherExamDashboard() {
           return (
             <div
               key={exam._id}
-              className="bg-slate-900 border border-slate-700 p-4 rounded-xl flex justify-between items-center hover:border-blue-500 transition"
+              className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-4 rounded-xl flex justify-between items-center hover:border-blue-500 transition"
             >
               {/* LEFT */}
               <div>
@@ -190,17 +190,17 @@ export default function TeacherExamDashboard() {
                   {exam.exam_name || "Untitled Exam"}
                 </h2>
 
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-slate-600 dark:text-gray-400">
                   {exam.subject} • {exam.course_code}
                 </p>
 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-600 dark:text-gray-500">
                   {exam.exam_type} • {exam.duration_minutes} mins
                 </p>
 
                 {/* ✅ START TIME */}
                 {exam.start_time && (
-                  <p className="text-xs text-blue-400 mt-1">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                     Starts: {formatDateTime(exam.start_time)}
                   </p>
                 )}
@@ -226,7 +226,7 @@ export default function TeacherExamDashboard() {
 
                 <button
                   onClick={() => handleView(exam)}
-                  className="bg-blue-600 px-4 py-1 rounded hover:bg-blue-700"
+                  className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
                 >
                   View
                 </button>
@@ -234,7 +234,7 @@ export default function TeacherExamDashboard() {
                 {exam.status !== "draft" && (
                   <button
                     onClick={() => navigate(`/teacher/exam/${exam._id}/submissions`)}
-                    className="bg-indigo-600 px-4 py-1 rounded hover:bg-indigo-500 font-semibold"
+                    className="bg-indigo-600 text-white px-4 py-1 rounded hover:bg-indigo-500 font-semibold"
                   >
                     📋 Ledger
                   </button>
@@ -252,7 +252,7 @@ export default function TeacherExamDashboard() {
                 {canDelete && (
                   <button
                     onClick={() => handleDelete(exam._id)}
-                    className="bg-red-600 px-4 py-1 rounded hover:bg-red-700"
+                    className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
                   >
                     {user?.role === "admin" ? "Remove" : "Delete"}
                   </button>
@@ -263,7 +263,7 @@ export default function TeacherExamDashboard() {
         })}
 
         {exams.length === 0 && (
-          <div className="text-center text-gray-400 mt-10">
+          <div className="text-center text-slate-600 dark:text-gray-400 mt-10">
             <p className="text-lg">No exams yet</p>
             <p className="text-sm mt-2">
               Create your first exam to get started 🚀
@@ -275,7 +275,7 @@ export default function TeacherExamDashboard() {
       {/* EDIT MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-          <div className="bg-slate-900 p-6 rounded-lg border border-slate-700 w-80">
+          <div className="bg-gray-50 dark:bg-slate-900 p-6 rounded-lg border border-gray-300 dark:border-slate-700 w-80">
             <h2 className="text-lg font-semibold mb-4">
               What do you want to edit?
             </h2>
@@ -283,21 +283,21 @@ export default function TeacherExamDashboard() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => handleEditChoice("topics")}
-                className="bg-blue-600 py-2 rounded hover:bg-blue-700"
+                className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
               >
                 Edit Topics
               </button>
 
               <button
                 onClick={() => handleEditChoice("questions")}
-                className="bg-purple-600 py-2 rounded hover:bg-purple-700"
+                className="bg-purple-600 text-white py-2 rounded hover:bg-purple-700"
               >
                 Edit Questions
               </button>
 
               <button
                 onClick={() => setShowModal(false)}
-                className="bg-gray-600 py-2 rounded hover:bg-gray-700"
+                className="bg-gray-600 text-white py-2 rounded hover:bg-gray-700"
               >
                 Cancel
               </button>
