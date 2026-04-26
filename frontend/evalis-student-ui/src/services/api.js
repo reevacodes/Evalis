@@ -36,7 +36,10 @@ API.interceptors.response.use(
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
-      window.location.href = "/";
+      // Prevent redirect loop if already on landing
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      }
     }
 
     console.error("API ERROR:", err.response?.data || err.message);
@@ -234,6 +237,11 @@ export const signup = (data) =>
 
 export const login = (data) =>
   API.post("/auth/login", data);
+
+export const uploadUsersCSV = (formData) => API.post("/auth/upload-csv", formData);
+
+export const getActivityLogs = () => API.get("/admin/activity-logs");
+export const getLiveSessions = () => API.get("/admin/live-sessions");
 
 export const getMe = () =>
   API.get("/auth/me");

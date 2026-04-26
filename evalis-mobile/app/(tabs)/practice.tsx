@@ -157,9 +157,10 @@ export default function PracticeScreen() {
             setQuestions(extractedMcqs);
             setHasCoding(codingPresent);
             
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed fetching practice details", err);
-            Alert.alert("Error", "Could not load this practice exam.");
+            const errorMsg = err?.response?.data?.detail || err?.message || "Could not load this practice exam.";
+            Alert.alert("Error", errorMsg);
             setMode('list');
         } finally {
             setLoadingPaper(false);
@@ -181,8 +182,9 @@ export default function PracticeScreen() {
             });
             setResultsData(res.data || null);
             setMode('results');
-        } catch (err) {
-            Alert.alert("Error", "Failed to submit answers.");
+        } catch (err: any) {
+            const errorMsg = err?.response?.data?.detail || err?.message || "Failed to submit answers.";
+            Alert.alert("Error", errorMsg);
             console.error("Submission error", err);
         } finally {
             setSubmitting(false);
@@ -435,7 +437,7 @@ export default function PracticeScreen() {
                                     <View style={styles.cardHeader}>
                                         <View style={{ flex: 1, paddingRight: 12 }}>
                                             <Text style={styles.examName} numberOfLines={1}>{p.exam_name || "Scheduled Mock"}</Text>
-                                            <Text style={styles.examSubject} numberOfLines={1}>{d.toLocaleDateString()} • {d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
+                                            <Text style={styles.examSubject} numberOfLines={1}>{d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' })} • {d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
                                         </View>
                                         <View style={[styles.badge, { borderColor: theme.primary, backgroundColor: theme.primary + '15', alignSelf: 'flex-start' }]}>
                                             <Text style={{ color: theme.primary, fontSize: 12, fontWeight: 'bold' }}>{p.duration_minutes} Mins</Text>

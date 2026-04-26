@@ -12,8 +12,16 @@ export default function RescheduleModal({ isOpen, onClose, onSubmit }) {
   if (!isOpen) return null;
 
   const validateTime = (selectedTime) => {
-    const hours = parseInt(selectedTime.split(":")[0]);
-    return hours >= 9 && hours < 17; // 9 AM to 5 PM
+    const [hoursStr, minutesStr] = selectedTime.split(":");
+    const hours = parseInt(hoursStr);
+    const minutes = parseInt(minutesStr);
+    
+    // Allow 09:30 to 13:00
+    if (hours < 9 || hours > 13) return false;
+    if (hours === 9 && minutes < 30) return false;
+    if (hours === 13 && minutes > 0) return false;
+    
+    return true;
   };
 
   const validateDate = (selectedDate) => {
@@ -36,7 +44,7 @@ export default function RescheduleModal({ isOpen, onClose, onSubmit }) {
     }
 
     if (!validateTime(time)) {
-      alert("Lab exams must be scheduled during working hours (9:00 AM - 5:00 PM).");
+      alert("Lab exams must be scheduled during working hours (9:30 AM - 1:00 PM).");
       return;
     }
 
@@ -122,13 +130,13 @@ export default function RescheduleModal({ isOpen, onClose, onSubmit }) {
                 </div>
                 <div>
                   <label className="text-xs uppercase text-slate-500 dark:text-slate-400 font-bold mb-2 flex items-center gap-1.5">
-                    <Clock size={14} /> Time (9AM-5PM)
+                    <Clock size={14} /> Time (9:30AM-1PM)
                   </label>
                   <input
                     type="time"
                     required
-                    min="09:00"
-                    max="17:00"
+                    min="09:30"
+                    max="13:00"
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
                     className="w-full bg-white dark:bg-slate-800/50 border border-gray-300 dark:border-slate-700 text-slate-900 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all [color-scheme:dark]"

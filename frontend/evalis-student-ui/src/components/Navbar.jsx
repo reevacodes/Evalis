@@ -77,7 +77,7 @@ export default function Navbar() {
     setUser(null);
 
     // redirect
-    navigate("/login");
+    navigate("/");
   };
   return (
     <div className="sticky top-0 z-50 h-20 bg-[#0b0f19]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 md:px-10 text-slate-900 dark:text-white font-sans transition-all">

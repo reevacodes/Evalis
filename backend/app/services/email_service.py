@@ -15,6 +15,22 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 
+def format_to_ist(iso_string: str) -> str:
+    """Converts a UTC iso string to a nicely formatted IST string."""
+    if not iso_string:
+        return "Not Set"
+    try:
+        from datetime import datetime, timedelta
+        clean_time = str(iso_string).replace("Z", "+00:00")
+        if "+" not in clean_time and "-" not in clean_time[10:]:
+            clean_time += "+00:00"
+        dt = datetime.fromisoformat(clean_time)
+        dt_ist = dt + timedelta(hours=5, minutes=30)
+        return dt_ist.strftime("%A, %d/%m/%Y at %I:%M %p (IST)")
+    except Exception as e:
+        logger.warning(f"Failed to parse time for email {iso_string}: {e}")
+        return str(iso_string)
+
 def send_password_reset_email(to_email: str, reset_link: str):
     """
     Sends a password reset link to the user.
@@ -62,6 +78,7 @@ def send_exam_publish_email(to_email: str, exam_name: str, subject_code: str, st
     """
     Sends an email notification to a student when a new exam is published.
     """
+    formatted_time = format_to_ist(start_time)
     subject = f"Evalis - New Examination Published: {exam_name}"
     body = f"""Hello,
 
@@ -70,7 +87,7 @@ A new examination has been scheduled and published by your instructor.
 Exam Details:
 - Name: {exam_name}
 - Subject Code: {subject_code}
-- Scheduled Time: {start_time}
+- Scheduled Time: {formatted_time}
 - Duration: {duration} minutes
 
 Please log in to your Evalis portal or mobile app to view further details and prepare for the assessment.
@@ -100,18 +117,129 @@ Evalis Assessment Platform"""
         logger.error(f"Failed to send publish email to {to_email}: {str(e)}")
         return False
 
+def send_bulk_official_exam_reminder_emails(to_emails: list, exam_name: str, subject_code: str, start_time: str, duration: int, days_left: int):
+    """
+    Sends bulk email reminders over a SINGLE SMTP connection to prevent sequential bottlenecking.
+    """
+    if not to_emails:
+        return True
+        
+    formatted_time = format_to_ist(start_time)
+    
+    if days_left == 0:
+        subject = f"URGENT: Your Exam '{exam_name}' is TODAY!"
+        timeline_msg = "is scheduled for TODAY."
+    else:
+        subject = f"Reminder: '{exam_name}' is in {days_left} Days"
+        timeline_msg = f"is scheduled to start in exactly {days_left} days."
+
+    body = f"""Hello,
+
+This is an automated reminder that your official examination '{exam_name}' {timeline_msg}
+
+Exam Details:
+- Name: {exam_name}
+- Subject Code: {subject_code}
+- Scheduled Time: {formatted_time}
+- Duration: {duration} minutes
+
+Please log in to your Evalis portal or mobile app at the scheduled time to take the assessment.
+Make sure you have a stable internet connection.
+
+Regards,
+Evalis Assessment Platform"""
+
+    if not SMTP_SERVER or not SMTP_USER or not SMTP_PASSWORD:
+        logger.warning(f"SMTP not configured. Mocking BULK exam reminder emails to {len(to_emails)} students.")
+        print(f"\n{'='*40}\n[MOCK BULK EMAIL] To: {len(to_emails)} users\nSubject: {subject}\n{'='*40}\n")
+        return True
+
+    try:
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        
+        for email in to_emails:
+            try:
+                msg = MIMEMultipart()
+                msg['From'] = SMTP_USER
+                msg['To'] = email
+                msg['Subject'] = subject
+                msg.attach(MIMEText(body, 'plain'))
+                server.send_message(msg)
+            except Exception as e:
+                logger.error(f"Failed to send individual reminder to {email}: {str(e)}")
+                
+        server.quit()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to establish bulk SMTP connection: {str(e)}")
+        return False
+
+def send_official_exam_reminder_email(to_email: str, exam_name: str, subject_code: str, start_time: str, duration: int, days_left: int):
+    """
+    Sends an email reminder to a student for an upcoming official exam.
+    """
+    formatted_time = format_to_ist(start_time)
+    
+    if days_left == 0:
+        subject = f"URGENT: Your Exam '{exam_name}' is TODAY!"
+        timeline_msg = "is scheduled for TODAY."
+    else:
+        subject = f"Reminder: '{exam_name}' is in {days_left} Days"
+        timeline_msg = f"is scheduled to start in exactly {days_left} days."
+
+    body = f"""Hello,
+
+This is an automated reminder that your official examination '{exam_name}' {timeline_msg}
+
+Exam Details:
+- Name: {exam_name}
+- Subject Code: {subject_code}
+- Scheduled Time: {formatted_time}
+- Duration: {duration} minutes
+
+Please log in to your Evalis portal or mobile app at the scheduled time to take the assessment.
+Make sure you have a stable internet connection.
+
+Regards,
+Evalis Assessment Platform"""
+
+    if not SMTP_SERVER or not SMTP_USER or not SMTP_PASSWORD:
+        logger.warning(f"SMTP not configured. Mocking exam reminder email to {to_email}")
+        print(f"\n{'='*40}\n[MOCK EMAIL] To: {to_email}\nSubject: {subject}\n{'='*40}\n")
+        return True
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = SMTP_USER
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send reminder email to {to_email}: {str(e)}")
+        return False
+
 def send_reschedule_status_email(to_email: str, exam_name: str, status: str, new_time: str = None):
     """
     Sends an email notification to a student when their reschedule request is approved or rejected.
     """
     subject = f"Evalis - Reschedule Request {status.capitalize()}: {exam_name}"
+    formatted_time = format_to_ist(new_time) if new_time else None
     
     if status.lower() == "approved":
         body = f"""Hello,
 
 Your request to reschedule the examination '{exam_name}' has been APPROVED by your instructor.
 
-Your new scheduled time is: {new_time}
+Your new scheduled time is: {formatted_time}
 
 Please log in to your Evalis portal or mobile app to view the updated details.
 
@@ -148,6 +276,46 @@ Evalis Assessment Platform"""
         return True
     except Exception as e:
         logger.error(f"Failed to send reschedule email to {to_email}: {str(e)}")
+        return False
+
+def send_exam_timing_updated_email(to_email: str, exam_name: str, new_time: str):
+    """
+    Sends an email notification to a student when the admin reschedules/updates a published exam.
+    """
+    subject = f"Evalis - Exam Timing Updated: {exam_name}"
+    formatted_time = format_to_ist(new_time)
+    
+    body = f"""Hello,
+
+Please be advised that the administration has updated the schedule for your upcoming examination: '{exam_name}'.
+
+The new official start time is: {formatted_time}
+
+Please check your Evalis dashboard for the most up-to-date information.
+
+Regards,
+Evalis Assessment Platform"""
+
+    if not SMTP_SERVER or not SMTP_USER or not SMTP_PASSWORD:
+        logger.warning(f"SMTP not configured. Mocking timing update email to {to_email}")
+        print(f"\n{'='*40}\n[MOCK EMAIL] To: {to_email}\nSubject: {subject}\n{'='*40}\n")
+        return True
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = SMTP_USER
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send timing update email to {to_email}: {str(e)}")
         return False
 
 def send_results_published_email(to_email: str, exam_name: str, score: float, total: float):
@@ -193,22 +361,7 @@ def send_mock_scheduled_email(to_email: str, exam_name: str, scheduled_time: str
     Sends an email to the student when a mock test is scheduled, and acts as a reminder.
     """
     # Parse and format the time
-    formatted_time = scheduled_time
-    try:
-        from datetime import datetime, timedelta
-        # Handle string formats safely
-        # Some strings might not have timezone info, or might use Z
-        clean_time = scheduled_time.replace("Z", "+00:00")
-        # Split timezone from string if naive parsing is tricky, but fromisoformat handles most Python formats
-        if "+" not in clean_time and "-" not in clean_time[10:]: # Basic check for offset
-            clean_time += "+00:00"
-        dt = datetime.fromisoformat(clean_time)
-        # Convert to IST (+05:30)
-        dt_ist = dt + timedelta(hours=5, minutes=30)
-        formatted_time = dt_ist.strftime("%d-%m-%Y at %I:%M %p (IST)")
-    except Exception as e:
-        logger.warning(f"Failed to parse time for email: {e}")
-        pass
+    formatted_time = format_to_ist(scheduled_time)
 
     subject = f"Evalis - Reminder: Mock Test Scheduled" if is_reminder else f"Evalis - Mock Test Scheduled: {exam_name}"
     

@@ -399,8 +399,11 @@ export default function ExamPage({ isPractice = false }) {
           }, 2500);
       }
       
-    } catch {
-      alert("❌ Submission failed");
+      
+    } catch (err) {
+      submittedRef.current = false;
+      const msg = err.response?.data?.detail || err.message || "Network error.";
+      alert(`Submission failed: ${msg}. Your progress is saved locally. Please check your connection and retry.`);
     }
   };
 
@@ -455,8 +458,11 @@ export default function ExamPage({ isPractice = false }) {
           }, 2500);
       }
       
-    } catch {
-      alert("Auto submission failed");
+      
+    } catch (err) {
+      submittedRef.current = false;
+      const msg = err.response?.data?.detail || err.message || "Network error.";
+      alert(`Auto-submission failed: ${msg}. Your progress is saved locally. Please ensure you have internet access and manually click Submit to retry.`);
     }
   };
 

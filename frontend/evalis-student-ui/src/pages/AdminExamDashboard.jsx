@@ -112,8 +112,11 @@ export default function AdminExamDashboard() {
     }
 
     try {
+      // Ensure we convert the local datetime string into UTC ISO format
+      const formattedStartTime = data.start_time.length === 16 ? new Date(data.start_time).toISOString() : data.start_time;
+      
       await API.put(`/exam/${examId}/schedule`, {
-        start_time: data.start_time,
+        start_time: formattedStartTime,
         duration_minutes: data.duration,
       });
 
@@ -123,7 +126,7 @@ export default function AdminExamDashboard() {
           e._id === examId
             ? {
                 ...e,
-                start_time: data.start_time,
+                start_time: formattedStartTime,
                 duration_minutes: data.duration,
                 schedule_requested: false,
               }

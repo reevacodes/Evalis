@@ -26,6 +26,7 @@ from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
 from app.routes.notification_routes import send_expo_push
 from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email
+from app.services.activity_service import log_activity
 
 router = APIRouter()
 
@@ -392,9 +393,26 @@ def request_exam_api(
         raise HTTPException(status_code=400, detail=str(e))
 
 # ==========================
-# 🔥 TIME STATUS HELPER
+# 🔥 TIME STATUS & VALIDATION HELPERS
 # ==========================
-def calculate_exam_state(exam):
+def validate_college_hours(dt: datetime):
+    # Convert to IST for evaluation
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+        
+    dt_ist = dt.astimezone(timezone(timedelta(hours=5, minutes=30)))
+    
+    # 0 = Monday, 4 = Friday, 5 = Saturday, 6 = Sunday
+    if dt_ist.weekday() > 4:
+        raise HTTPException(status_code=400, detail="Exams cannot be scheduled on weekends. Please select Monday to Friday.")
+        
+    # Check if time is between 09:30 and 13:00 (1 PM)
+    time_minutes = dt_ist.hour * 60 + dt_ist.minute
+    
+    if time_minutes < (9 * 60 + 30) or time_minutes > (13 * 60):
+        raise HTTPException(status_code=400, detail="Exams must be scheduled during college hours (09:30 AM to 01:00 PM IST).")
+
+def calculate_exam_state(exam, student_id=None):
     if not exam.get("start_time"):
         return "unscheduled"
 
@@ -500,17 +518,19 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
     if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
     
-    if not exam.get("schedule_requested"):
-        raise HTTPException(
-        status_code=400,
-        detail="No schedule request found"
-    )
+    is_reschedule = exam.get("status") in ["published", "scheduled"]
 
-    if exam.get("status") != "finalized":
-        raise HTTPException(
-            status_code=400,
-            detail="Only finalized exams can be scheduled"
-        )
+    if not is_reschedule:
+        if not exam.get("schedule_requested"):
+            raise HTTPException(
+                status_code=400,
+                detail="No schedule request found"
+            )
+        if exam.get("status") != "finalized":
+            raise HTTPException(
+                status_code=400,
+                detail="Only finalized exams can be scheduled"
+            )
         
     current_state = calculate_exam_state(exam)
     if current_state == "active":
@@ -531,13 +551,12 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
     # ✅ PARSE TIME
     start_time = datetime.fromisoformat(start_time_str).replace(tzinfo=None)
     
-    # ✅ VALIDATE SCHEDULING TIMEFRAME (10 DAYS ADVANCE)
-    # Temporarily disabled for testing
-    # if start_time < datetime.now() + timedelta(days=10):
-    #     raise HTTPException(
-    #         status_code=400,
-    #         detail="Exams must be scheduled at least 10 days in advance."
-    #     )
+    # ✅ VALIDATE SCHEDULING TIMEFRAME
+    if start_time < datetime.utcnow() + timedelta(days=1):
+        raise HTTPException(
+            status_code=400,
+            detail="Exams must be scheduled at least 1 day in advance."
+        )
 
     # ✅ ZERO-TRUST JUST-IN-TIME SET GENERATION
     # The teacher built the Seed Pool. Now we enforce the Hybrid Engine.
@@ -565,6 +584,39 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
         }
     )
 
+    log_activity(
+        actor_id=user["sub"],
+        actor_name=user.get("name", "Admin"),
+        role="admin",
+        action="Exam Scheduled",
+        details=f"Admin scheduled exam '{exam.get('exam_name')}' for {start_time}."
+    )
+
+    # 📡 NOTIFY STUDENTS IF IT WAS ALREADY PUBLISHED
+    if is_reschedule:
+        try:
+            exam_name = exam.get("exam_name", "Exam")
+            students = list(user_collection.find({"role": "student"}))
+            if students:
+                notifications = []
+                for student in students:
+                    notifications.append({
+                        "user_id": student.get("email"),
+                        "title": "Exam Timing Updated",
+                        "message": f"The timing for '{exam_name}' has been updated by the administration.",
+                        "type": "exam",
+                        "link": None,
+                        "is_read": False,
+                        "created_at": datetime.utcnow()
+                    })
+                notification_collection.insert_many(notifications)
+                
+                for student in students:
+                    if student.get("email"):
+                        send_exam_timing_updated_email(student.get("email"), exam_name, start_time_str)
+        except Exception as e:
+            print("⚠️ Failed to broadcast reschedule notifications:", str(e))
+
     return {"message": "Exam scheduled successfully"}
 
 
@@ -582,9 +634,19 @@ def get_exam_api(
         raise HTTPException(status_code=404, detail="Exam not found")
 
     exam["_id"] = str(exam["_id"])
-    exam["time_status"] = calculate_exam_state(exam)
-
     role = user.get("role")
+    
+    # 🔥 Apply Reschedule Overrides Before Time Status Calc
+    if role == "student":
+        overrides = exam.get("overrides", [])
+        for ov in overrides:
+            if ov.get("student_id") == user.get("sub"):
+                if "new_start_time" in ov:
+                    exam["start_time"] = ov["new_start_time"]
+                    exam["is_rescheduled"] = True
+                break
+
+    exam["time_status"] = calculate_exam_state(exam)
 
     # ==========================
     # 👨‍🎓 STUDENT RESTRICTIONS + ROUTING
@@ -1029,6 +1091,14 @@ def publish_exam_api(
         }
     )
 
+    log_activity(
+        actor_id=user["sub"],
+        actor_name=user.get("name", "Admin"),
+        role="admin",
+        action="Exam Published",
+        details=f"Admin published exam '{exam.get('exam_name')}'."
+    )
+
     # 📡 NOTIFICATION BROADCAST TO ALL STUDENTS
     try:
         exam_name = exam.get("exam_name") or exam.get("title", "A new formal exam")
@@ -1241,6 +1311,8 @@ def request_schedule(
             status_code=400,
             detail="Only finalized exams can request scheduling"
         )
+        
+    validate_college_hours(payload.requested_start_time)
 
     exam_collection.update_one(
         {"_id": ObjectId(exam_id)},
@@ -1342,6 +1414,8 @@ def request_reschedule(
     except:
         preferred_time_dt = datetime.utcnow()
         
+    validate_college_hours(preferred_time_dt)
+        
     doc = {
         "student_id": user["sub"],
         "exam_id": exam_id,
@@ -1353,6 +1427,15 @@ def request_reschedule(
         "created_at": datetime.utcnow()
     }
     reschedule_collection.insert_one(doc)
+    
+    log_activity(
+        actor_id=user["sub"],
+        actor_name=user.get("name", "Student"),
+        role="student",
+        action="Reschedule Requested",
+        details=f"Student requested to reschedule exam '{exam.get('exam_name')}' to {preferred_time_dt.isoformat()}."
+    )
+    
     return {"message": "Reschedule request submitted successfully."}
 
 @router.get("/reschedule-requests/all")
@@ -1465,12 +1548,8 @@ def update_reschedule_request(
     if to_email:
         time_str = req["preferred_time"] if status == "approved" else None
         if time_str and isinstance(time_str, datetime):
-            time_str = time_str.strftime("%Y-%m-%d %I:%M %p")
-        elif time_str and isinstance(time_str, str):
-            try:
-                time_str = datetime.fromisoformat(time_str).strftime("%Y-%m-%d %I:%M %p")
-            except:
-                pass
+            time_str = time_str.isoformat()
+            
         send_reschedule_status_email(to_email, exam_name, status, time_str)
     
     return {"message": f"Request {status} successfully"}

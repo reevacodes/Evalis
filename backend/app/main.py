@@ -8,6 +8,7 @@ from app.routes.curriculum_routes import router as curriculum_router
 from app.routes.exam_routes import router as exam_router
 from app.routes.code_routes import router as code_router
 from app.routes.past_paper_routes import router as past_paper_router
+from app.routes.admin_routes import router as admin_router
 from app.routes import auth_routes
 
 app = FastAPI()
@@ -57,6 +58,13 @@ app.include_router(
     exam_router,
     prefix="/exam",
     tags=["Exam"]
+)
+
+# ADMIN
+app.include_router(
+    admin_router,
+    prefix="/admin",
+    tags=["Admin"]
 )
 
 # PAST PAPERS

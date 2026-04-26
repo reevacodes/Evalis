@@ -160,18 +160,6 @@ export default function StudentDashboard() {
               Track your performance, review upcoming assessments, and access your mock testing environment.
             </p>
           </div>
-          
-          {/* Quick Action Widget inside Hero */}
-          <div className="hidden md:flex bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 p-4 rounded-2xl items-center gap-4 hover:border-blue-500/50 transition cursor-pointer shadow-sm" onClick={() => setActiveTab('practice')}>
-             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400">
-               <Sparkles className="w-6 h-6" />
-             </div>
-             <div>
-               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Daily Objective</p>
-               <p className="font-bold text-slate-900 dark:text-white">Generate Practice Mock</p>
-             </div>
-             <ChevronRight className="w-5 h-5 ml-2 text-slate-400" />
-          </div>
         </div>
       </div>
 
@@ -263,8 +251,14 @@ export default function StudentDashboard() {
         <div className="grid md:grid-cols-2 gap-5">
           {[...exams]
             .sort((a, b) => {
-               const pA = a.time_status === 'active' ? 1 : a.time_status === 'scheduled' ? 2 : 3;
-               const pB = b.time_status === 'active' ? 1 : b.time_status === 'scheduled' ? 2 : 3;
+               const getPriority = (ex) => {
+                 if (ex.time_status === 'expired' || ex.has_submitted) return 3;
+                 if (ex.time_status === 'active') return 1;
+                 return 2;
+               };
+               
+               const pA = getPriority(a);
+               const pB = getPriority(b);
                
                if (pA !== pB) return pA - pB;
                

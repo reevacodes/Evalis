@@ -1,7 +1,8 @@
 import StatCard from "../components/StatCard";
 import { useEffect, useState } from "react";
-import { getAllExams, getRescheduleRequests, updateRescheduleRequest, deleteRescheduleRequest } from "../services/api";
+import { getAllExams, getRescheduleRequests, updateRescheduleRequest, deleteRescheduleRequest, getActivityLogs, getLiveSessions } from "../services/api";
 import { formatDateTime } from "../utils/formatDate";
+import { Activity, Radio, AlertTriangle } from "lucide-react";
 import AdminRejectModal from "../components/AdminRejectModal";
 
 export default function AdminOverview() {
@@ -13,6 +14,8 @@ export default function AdminOverview() {
   });
 
   const [rescheduleRequests, setRescheduleRequests] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [liveSessions, setLiveSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rejectModalData, setRejectModalData] = useState({ isOpen: false, request: null });
 
@@ -54,22 +57,26 @@ export default function AdminOverview() {
     const fetchData = async () => {
       try {
         await fetchReschedules();
-        const res = await getAllExams();
+        
+        const [logsRes, sessionsRes, res] = await Promise.all([
+          getActivityLogs().catch(() => ({ data: [] })),
+          getLiveSessions().catch(() => ({ data: [] })),
+          getAllExams().catch(() => ({ data: { exams: [] } }))
+        ]);
+        
+        setActivityLogs(logsRes.data || []);
+        setLiveSessions(sessionsRes.data || []);
+
         const exams = res.data.exams || [];
 
         setStats({
           total: exams.length,
           active: exams.filter((e) => e.time_status === "active").length,
-          requested: exams.filter(
-            (e) =>
-              e.status === "requested" ||
-              e.schedule_requested ||
-              e.unlock_requested
-          ).length,
+          requested: exams.filter((e) => e.schedule_requested).length,
           published: exams.filter((e) => e.status === "published").length,
         });
       } catch (err) {
-        console.error(err);
+        console.error("Dashboard fetch error:", err);
       } finally {
         setLoading(false);
       }
@@ -90,6 +97,100 @@ export default function AdminOverview() {
         <p className="text-slate-600 dark:text-gray-400 mt-1">
           Monitor exams, activity, and system performance
         </p>
+        
+        {/* NEW GRIDS FOR LIVE MONITORING & ACTIVITY */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 mt-8">
+          
+          {/* LIVE EXAM MONITORING */}
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden flex flex-col h-96">
+            <div className="p-4 border-b border-gray-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
+                  <Radio className="w-4 h-4 text-red-600 dark:text-red-400 animate-pulse" />
+                </div>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Live Exam Monitor</h2>
+              </div>
+              <span className="bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 text-xs font-bold px-2 py-1 rounded-full">
+                {liveSessions.length} Active
+              </span>
+            </div>
+            
+            <div className="overflow-y-auto flex-1 p-2">
+              {liveSessions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500">
+                  <Radio className="w-8 h-8 mb-2 opacity-20" />
+                  <p className="text-sm font-medium">No active examinations currently running.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {liveSessions.map((session, i) => (
+                    <div key={i} className="p-3 border border-gray-100 dark:border-slate-800 rounded-lg hover:border-blue-500/30 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-bold text-slate-900 dark:text-white text-sm">{session.student_name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate w-40">{session.exam_name}</p>
+                        </div>
+                        {session.warnings > 0 && (
+                          <div className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-2 py-0.5 rounded text-xs font-bold">
+                            <AlertTriangle className="w-3 h-3" />
+                            {session.warnings} Infractions
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center text-xs text-slate-400">
+                        <span>ID: {session.student_email.split('@')[0]}</span>
+                        <span>Started: {new Date(session.start_time).toLocaleTimeString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* GLOBAL AUDIT TRAIL */}
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden flex flex-col h-96">
+            <div className="p-4 border-b border-gray-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center">
+                  <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">System Activity Log</h2>
+              </div>
+            </div>
+            
+            <div className="overflow-y-auto flex-1 p-0">
+              {activityLogs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500">
+                  <Activity className="w-8 h-8 mb-2 opacity-20" />
+                  <p className="text-sm font-medium">No recent system activity.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100 dark:divide-slate-800/50">
+                  {activityLogs.map((log) => (
+                    <div key={log._id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                          {log.role}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          {formatDateTime(log.timestamp)}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
+                        {log.actor_name} <span className="text-slate-400 font-normal mx-1">&bull;</span> <span className="text-blue-500 dark:text-blue-400">{log.action}</span>
+                      </p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 leading-snug">
+                        {log.details}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* STATS */}
@@ -130,7 +231,7 @@ export default function AdminOverview() {
               </thead>
               <tbody className="divide-y divide-slate-800/50">
                 {rescheduleRequests.map((req) => (
-                  <tr key={req._id} className={`hover:bg-white dark:bg-slate-800/30 transition-colors ${req.status !== "pending" ? "opacity-50 grayscale-[50%]" : ""}`}>
+                  <tr key={req._id} className={`hover:bg-gray-50 dark:bg-slate-800/30 dark:hover:bg-slate-700/50 transition-colors ${req.status !== "pending" ? "opacity-50 grayscale-[50%]" : ""}`}>
                     <td className="p-4 font-medium text-slate-900 dark:text-white">{req.student_id}</td>
                     <td className="p-4 text-orange-400 font-medium">{req.exam_name}</td>
                     <td className="p-4">

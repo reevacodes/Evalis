@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '../../src/api/client';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { useThemeStyles } from '../../src/hooks/useThemeStyles';
 
 export default function DashboardScreen() {
@@ -23,7 +24,19 @@ export default function DashboardScreen() {
     const [rescheduleReason, setRescheduleReason] = useState('');
     const [rescheduleDate, setRescheduleDate] = useState('');
     const [rescheduleTime, setRescheduleTime] = useState('');
+    const [rescheduleCategory, setRescheduleCategory] = useState('Medical Emergency');
+    const [rescheduleProofFile, setRescheduleProofFile] = useState<any>(null);
     const [submittingReschedule, setSubmittingReschedule] = useState(false);
+
+    const pickDocument = async () => {
+        let result = await DocumentPicker.getDocumentAsync({
+            type: ['application/pdf', 'image/*'],
+            copyToCacheDirectory: true
+        });
+        if (result.canceled === false) {
+            setRescheduleProofFile(result.assets[0]);
+        }
+    };
 
     const loadData = async () => {
         try {
@@ -100,24 +113,40 @@ export default function DashboardScreen() {
     };
 
     const submitRescheduleRequest = async () => {
-        if (!rescheduleDate || !rescheduleTime || rescheduleReason.length < 10) {
-            Alert.alert("Missing Information", "Please fill out a valid future date/time and a reason (> 10 chars).");
+        if (!rescheduleDate || !rescheduleTime || rescheduleReason.length < 10 || !rescheduleProofFile) {
+            Alert.alert("Missing Information", "Please fill out a valid future date/time, a reason (> 10 chars), and upload official documentation.");
             return;
         }
 
         setSubmittingReschedule(true);
         try {
             const preferred_time = `${rescheduleDate}T${rescheduleTime}:00`;
-            await API.post(`/exam/${activeRescheduleId}/reschedule`, { reason: rescheduleReason, preferred_time });
+            
+            const formData = new FormData();
+            formData.append("category", rescheduleCategory);
+            formData.append("reason", rescheduleReason);
+            formData.append("preferred_time", new Date(preferred_time).toISOString());
+            formData.append("proof_file", {
+                uri: rescheduleProofFile.uri,
+                name: rescheduleProofFile.name,
+                type: rescheduleProofFile.mimeType || 'application/pdf',
+            } as any);
+
+            await API.post(`/exam/${activeRescheduleId}/reschedule`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            
             Alert.alert("Request Sent", "Your instructor will review your reschedule request.");
             setRescheduleModalVisible(false);
             setRescheduleReason('');
             setRescheduleDate('');
             setRescheduleTime('');
+            setRescheduleProofFile(null);
             loadData(); 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Reschedule Failed", error);
-            Alert.alert("Error", "Failed to submit reschedule request.");
+            const errorMsg = error?.response?.data?.detail || error?.message || "Failed to submit reschedule request.";
+            Alert.alert("Error", errorMsg);
         } finally {
             setSubmittingReschedule(false);
         }
@@ -198,7 +227,26 @@ export default function DashboardScreen() {
                 ) : exams.length === 0 ? (
                     <Text style={styles.emptyText}>No exams are currently bridged to your profile.</Text>
                 ) : (
-                    exams.map((exam) => {
+                    [...exams]
+                        .sort((a, b) => {
+                            const getPriority = (ex: any) => {
+                                if (ex.time_status === 'expired' || ex.has_submitted) return 3;
+                                if (ex.time_status === 'active') return 1;
+                                return 2;
+                            };
+                            
+                            const pA = getPriority(a);
+                            const pB = getPriority(b);
+                            
+                            if (pA !== pB) return pA - pB;
+                            
+                            if (pA === 2) {
+                                return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+                            } else {
+                                return new Date(b.start_time).getTime() - new Date(a.start_time).getTime();
+                            }
+                        })
+                        .map((exam) => {
                         const isCompleted = exam.time_status === "expired" || exam.has_submitted;
                         const isLive = exam.time_status === "active" && !exam.has_submitted;
                         const isUpcoming = exam.time_status === "scheduled" && !exam.has_submitted;
@@ -221,7 +269,16 @@ export default function DashboardScreen() {
                                 </View>
 
                                 <View style={styles.metricsBox}>
-                                    <Text style={styles.metricText}>🕒 Date: {exam.start_time ? new Date(exam.start_time).toLocaleDateString() : 'TBD'}</Text>
+                                    {(() => {
+                                        if (!exam.start_time) return <Text style={styles.metricText}>🕒 Timing: TBD</Text>;
+                                        const rawTime = exam.start_time;
+                                        const dateObj = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
+                                        return (
+                                            <Text style={styles.metricText}>
+                                                🕒 {dateObj.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' })} • {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </Text>
+                                        );
+                                    })()}
                                     <Text style={styles.metricText}>⏳ Duration: {exam.duration_minutes} Minutes</Text>
                                 </View>
 
@@ -284,7 +341,26 @@ export default function DashboardScreen() {
                         
                         <View style={styles.modalGrid}>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.modalLabel}>Preferred Date</Text>
+                                <Text style={styles.modalLabel}>Category</Text>
+                                <TouchableOpacity 
+                                    style={[styles.modalInput, styles.modalCompactInput, {justifyContent: 'center'}]}
+                                    onPress={() => {
+                                        Alert.alert("Select Category", "", [
+                                            {text: "Medical Emergency", onPress: () => setRescheduleCategory("Medical Emergency")},
+                                            {text: "University Rep.", onPress: () => setRescheduleCategory("University Representation")},
+                                            {text: "Bereavement", onPress: () => setRescheduleCategory("Bereavement")},
+                                            {text: "Cancel", style: "cancel"}
+                                        ])
+                                    }}
+                                >
+                                    <Text style={{color: theme.text}}>{rescheduleCategory}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <View style={styles.modalGrid}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.modalLabel}>Preferred Date (Mon-Fri)</Text>
                                 <TextInput
                                     style={[styles.modalInput, styles.modalCompactInput]}
                                     placeholder="YYYY-MM-DD"
@@ -295,7 +371,7 @@ export default function DashboardScreen() {
                             </View>
                             <View style={{ width: 12 }} />
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.modalLabel}>Preferred Time</Text>
+                                <Text style={styles.modalLabel}>Time (9AM-5PM)</Text>
                                 <TextInput
                                     style={[styles.modalInput, styles.modalCompactInput]}
                                     placeholder="HH:MM (24h)"
@@ -306,13 +382,21 @@ export default function DashboardScreen() {
                             </View>
                         </View>
 
-                        <Text style={styles.modalLabel}>Reason for Request</Text>
+                        <Text style={styles.modalLabel}>Official Documentation *</Text>
+                        <TouchableOpacity style={[styles.modalInput, {flexDirection:'row', alignItems:'center', paddingVertical: 12}]} onPress={pickDocument}>
+                            <Ionicons name="document-text" size={20} color={rescheduleProofFile ? '#f97316' : theme.textSecondary} style={{marginRight: 8}}/>
+                            <Text style={{color: rescheduleProofFile ? theme.text : theme.textSecondary, flex:1}} numberOfLines={1}>
+                                {rescheduleProofFile ? rescheduleProofFile.name : "Tap to upload PDF/Image"}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <Text style={styles.modalLabel}>Detailed Explanation</Text>
                         <TextInput
-                            style={[styles.modalInput, { minHeight: 100 }]}
-                            placeholder="E.g., Medical emergency, clash with another exam..."
+                            style={[styles.modalInput, { minHeight: 80 }]}
+                            placeholder="Provide context for the administration team..."
                             placeholderTextColor={theme.textSecondary}
                             multiline
-                            numberOfLines={4}
+                            numberOfLines={3}
                             value={rescheduleReason}
                             onChangeText={setRescheduleReason}
                         />
@@ -322,7 +406,7 @@ export default function DashboardScreen() {
                                 <Text style={styles.modalCancelText}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.modalSubmitBtn} onPress={submitRescheduleRequest} disabled={submittingReschedule}>
-                                {submittingReschedule ? <ActivityIndicator color="#fff" /> : <Text style={styles.modalSubmitText}>Submit Request</Text>}
+                                {submittingReschedule ? <ActivityIndicator color="#fff" /> : <Text style={styles.modalSubmitText}>Submit Official Request</Text>}
                             </TouchableOpacity>
                         </View>
                     </View>

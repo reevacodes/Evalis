@@ -32,6 +32,7 @@ import InstructorSubmissions from "./pages/InstructorSubmissions";
 import TeacherLayout from "./components/TeacherLayout";
 import TeacherOverview from "./pages/TeacherOverview";
 import TeacherExamDashboard from "./pages/TeacherExamDashboard";
+import AlertModal from "./components/AlertModal";
 
 function AppContent() {
   const location = useLocation();
@@ -173,6 +174,7 @@ function AppContent() {
           }
         />
       </Routes>
+      <AlertModal />
     </>
   );
 }

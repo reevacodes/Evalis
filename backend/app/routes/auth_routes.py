@@ -11,6 +11,7 @@ from app.database import get_db
 from app.models.user_model import update_user_role, update_user_password
 from app.utils.auth_dependency import get_current_user, require_admin
 from app.services.email_service import send_password_reset_email, send_welcome_email
+from app.services.activity_service import log_activity
 from pydantic import BaseModel
 
 class ForgotPasswordRequest(BaseModel):
@@ -57,6 +58,14 @@ def signup(user: UserSignup):
             college_email=user.college_email,
             name=user.name
         )
+
+    log_activity(
+        actor_id="system",
+        actor_name="System",
+        role="system",
+        action="New Registration",
+        details=f"New user registered: {user.name} ({user.role})"
+    )
 
     return {
     "message": "User created successfully",

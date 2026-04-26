@@ -26,6 +26,9 @@ submission_collection = db["submissions"]
 # Global Notifications (Cross-platform inbox)
 notification_collection = db["notifications"]
 
+# Global Audit Trail
+activity_log_collection = db["activity_logs"]
+
 # Exam Submissions (Entire student test papers & analytics)
 exam_submission_collection = db["exam_submissions"]
 
@@ -56,6 +59,12 @@ submission_history_collection.create_index(
 )
 
 user_collection.create_index("email", unique=True)
+
+# Admin Live Polling Optimization
+activity_log_collection.create_index([("timestamp", -1)])
+exam_collection.create_index([("status", 1)])
+exam_collection.create_index([("time_status", 1)])
+exam_submission_collection.create_index([("has_submitted", 1)])
 
 def get_db():
     return db
