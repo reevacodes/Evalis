@@ -25,7 +25,7 @@ from app.services.evaluation_service import async_evaluate_submission
 from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
 from app.routes.notification_routes import send_expo_push
-from app.services.email_service import send_exam_publish_email, send_reschedule_status_email
+from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email
 
 router = APIRouter()
 
@@ -967,6 +967,12 @@ def publish_results_api(
                 notification_collection.insert_many(notifications)
                 for n in notifications:
                     send_expo_push(n["user_id"], n["title"], n["message"], {"link": n["link"]})
+
+                # Fire off Emails
+                total = float(exam.get("total_marks", 100))
+                for sub in submissions:
+                    score = float(sub.get("total_score", 0))
+                    send_results_published_email(sub["student_id"], exam.get("exam_name", "Exam"), score, total)
         
         return {"message": "Results visibility toggled", "is_results_published": not current_val}
         
@@ -1635,6 +1641,9 @@ def generate_mock_test(payload: MockTestGeneratePayload, user=Depends(get_curren
     }
 
     result = past_papers_collection.insert_one(exam_doc)
+
+    if payload.start_mode == "scheduled" and payload.scheduled_time:
+        send_mock_scheduled_email(user["sub"], exam_doc["exam_name"], str(payload.scheduled_time), is_reminder=False)
 
     return {
         "message": "Mock test generated successfully",

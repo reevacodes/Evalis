@@ -35,12 +35,12 @@ def signup(user: UserSignup):
     try:
         create_user(
             db,
-            email=user.email,
+            email=user.email.strip().lower(),
             hashed_password=hashed_password,
             role=user.role,
             name=user.name,
             semester=user.semester,
-            college_email=user.college_email,
+            college_email=user.college_email.strip().lower() if user.college_email else None,
             college_name=user.college_name,
             student_id=user.student_id
         )
@@ -74,7 +74,8 @@ def signup(user: UserSignup):
 @router.post("/login", response_model=LoginResponse)
 def login(user: UserLogin):
     # Fetch user
-    db_user = get_user_by_email(db, user.email)
+    email_to_check = user.email.strip().lower()
+    db_user = get_user_by_email(db, email_to_check)
 
     if not db_user:
         raise HTTPException(

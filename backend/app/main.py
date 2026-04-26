@@ -12,6 +12,16 @@ from app.routes import auth_routes
 
 app = FastAPI()
 
+from app.services.scheduler_service import start_scheduler, stop_scheduler
+
+@app.on_event("startup")
+def startup_event():
+    start_scheduler()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    stop_scheduler()
+
 os.makedirs("uploads/reschedule_proofs", exist_ok=True)
 app.mount("/static/reschedule_proofs", StaticFiles(directory="uploads/reschedule_proofs"), name="reschedule_proofs")
 

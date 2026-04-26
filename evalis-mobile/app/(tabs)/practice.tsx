@@ -7,7 +7,7 @@ import { useThemeStyles } from '../../src/hooks/useThemeStyles';
 
 export default function PracticeScreen() {
     const [mode, setMode] = useState<'list' | 'play' | 'results'>('list');
-    const [tab, setTab] = useState<'studio' | 'past_papers' | 'history'>('studio');
+    const [tab, setTab] = useState<'studio' | 'past_papers' | 'scheduled' | 'history'>('studio');
     const { styles, theme } = useThemeStyles(createStyles);
     
     // Results State
@@ -47,7 +47,7 @@ export default function PracticeScreen() {
                 loadCurriculum();
             } else if (tab === 'history') {
                 fetchHistory();
-            } else if (tab === 'past_papers') {
+            } else if (tab === 'past_papers' || tab === 'scheduled') {
                 fetchPapers();
             }
         }
@@ -230,6 +230,9 @@ export default function PracticeScreen() {
                     <TouchableOpacity style={[styles.tabBtn, tab === 'past_papers' && styles.tabBtnActive]} onPress={() => setTab('past_papers')}>
                         <Text style={[styles.tabBtnText, tab === 'past_papers' && styles.tabBtnTextActive]}>Past Papers</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity style={[styles.tabBtn, tab === 'scheduled' && styles.tabBtnActive]} onPress={() => setTab('scheduled')}>
+                        <Text style={[styles.tabBtnText, tab === 'scheduled' && styles.tabBtnTextActive]}>Scheduled</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity style={[styles.tabBtn, tab === 'history' && styles.tabBtnActive]} onPress={() => setTab('history')}>
                         <Text style={[styles.tabBtnText, tab === 'history' && styles.tabBtnTextActive]}>History</Text>
                     </TouchableOpacity>
@@ -366,15 +369,15 @@ export default function PracticeScreen() {
                     </>
                 ) : tab === 'past_papers' ? (
                     <View style={styles.historyContainer}>
-                        {loadingPapers && papers.length === 0 ? (
+                        {loadingPapers && papers.filter(p => p.exam_type !== "Practice").length === 0 ? (
                             <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }} />
-                        ) : papers.length === 0 ? (
+                        ) : papers.filter(p => p.exam_type !== "Practice").length === 0 ? (
                             <View style={styles.emptyBox}>
                                 <Text style={styles.emptyText}>No past papers available.</Text>
                             </View>
                         ) : (
                             Object.entries(
-                                papers.reduce((acc: any, p: any) => {
+                                papers.filter(p => p.exam_type !== "Practice").reduce((acc: any, p: any) => {
                                     const y = p.year ? String(p.year) : "General";
                                     if (!acc[y]) acc[y] = [];
                                     acc[y].push(p);
@@ -410,6 +413,46 @@ export default function PracticeScreen() {
                                     ))}
                                 </View>
                             ))
+                        )}
+                    </View>
+                ) : tab === 'scheduled' ? (
+                    <View style={styles.historyContainer}>
+                        {loadingPapers && papers.filter(p => p.exam_type === "Practice" && p.is_instant === false).length === 0 ? (
+                            <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }} />
+                        ) : papers.filter(p => p.exam_type === "Practice" && p.is_instant === false).length === 0 ? (
+                            <View style={styles.emptyBox}>
+                                <Text style={styles.emptyText}>No upcoming scheduled mocks.</Text>
+                            </View>
+                        ) : (
+                            papers.filter(p => p.exam_type === "Practice" && p.is_instant === false)
+                            .sort((a, b) => new Date(a.start_time.endsWith('Z') ? a.start_time : a.start_time + 'Z').getTime() - new Date(b.start_time.endsWith('Z') ? b.start_time : b.start_time + 'Z').getTime())
+                            .map((p: any) => {
+                                const rawTime = p.start_time || new Date().toISOString();
+                                const d = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
+                                const isReady = d <= new Date();
+                                return (
+                                <View key={p._id} style={styles.attemptCard}>
+                                    <View style={styles.cardHeader}>
+                                        <View style={{ flex: 1, paddingRight: 12 }}>
+                                            <Text style={styles.examName} numberOfLines={1}>{p.exam_name || "Scheduled Mock"}</Text>
+                                            <Text style={styles.examSubject} numberOfLines={1}>{d.toLocaleDateString()} • {d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
+                                        </View>
+                                        <View style={[styles.badge, { borderColor: theme.primary, backgroundColor: theme.primary + '15', alignSelf: 'flex-start' }]}>
+                                            <Text style={{ color: theme.primary, fontSize: 12, fontWeight: 'bold' }}>{p.duration_minutes} Mins</Text>
+                                        </View>
+                                    </View>
+                                    <View style={[styles.cardFooter, {justifyContent: 'flex-end'}]}>
+                                        <TouchableOpacity 
+                                            onPress={() => isReady ? startPractice(p._id) : Alert.alert("Not Ready", "This exam is scheduled for a future time.")} 
+                                            style={{flexDirection:'row', alignItems:'center', opacity: isReady ? 1 : 0.5}}
+                                        >
+                                            <Text style={styles.viewBtnText}>{isReady ? "Start Exam" : "Waiting"}</Text>
+                                            <Ionicons name={isReady ? "play" : "time"} size={14} color={theme.primary} style={{marginLeft: 4}}/>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                                );
+                            })
                         )}
                     </View>
                 ) : (

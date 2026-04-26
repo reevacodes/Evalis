@@ -12,6 +12,8 @@ export default function DashboardScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [practiceHistory, setPracticeHistory] = useState<any[]>([]);
+    const [globalStats, setGlobalStats] = useState({ active: 0, upcoming: 0, mocks: 0, accuracy: "0" });
     const router = useRouter();
     const { styles, theme } = useThemeStyles(createStyles);
 
@@ -48,6 +50,24 @@ export default function DashboardScreen() {
             const notifRes = await API.get('/notifications/me');
             const hits = notifRes.data.notifications || [];
             setUnreadCount(hits.filter((n: any) => !n.is_read).length);
+
+            // Fetch Practice History
+            let history = [];
+            try {
+                const practiceRes = await API.get('/past-papers/practice/history');
+                history = practiceRes.data || [];
+                setPracticeHistory(history);
+            } catch (err) {
+                console.log("Practice history fetch error", err);
+            }
+
+            const activeCount = sortedExams.filter((e: any) => e.time_status === "active" && !e.has_submitted).length;
+            const upcomingCount = sortedExams.filter((e: any) => e.time_status === "scheduled" && !e.has_submitted).length;
+            const avgAcc = history.length > 0 
+                ? (history.reduce((acc: number, curr: any) => acc + (curr.analytics?.accuracy || 0), 0) / history.length).toFixed(1)
+                : "0";
+
+            setGlobalStats({ active: activeCount, upcoming: upcomingCount, mocks: history.length, accuracy: avgAcc });
         } catch (err) {
             console.error("Failed loading dashboard data", err);
         } finally {
@@ -115,10 +135,10 @@ export default function DashboardScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <View>
-                    <Text style={styles.greeting}>Evalis Mobile Workspace</Text>
-                    <Text style={styles.name}>{user?.name || 'Student'}</Text>
-                    <Text style={styles.subtext}>{user?.email || 'Unknown'}</Text>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                    <Text style={styles.greeting}>Welcome back,</Text>
+                    <Text style={styles.name} numberOfLines={1}>{user?.name?.split(' ')[0] || 'Student'} 👋</Text>
+                    <Text style={styles.subtext}>Track your performance and upcoming exams.</Text>
                 </View>
                 <View style={styles.headerRight}>
                     <TouchableOpacity onPress={() => router.push('/notifications')} style={styles.bellBtn}>
@@ -136,6 +156,41 @@ export default function DashboardScreen() {
                 contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
             >
+                {/* 📊 FLOATING STATS ROW */}
+                <View style={styles.statsGrid}>
+                    <View style={styles.statCard}>
+                        <View style={styles.statTop}>
+                            <Text style={styles.statLabel}>ACTIVE</Text>
+                            <Ionicons name="radio-button-on" size={14} color={theme.success} style={styles.statIcon} />
+                        </View>
+                        <Text style={styles.statValue}>{globalStats.active}</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <View style={styles.statTop}>
+                            <Text style={styles.statLabel}>UPCOMING</Text>
+                            <Ionicons name="calendar-outline" size={14} color={theme.primary} style={styles.statIcon} />
+                        </View>
+                        <Text style={styles.statValue}>{globalStats.upcoming}</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <View style={styles.statTop}>
+                            <Text style={styles.statLabel}>MOCKS TAKEN</Text>
+                            <Ionicons name="book-outline" size={14} color="#a855f7" style={styles.statIcon} />
+                        </View>
+                        <Text style={styles.statValue}>{globalStats.mocks}</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                        <View style={styles.statTop}>
+                            <Text style={styles.statLabel}>AVG. ACC</Text>
+                            <Ionicons name="trophy-outline" size={14} color={theme.warning} style={styles.statIcon} />
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2 }}>
+                            <Text style={styles.statValue}>{globalStats.accuracy}</Text>
+                            <Text style={{ color: theme.textSecondary, fontSize: 16, fontWeight: 'bold' }}>%</Text>
+                        </View>
+                    </View>
+                </View>
+
                 <Text style={styles.sectionTitle}>Your Examination Load</Text>
 
                 {loading ? (
@@ -281,7 +336,7 @@ const createStyles = (theme: any) => StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, paddingTop: 60, borderBottomWidth: 1, borderBottomColor: theme.border },
     headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    greeting: { color: theme.textSecondary, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
+    greeting: { color: theme.textSecondary, fontSize: 16, fontWeight: '500' },
     name: { color: theme.text, fontSize: 24, fontWeight: 'bold', marginTop: 4 },
     subtext: { color: theme.textSecondary, fontSize: 12, marginTop: 4 },
     bellBtn: { padding: 8, backgroundColor: theme.cardLight, borderRadius: 20, position: 'relative' },
@@ -289,6 +344,12 @@ const createStyles = (theme: any) => StyleSheet.create({
     logoutBtn: { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: theme.dangerSoft, borderRadius: 20 },
     logoutText: { color: theme.danger, fontWeight: 'bold', fontSize: 12 },
     scrollArea: { flex: 1 },
+    statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
+    statCard: { flex: 1, minWidth: '45%', backgroundColor: theme.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: theme.border },
+    statTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+    statLabel: { color: theme.textSecondary, fontSize: 10, fontWeight: 'bold', letterSpacing: 0.5 },
+    statIcon: { padding: 4, backgroundColor: theme.cardLight, borderRadius: 8, overflow: 'hidden' },
+    statValue: { color: theme.text, fontSize: 26, fontWeight: '900' },
     sectionTitle: { color: theme.text, fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
     emptyText: { color: theme.textSecondary, textAlign: 'center', marginTop: 40 },
     examCard: { backgroundColor: theme.card, borderRadius: 16, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: theme.border },

@@ -1,15 +1,17 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Folder, FolderOpen, BookOpen, Clock, ChevronRight, ChevronDown, CheckCircle, BarChart2, Calendar, Target } from "lucide-react";
+import { Folder, FolderOpen, BookOpen, Clock, ChevronRight, ChevronDown, CheckCircle, BarChart2, Calendar, Target, PlayCircle, Trophy, Zap, Sparkles, Activity } from "lucide-react";
 import API, { getPastPapers, fetchCurriculum, getPracticeHistory } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import RescheduleModal from "../components/RescheduleModal";
 import MockTestGenerator from "../components/MockTestGenerator";
 import { formatDateOnly, formatTimeOnly } from "../utils/formatDate";
 
 export default function StudentDashboard() {
-  const [activeTab, setActiveTab] = useState("live"); // 'live' | 'practice'
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("live"); // 'live' | 'practice' | 'history'
   const [mockTab, setMockTab] = useState("curriculum"); // 'curriculum' | 'topic'
   const [exams, setExams] = useState([]);
   const [pastPapers, setPastPapers] = useState([]);
@@ -27,10 +29,13 @@ export default function StudentDashboard() {
 
   const stats = {
     total: exams.length,
-    active: exams.filter((e) => e.time_status === "active").length,
-    upcoming: exams.filter((e) => e.time_status === "scheduled").length,
-    completed: exams.filter((e) => e.time_status === "expired").length,
+    active: exams.filter((e) => e.time_status === "active" && !e.has_submitted).length,
+    upcoming: exams.filter((e) => e.time_status === "scheduled" && !e.has_submitted).length,
+    completed: exams.filter((e) => e.time_status === "expired" || e.has_submitted).length,
   };
+
+  const totalAccuracy = practiceHistory.reduce((acc, attempt) => acc + (attempt.analytics?.accuracy || 0), 0);
+  const averageAccuracy = practiceHistory.length > 0 ? (totalAccuracy / practiceHistory.length).toFixed(1) : 0;
 
   // =========================
   // TIME STATUS HELPER
@@ -139,27 +144,109 @@ export default function StudentDashboard() {
     return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
   };
 
-  // =========================
-  // UI
-  // =========================
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-6">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white p-4 md:p-6 lg:p-8">
       
-      {/* 🟢 TABS HEADER */}
-      <div className="flex items-center gap-6 mb-8 border-b border-gray-200 dark:border-slate-800 pb-3">
-        <button 
-          onClick={() => setActiveTab("live")}
-          className={`text-xl font-semibold transition-colors ${activeTab === 'live' ? 'text-slate-900 dark:text-white border-b-2 border-blue-500 pb-2 -mb-[14px]' : 'text-slate-500 hover:text-slate-700 dark:text-slate-300'}`}
-        >
-          Live Exams
-        </button>
-        <button 
-          onClick={() => setActiveTab("practice")}
-          className={`text-xl font-semibold transition-colors ${activeTab === 'practice' ? 'text-slate-900 dark:text-white border-b-2 border-purple-500 pb-2 -mb-[14px]' : 'text-slate-500 hover:text-slate-700 dark:text-slate-300'}`}
-        >
-          Mock Tests
-        </button>
+      {/* 🌟 PROFESSIONAL HERO BANNER */}
+      <div className="relative overflow-hidden bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-3xl p-6 md:p-8 mb-8 shadow-sm">
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-blue-500/5 dark:bg-blue-500/10 blur-3xl pointer-events-none"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 text-slate-900 dark:text-white">
+              Welcome back, {user?.name?.split(' ')[0] || "Student"} <span className="animate-waving-hand inline-block">👋</span>
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl">
+              Track your performance, review upcoming assessments, and access your mock testing environment.
+            </p>
+          </div>
+          
+          {/* Quick Action Widget inside Hero */}
+          <div className="hidden md:flex bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 p-4 rounded-2xl items-center gap-4 hover:border-blue-500/50 transition cursor-pointer shadow-sm" onClick={() => setActiveTab('practice')}>
+             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400">
+               <Sparkles className="w-6 h-6" />
+             </div>
+             <div>
+               <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Daily Objective</p>
+               <p className="font-bold text-slate-900 dark:text-white">Generate Practice Mock</p>
+             </div>
+             <ChevronRight className="w-5 h-5 ml-2 text-slate-400" />
+          </div>
+        </div>
       </div>
+
+      {/* 📊 FLOATING STATS ROW */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+         <div className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-2xl p-5 flex flex-col hover:-translate-y-1 transition-transform duration-300">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-wide uppercase">Active</span>
+              <span className="p-1.5 bg-green-500/10 text-green-500 rounded-lg"><Target className="w-4 h-4" /></span>
+            </div>
+            <span className="text-3xl font-black text-slate-900 dark:text-white">{stats.active}</span>
+         </div>
+         
+         <div className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-2xl p-5 flex flex-col hover:-translate-y-1 transition-transform duration-300">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-wide uppercase">Upcoming</span>
+              <span className="p-1.5 bg-blue-500/10 text-blue-500 rounded-lg"><Calendar className="w-4 h-4" /></span>
+            </div>
+            <span className="text-3xl font-black text-slate-900 dark:text-white">{stats.upcoming}</span>
+         </div>
+         
+         <div className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-2xl p-5 flex flex-col hover:-translate-y-1 transition-transform duration-300">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-wide uppercase">Mocks Taken</span>
+              <span className="p-1.5 bg-purple-500/10 text-purple-500 rounded-lg"><BookOpen className="w-4 h-4" /></span>
+            </div>
+            <span className="text-3xl font-black text-slate-900 dark:text-white">{practiceHistory.length}</span>
+         </div>
+         
+         <div className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-2xl p-5 flex flex-col hover:-translate-y-1 transition-transform duration-300">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-wide uppercase">Avg. Accuracy</span>
+              <span className="p-1.5 bg-amber-500/10 text-amber-500 rounded-lg"><Trophy className="w-4 h-4" /></span>
+            </div>
+            <span className="text-3xl font-black text-slate-900 dark:text-white flex items-baseline gap-1">
+              {averageAccuracy}<span className="text-lg text-slate-400">%</span>
+            </span>
+         </div>
+      </div>
+
+        {/* 🟢 TABS NAVIGATION */}
+        <div className="flex overflow-x-auto no-scrollbar gap-2 mb-8 bg-gray-200/50 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-gray-300/50 dark:border-slate-800 backdrop-blur-sm w-fit max-w-full">
+          <button 
+            onClick={() => setActiveTab("live")}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+              activeTab === 'live' 
+                ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm border border-gray-200 dark:border-slate-700' 
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50'
+            }`}
+          >
+            <Target className="w-4 h-4" /> Live & Scheduled
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab("practice")}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+              activeTab === 'practice' 
+                ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 shadow-sm border border-gray-200 dark:border-slate-700' 
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" /> Practice Arena
+          </button>
+
+          <button 
+            onClick={() => setActiveTab("history")}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+              activeTab === 'history' 
+                ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm border border-gray-200 dark:border-slate-700' 
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50'
+            }`}
+          >
+            <BarChart2 className="w-4 h-4" /> Analytics & History
+          </button>
+        </div>
 
       {activeTab === "live" ? (
         <>
@@ -197,16 +284,16 @@ export default function StudentDashboard() {
             return (
               <div
                 key={exam._id}
-                className={`flex flex-col bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden transition-all duration-300 ${
+                className={`flex flex-col bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-2xl overflow-hidden transition-all duration-300 shadow-sm ${
                   isLive 
                     ? "hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20" 
-                    : "hover:border-gray-300 dark:border-slate-700"
+                    : "hover:border-gray-400 dark:hover:border-slate-700"
                 } ${isCompleted ? "opacity-60 grayscale-[30%]" : ""}`}
               >
                 {/* 🎨 TOP ACCENT */}
                 <div className={`h-1.5 w-full ${isLive ? 'bg-green-500' : isUpcoming ? 'bg-yellow-500' : 'bg-gray-600'}`}></div>
                 
-                <div className="p-6 flex-1 flex flex-col">
+                <div className="p-6 flex-1 flex flex-col bg-gradient-to-b from-transparent to-gray-100/30 dark:to-slate-800/30">
                   {/* 🏷 HEADER */}
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -258,9 +345,9 @@ export default function StudentDashboard() {
                     {isLive && (
                       <button
                         onClick={() => handleStartClick(exam)}
-                        className="w-full py-3 rounded-xl font-bold bg-blue-600 text-slate-900 dark:text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3.5 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
                       >
-                       <span className="animate-pulse h-2 w-2 bg-white rounded-full"></span>
+                       <PlayCircle className="w-5 h-5" />
                        Start Exam Now
                       </button>
                     )}
@@ -302,9 +389,9 @@ export default function StudentDashboard() {
                     {isCompleted && (
                       <button 
                          onClick={() => navigate(`/student/results/${exam._id}`)}
-                         className="w-full py-3 rounded-xl font-semibold bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 transition border border-purple-500/30 flex items-center justify-center gap-2"
+                         className="w-full py-3.5 rounded-xl font-semibold bg-purple-600/10 text-purple-600 dark:bg-purple-600/20 dark:text-purple-400 hover:bg-purple-600/20 dark:hover:bg-purple-600/30 transition border border-purple-500/30 flex items-center justify-center gap-2"
                       >
-                         <span className="text-lg">📊</span> View Analytics
+                         <BarChart2 className="w-5 h-5" /> View Analytics
                       </button>
                     )}
                   </div>
@@ -315,7 +402,7 @@ export default function StudentDashboard() {
         </div>
       )}
       </>
-      ) : (
+      ) : activeTab === "practice" ? (
         /* 🟠 PRACTICE ARENA HIERARCHY TAB */
         <>
           <div className="mt-4">
@@ -353,9 +440,11 @@ export default function StudentDashboard() {
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Scheduled Mock Tests</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {pastPapers.filter(p => p.exam_type === "Practice" && p.is_instant === false).map(mock => {
-                        const isReady = new Date(mock.start_time) <= new Date();
+                        const rawTime = mock.start_time || new Date().toISOString();
+                        const d = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
+                        const isReady = d <= new Date();
                         return (
-                          <div key={mock._id} className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700/50 rounded-xl p-4 flex justify-between items-center shadow-lg">
+                          <div key={mock._id} className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700/50 rounded-xl p-4 flex justify-between items-center shadow-sm">
                             <div>
                               <h4 className="text-lg font-bold text-slate-900 dark:text-white">{mock.exam_name}</h4>
                               <div className="flex gap-4 text-sm text-slate-500 dark:text-slate-400 mt-2">
@@ -383,48 +472,73 @@ export default function StudentDashboard() {
               </div>
             )}
           </div>
-
-          {/* 🔥 PRACTICE HISTORY BLOCK */}
-          {practiceHistory.length > 0 && (
-            <div className="mt-12 mb-8">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                 <BarChart2 className="w-5 h-5 text-indigo-500 dark:text-indigo-400" /> Practice History
-              </h3>
-              <div className="grid gap-3">
-                {practiceHistory.map((attempt) => (
-                   <div key={attempt._id} className="bg-gray-50 dark:bg-[#111116] border border-gray-200 dark:border-white/5 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-blue-400 dark:hover:border-white/10 transition-colors shadow-sm dark:shadow-none">
-                      <div>
-                         <h4 className="font-bold text-slate-900 dark:text-slate-200">{attempt.exam_name}</h4>
-                         <p className="text-sm text-slate-500 mt-1 flex items-center gap-2">
-                           <Calendar className="w-3.5 h-3.5" /> {formatDateOnly(attempt.created_at)} at {formatTimeOnly(attempt.created_at)}
-                         </p>
-                      </div>
-                      <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-                         <div className="text-center">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Score</p>
-                            <p className="font-black text-xl text-slate-900 dark:text-white">{attempt.score}</p>
-                         </div>
-                         <div className="text-center">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Accuracy</p>
-                            <p className={`font-black text-xl ${attempt.analytics.accuracy >= 70 ? 'text-emerald-500 dark:text-emerald-400' : attempt.analytics.accuracy >= 40 ? 'text-amber-500 dark:text-amber-400' : 'text-rose-500 dark:text-rose-400'}`}>
-                               {attempt.analytics.accuracy}%
-                            </p>
-                         </div>
-                         <button 
-                            onClick={() => navigate(`/student/practice-result/${attempt.paper_id}`, { state: attempt })}
-                            className="px-4 py-2 bg-indigo-100 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-600/30 rounded-xl font-bold transition-colors text-sm"
-                         >
-                            View Analytics
-                         </button>
-                      </div>
-                   </div>
-                ))}
-              </div>
-            </div>
-          )}
         </>
-      )}
-
+      ) : activeTab === "history" ? (
+         /* 📊 PERFORMANCE HISTORY TAB */
+         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {practiceHistory.length === 0 ? (
+               <div className="text-center text-slate-500 dark:text-slate-400 mt-16 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 p-12">
+                 <div className="w-20 h-20 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Trophy className="w-10 h-10 text-slate-400" />
+                 </div>
+                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">No Practice History Yet</h3>
+                 <p className="text-lg max-w-md mx-auto">
+                   Head over to the Practice Arena to take your first mock test and start building your analytics profile!
+                 </p>
+                 <button onClick={() => setActiveTab("practice")} className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition shadow-lg shadow-purple-500/25">
+                   Go to Practice Arena
+                 </button>
+               </div>
+            ) : (
+               <div className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+                  <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-200 dark:border-slate-800">
+                     <div className="p-2.5 bg-indigo-500/10 rounded-xl">
+                        <Activity className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                     </div>
+                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Recent Mock Attempts</h3>
+                  </div>
+                  
+                  <div className="grid gap-4">
+                    {practiceHistory.map((attempt) => (
+                       <div key={attempt._id} className="bg-white dark:bg-[#0c0c11] border border-gray-300 dark:border-slate-800/80 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-all hover:shadow-md hover:shadow-indigo-500/5 group">
+                          <div className="flex gap-4 items-center">
+                             <div className="hidden md:flex w-12 h-12 rounded-full bg-white dark:bg-slate-800 items-center justify-center border border-gray-200 dark:border-slate-700 shadow-sm">
+                                <Zap className={`w-6 h-6 ${attempt.analytics.accuracy >= 70 ? 'text-emerald-500' : attempt.analytics.accuracy >= 40 ? 'text-amber-500' : 'text-rose-500'}`} />
+                             </div>
+                             <div>
+                                <h4 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{attempt.exam_name}</h4>
+                                <p className="text-sm text-slate-500 font-medium mt-1 flex items-center gap-2">
+                                  <Calendar className="w-4 h-4" /> {formatDateOnly(attempt.created_at)} • {formatTimeOnly(attempt.created_at)}
+                                </p>
+                             </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end bg-white dark:bg-slate-900 md:bg-transparent md:dark:bg-transparent p-4 md:p-0 rounded-xl border border-gray-200 md:border-transparent dark:border-slate-800 md:dark:border-transparent">
+                             <div className="text-center md:text-right">
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-widest mb-1">Total Score</p>
+                                <p className="font-black text-2xl text-slate-900 dark:text-white leading-none">{attempt.score}</p>
+                             </div>
+                             <div className="w-px h-10 bg-gray-200 dark:bg-slate-800 hidden md:block"></div>
+                             <div className="text-center md:text-right">
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-widest mb-1">Accuracy</p>
+                                <p className={`font-black text-2xl leading-none ${attempt.analytics.accuracy >= 70 ? 'text-emerald-500 dark:text-emerald-400' : attempt.analytics.accuracy >= 40 ? 'text-amber-500 dark:text-amber-400' : 'text-rose-500 dark:text-rose-400'}`}>
+                                   {attempt.analytics.accuracy}%
+                                </p>
+                             </div>
+                             <button 
+                                onClick={() => navigate(`/student/practice-result/${attempt.paper_id}`, { state: attempt })}
+                                className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 rounded-xl font-bold transition-all text-sm whitespace-nowrap shadow-sm"
+                             >
+                                Full Report
+                             </button>
+                          </div>
+                       </div>
+                    ))}
+                  </div>
+               </div>
+            )}
+         </div>
+      ) : null}
       {/* 🔥 GUIDELINES MODAL */}
       {/* 🔥 RESCHEDULE MODAL */}
       <RescheduleModal 
@@ -480,9 +594,29 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
     const [expandedSubjects, setExpandedSubjects] = useState({});
     const [expandedYears, setExpandedYears] = useState({});
 
-    // Caching Subjects Fetched dynamically from Backend (/curriculum)
     const [subjectCache, setSubjectCache] = useState({});
     const [loadingSubjects, setLoadingSubjects] = useState({}); // tracking active network fetches
+
+    // Scheduling State
+    const [schedulingPaper, setSchedulingPaper] = useState(null);
+    const [scheduledTime, setScheduledTime] = useState("");
+    const [schedulingLoading, setSchedulingLoading] = useState(false);
+
+    const handleScheduleSubmit = async (paperId) => {
+        if (!scheduledTime) return alert("Please select a time.");
+        setSchedulingLoading(true);
+        try {
+            await API.post(`/past-papers/${paperId}/schedule`, { scheduled_time: new Date(scheduledTime).toISOString() });
+            alert("Year-wise Mock Test Scheduled successfully! Check your scheduled mocks.");
+            setSchedulingPaper(null);
+            setScheduledTime("");
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.detail || "Failed to schedule");
+        } finally {
+            setSchedulingLoading(false);
+        }
+    };
 
     // Toggler: Semester
     const toggleSemester = async (sem) => {
@@ -645,12 +779,48 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                                                                             {paper.duration_minutes} Mins
                                                                                         </p>
                                                                                     </div>
-                                                                                    <button 
-                                                                                        onClick={() => navigate(`/student/practice/${paper._id}`)}
-                                                                                        className="px-6 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg font-bold hover:bg-purple-600 hover:text-slate-900 dark:text-white transition"
-                                                                                    >
-                                                                                        Practice
-                                                                                    </button>
+                                                                                    <div className="flex flex-col gap-2">
+                                                                                        {schedulingPaper === paper._id ? (
+                                                                                            <div className="flex flex-col gap-2 bg-white dark:bg-slate-950 p-2 rounded border border-purple-500/30">
+                                                                                                <input 
+                                                                                                    type="datetime-local" 
+                                                                                                    value={scheduledTime}
+                                                                                                    onChange={(e) => setScheduledTime(e.target.value)}
+                                                                                                    className="text-xs p-1 border rounded dark:bg-slate-800 dark:border-slate-700 dark:text-white focus:outline-none"
+                                                                                                />
+                                                                                                <div className="flex gap-1">
+                                                                                                    <button 
+                                                                                                        disabled={schedulingLoading}
+                                                                                                        onClick={() => handleScheduleSubmit(paper._id)}
+                                                                                                        className="flex-1 bg-purple-600 text-white text-xs py-1 rounded"
+                                                                                                    >
+                                                                                                        {schedulingLoading ? "..." : "Confirm"}
+                                                                                                    </button>
+                                                                                                    <button 
+                                                                                                        onClick={() => setSchedulingPaper(null)}
+                                                                                                        className="flex-1 bg-gray-300 dark:bg-slate-700 text-xs py-1 rounded"
+                                                                                                    >
+                                                                                                        Cancel
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        ) : (
+                                                                                            <div className="flex gap-2">
+                                                                                                <button 
+                                                                                                    onClick={() => navigate(`/student/practice/${paper._id}`)}
+                                                                                                    className="px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg font-bold hover:bg-purple-600 hover:text-slate-900 dark:text-white transition"
+                                                                                                >
+                                                                                                    Instant
+                                                                                                </button>
+                                                                                                <button 
+                                                                                                    onClick={() => setSchedulingPaper(paper._id)}
+                                                                                                    className="px-4 py-2 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-lg font-bold hover:bg-blue-600 hover:text-white transition"
+                                                                                                >
+                                                                                                    Schedule
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
                                                                                 </div>
                                                                             ))
                                                                         )}

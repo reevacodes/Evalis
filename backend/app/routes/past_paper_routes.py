@@ -5,6 +5,7 @@ from app.schemas.exam_schema import SubmissionRequest
 from bson import ObjectId
 from datetime import datetime, timezone
 import random
+from app.services.email_service import send_mock_scheduled_email
 
 router = APIRouter()
 
@@ -75,6 +76,52 @@ def get_single_past_paper(paper_id: str, user=Depends(get_current_user)):
         print(f"ERROR: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve past paper: {str(e)}")
 
+
+# ==========================
+# 🔥 SCHEDULE PAST PAPER
+# ==========================
+from pydantic import BaseModel
+class SchedulePastPaperRequest(BaseModel):
+    scheduled_time: datetime
+
+@router.post("/{paper_id}/schedule")
+def schedule_past_paper(
+    paper_id: str,
+    payload: SchedulePastPaperRequest,
+    user=Depends(get_current_user)
+):
+    try:
+        original_paper = past_papers_collection.find_one({"_id": ObjectId(paper_id)})
+        if not original_paper:
+            raise HTTPException(status_code=404, detail="Past paper not found")
+
+        exam_doc = {
+            **original_paper,
+            "_id": ObjectId(),
+            "exam_name": f"Scheduled Mock: {original_paper.get('exam_name')}",
+            "exam_type": "Practice",
+            "status": "published",
+            "start_time": payload.scheduled_time,
+            "is_instant": False,
+            "created_by": user["sub"],
+            "teacher_name": "System Generator",
+            "assigned_to": [user["sub"]],
+            "created_at": datetime.now(timezone.utc)
+        }
+
+        # Clear Original ID to avoid collision
+        result = past_papers_collection.insert_one(exam_doc)
+
+        send_mock_scheduled_email(user["sub"], exam_doc["exam_name"], str(payload.scheduled_time), is_reminder=False)
+
+        return {
+            "message": "Past paper mock test scheduled successfully",
+            "exam_id": str(result.inserted_id)
+        }
+
+    except Exception as e:
+        print("🔥 SCHEDULE PAST PAPER ERROR:", str(e))
+        raise HTTPException(status_code=500, detail="Failed to schedule past paper")
 
 # ==========================
 # 🔥 SUBMIT PRACTICE ATTEMPT
