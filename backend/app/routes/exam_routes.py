@@ -26,7 +26,7 @@ from app.services.evaluation_service import async_evaluate_submission
 from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
 from app.routes.notification_routes import send_expo_push
-from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email
+from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email, send_exam_timing_updated_email
 from app.services.activity_service import log_activity
 
 router = APIRouter()
