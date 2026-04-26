@@ -21,12 +21,23 @@ def format_to_ist(iso_string: str) -> str:
         return "Not Set"
     try:
         from datetime import datetime, timedelta
+        
+        # If the string ends with Z or has +00:00, it's UTC and needs conversion.
+        is_utc = "Z" in iso_string or "+00:00" in iso_string or iso_string.endswith("+00:00")
         clean_time = str(iso_string).replace("Z", "+00:00")
+        
+        # If it has no timezone, it is naive. We assume it is ALREADY local time.
         if "+" not in clean_time and "-" not in clean_time[10:]:
-            clean_time += "+00:00"
-        dt = datetime.fromisoformat(clean_time)
-        dt_ist = dt + timedelta(hours=5, minutes=30)
-        return dt_ist.strftime("%A, %d/%m/%Y at %I:%M %p (IST)")
+            dt = datetime.fromisoformat(clean_time)
+            dt_ist = dt  # It is already naive local time from frontend
+        else:
+            dt = datetime.fromisoformat(clean_time)
+            if is_utc:
+                dt_ist = dt + timedelta(hours=5, minutes=30)
+            else:
+                dt_ist = dt # It is already offset-aware (e.g. +05:30)
+                
+        return dt_ist.strftime("%A, %d/%m/%Y at %I:%M %p")
     except Exception as e:
         logger.warning(f"Failed to parse time for email {iso_string}: {e}")
         return str(iso_string)

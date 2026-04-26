@@ -59,12 +59,13 @@ def signup(user: UserSignup):
             name=user.name
         )
 
+    extra_details = f" | College: {user.college_name} | ID: {user.student_id}" if user.role == "student" and user.college_name else ""
     log_activity(
         actor_id="system",
         actor_name="System",
         role="system",
         action="New Registration",
-        details=f"New user registered: {user.name} ({user.role})"
+        details=f"New user registered: {user.name} ({user.role}) | Email: {user.email}{extra_details}"
     )
 
     return {
@@ -149,20 +150,24 @@ def make_admin(
 # =========================
 # 🟣 FORGOT PASSWORD
 # =========================
+from fastapi import Request
+
 @router.post("/forgot-password")
-def forgot_password(req: ForgotPasswordRequest):
-    db_user = get_user_by_email(db, req.email)
+def forgot_password(req: ForgotPasswordRequest, request: Request):
+    clean_email = req.email.strip().lower()
+    db_user = get_user_by_email(db, clean_email)
     
     if not db_user:
         return {"message": "If the email is registered, a password reset link will be sent."}
     
     # Generate a JWT token valid for 15 minutes
     reset_token = create_access_token({
-        "sub": req.email,
+        "sub": clean_email,
         "purpose": "password_reset"
     })
     
-    reset_link = f"http://localhost:5173/reset-password?token={reset_token}"
+    frontend_url = request.headers.get("origin") or "http://localhost:5173"
+    reset_link = f"{frontend_url}/reset-password?token={reset_token}"
     
     # Send email
     send_password_reset_email(req.email, reset_link)

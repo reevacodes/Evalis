@@ -67,6 +67,11 @@ def update_user_password(db, email: str, hashed_password: str):
     Update user password.
     """
     return db.users.update_one(
-        {"email": email},
+        {
+            "$or": [
+                {"email": email},
+                {"college_email": email}
+            ]
+        },
         {"$set": {"password": hashed_password}}
     )

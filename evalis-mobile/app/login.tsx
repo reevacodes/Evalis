@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import API from '../src/api/client';
 
 export default function LoginScreen() {
@@ -11,6 +12,7 @@ export default function LoginScreen() {
     const [forgotMessage, setForgotMessage] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState('');
     const [collegeEmail, setCollegeEmail] = useState('');
     const [collegeName, setCollegeName] = useState('');
@@ -236,14 +238,26 @@ export default function LoginScreen() {
                                     keyboardType="email-address"
                                 />
 
-                                <TextInput 
-                                    style={styles.input}
-                                    placeholder="Password"
-                                    placeholderTextColor="rgba(255,255,255,0.4)"
-                                    secureTextEntry
-                                    value={password}
-                                    onChangeText={setPassword}
-                                />
+                                <View style={styles.passwordContainer}>
+                                    <TextInput 
+                                        style={styles.passwordInput}
+                                        placeholder="Password"
+                                        placeholderTextColor="rgba(255,255,255,0.4)"
+                                        secureTextEntry={!showPassword}
+                                        value={password}
+                                        onChangeText={setPassword}
+                                    />
+                                    <TouchableOpacity 
+                                        style={styles.eyeIcon} 
+                                        onPress={() => setShowPassword(!showPassword)}
+                                    >
+                                        <Ionicons 
+                                            name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                                            size={20} 
+                                            color="rgba(255,255,255,0.4)" 
+                                        />
+                                    </TouchableOpacity>
+                                </View>
 
                                 {isLogin && (
                                     <View style={styles.forgotRow}>
@@ -430,6 +444,25 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         marginBottom: 16, 
+    },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 12,
+        marginBottom: 16,
+    },
+    passwordInput: {
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        color: 'white',
+        fontSize: 16,
+    },
+    eyeIcon: {
+        padding: 14,
     },
     button: {
         backgroundColor: 'white',

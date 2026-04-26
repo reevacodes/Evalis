@@ -5,6 +5,7 @@ import os
 from bson import ObjectId
 from datetime import datetime, timedelta,timezone
 import re
+from pydantic import BaseModel
 from app.services.exam_service import MIET_RULES
 
 from app.schemas.exam_schema import ExamGenerateRequest, ExamCreateRequest, RescheduleRequest, AddQuestionsRequest, DeleteQuestionRequest, SubmissionRequest, GraceMarkRequest, RequestSchedulePayload
@@ -403,14 +404,14 @@ def validate_college_hours(dt: datetime):
     dt_ist = dt.astimezone(timezone(timedelta(hours=5, minutes=30)))
     
     # 0 = Monday, 4 = Friday, 5 = Saturday, 6 = Sunday
-    if dt_ist.weekday() > 4:
-        raise HTTPException(status_code=400, detail="Exams cannot be scheduled on weekends. Please select Monday to Friday.")
+    # if dt_ist.weekday() > 4:
+    #     raise HTTPException(status_code=400, detail="Exams cannot be scheduled on weekends. Please select Monday to Friday.")
         
     # Check if time is between 09:30 and 13:00 (1 PM)
     time_minutes = dt_ist.hour * 60 + dt_ist.minute
     
-    if time_minutes < (9 * 60 + 30) or time_minutes > (13 * 60):
-        raise HTTPException(status_code=400, detail="Exams must be scheduled during college hours (09:30 AM to 01:00 PM IST).")
+    # if time_minutes < (9 * 60 + 30) or time_minutes > (13 * 60):
+    #     raise HTTPException(status_code=400, detail="Exams must be scheduled during college hours (09:30 AM to 01:00 PM IST).")
 
 def calculate_exam_state(exam, student_id=None):
     if not exam.get("start_time"):
@@ -419,9 +420,11 @@ def calculate_exam_state(exam, student_id=None):
     now = datetime.utcnow()
 
     start = exam["start_time"]
+    
+    # Strip timezone info if present to safely compare with utcnow()
+    if start.tzinfo is not None:
+        start = start.replace(tzinfo=None)
 
-    if start.tzinfo is None:
-        start = start
     end = start + timedelta(minutes=exam.get("duration_minutes", 30))
 
     if now < start:
@@ -551,12 +554,12 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
     # ✅ PARSE TIME
     start_time = datetime.fromisoformat(start_time_str).replace(tzinfo=None)
     
-    # ✅ VALIDATE SCHEDULING TIMEFRAME
-    if start_time < datetime.utcnow() + timedelta(days=1):
-        raise HTTPException(
-            status_code=400,
-            detail="Exams must be scheduled at least 1 day in advance."
-        )
+    # ✅ VALIDATE SCHEDULING TIMEFRAME (Disabled for testing)
+    # if start_time < datetime.utcnow() + timedelta(days=1):
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="Exams must be scheduled at least 1 day in advance."
+    #     )
 
     # ✅ ZERO-TRUST JUST-IN-TIME SET GENERATION
     # The teacher built the Seed Pool. Now we enforce the Hybrid Engine.
@@ -612,10 +615,12 @@ def schedule_exam(exam_id: str, data: dict, user=Depends(require_role("admin")))
                 notification_collection.insert_many(notifications)
                 
                 for student in students:
-                    if student.get("email"):
-                        send_exam_timing_updated_email(student.get("email"), exam_name, start_time_str)
+                    email = student.get("email")
+                    if email:
+                        send_exam_timing_updated_email(email, exam_name, start_time_str)
+                        send_expo_push(email, "Exam Timing Updated", f"The timing for '{exam_name}' has been updated.")
         except Exception as e:
-            print("⚠️ Failed to broadcast reschedule notifications:", str(e))
+            print("Failed to broadcast reschedule notifications:", str(e))
 
     return {"message": "Exam scheduled successfully"}
 
@@ -1104,9 +1109,9 @@ def publish_exam_api(
         exam_name = exam.get("exam_name") or exam.get("title", "A new formal exam")
         subject_code = exam.get("subject_code", "N/A")
         
-        # Format the time nicely for the email
+        # Pass ISO format so the email service can correctly convert to IST
         start_t = exam.get("start_time")
-        time_str = start_t.strftime("%Y-%m-%d %I:%M %p") if isinstance(start_t, datetime) else str(start_t)
+        time_str = start_t.isoformat() if isinstance(start_t, datetime) else str(start_t)
         duration = exam.get("duration_minutes", 0)
 
         students = list(user_collection.find({"role": "student"}))
@@ -1127,12 +1132,14 @@ def publish_exam_api(
             notification_collection.insert_many(notifications)
             
             for student in students:
-                if student.get("email"):
-                    send_exam_publish_email(student.get("email"), exam_name, subject_code, time_str, duration)
+                email = student.get("email")
+                if email:
+                    send_exam_publish_email(email, exam_name, subject_code, time_str, duration)
+                    send_expo_push(email, "New Examination Available", f"'{exam_name}' has been published and is now live on your dashboard.")
                     
-            print(f"📡 Broadcasted Exam Publish Email to {len(students)} students.")
+            print(f"Broadcasted Exam Publish Email and Push to {len(students)} students.")
     except Exception as e:
-        print("⚠️ Failed to broadcast exam publish notifications:", str(e))
+        print("Failed to broadcast exam publish notifications:", str(e))
 
     return {"message": "Exam published successfully and students notified"}
 
@@ -1373,14 +1380,17 @@ def request_reschedule(
                 detail="Reschedule requests must be submitted at least 5 days before the exam's scheduled start time."
             )
         
-    # Check if a pending request already exists
-    pending_req = reschedule_collection.find_one({
+    # Check if a pending or approved request already exists
+    existing_req = reschedule_collection.find_one({
         "student_id": user["sub"],
         "exam_id": exam_id,
-        "status": "pending"
+        "status": {"$in": ["pending", "approved"]}
     })
     
-    if pending_req:
+    if existing_req:
+        status_msg = existing_req.get("status")
+        if status_msg == "approved":
+            raise HTTPException(status_code=400, detail="Your reschedule request for this exam has already been approved.")
         raise HTTPException(status_code=400, detail="You already have a pending reschedule request for this exam.")
         
     # Check total limit (max 2 attempts)
@@ -1542,14 +1552,19 @@ def update_reschedule_request(
             }}
         )
     
+    # Send push notification
+    if status == "rejected":
+        send_expo_push(req["student_id"], "Reschedule Request Rejected", f"Your reschedule request for {exam_name} was rejected.")
+    elif status == "approved":
+        send_expo_push(req["student_id"], "Reschedule Request Approved", f"Your reschedule request for {exam_name} has been approved!")
+    
     student_data = user_collection.find_one({"sub": req["student_id"]}) or user_collection.find_one({"email": req["student_id"]})
     to_email = student_data.get("email") if student_data else req["student_id"]
     
     if to_email:
         time_str = req["preferred_time"] if status == "approved" else None
         if time_str and isinstance(time_str, datetime):
-            time_str = time_str.isoformat()
-            
+            time_str = time_str.replace(tzinfo=timezone.utc).isoformat()
         send_reschedule_status_email(to_email, exam_name, status, time_str)
     
     return {"message": f"Request {status} successfully"}
@@ -1728,4 +1743,34 @@ def generate_mock_test(payload: MockTestGeneratePayload, user=Depends(get_curren
         "message": "Mock test generated successfully",
         "exam_id": str(result.inserted_id)
     }
+
+class SchedulePastPaperPayload(BaseModel):
+    scheduled_time: datetime
+
+@router.post("/mock-tests/schedule-past-paper/{paper_id}")
+async def schedule_past_paper(paper_id: str, payload: SchedulePastPaperPayload, user = Depends(get_current_user)):
+    try:
+        from bson import ObjectId
+        paper = past_papers_collection.find_one({"_id": ObjectId(paper_id)})
+        if not paper:
+            raise HTTPException(status_code=404, detail="Past paper not found")
+            
+        # clone it
+        del paper["_id"]
+        paper["exam_type"] = "Practice"
+        paper["is_instant"] = False
+        paper["start_time"] = payload.scheduled_time
+        paper["assigned_to"] = [user["sub"]]
+        paper["created_at"] = datetime.now(timezone.utc)
+        
+        result = past_papers_collection.insert_one(paper)
+        
+        send_mock_scheduled_email(user["sub"], paper.get("exam_name", "Past Paper Mock"), str(payload.scheduled_time), is_reminder=False)
+        
+        return {
+            "message": "Past paper scheduled successfully",
+            "exam_id": str(result.inserted_id)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 

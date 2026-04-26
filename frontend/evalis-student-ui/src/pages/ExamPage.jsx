@@ -246,13 +246,13 @@ export default function ExamPage({ isPractice = false }) {
                      const leftEyeToNoseX = Math.abs(nose[0] - leftEye[0]);
                      const rightEyeToNoseX = Math.abs(nose[0] - rightEye[0]);
 
-                     // Pitch
-                     const lookingDown = noseToMouthY < (eyeToNoseY * 0.6); 
-                     const lookingUp = eyeToNoseY < (noseToMouthY * 0.4);
+                     // Pitch (Relaxed to avoid false positives when reading bottom of screen)
+                     const lookingDown = noseToMouthY < (eyeToNoseY * 0.35); 
+                     const lookingUp = eyeToNoseY < (noseToMouthY * 0.25);
 
-                     // Yaw
-                     const lookingLeft = leftEyeToNoseX > (rightEyeToNoseX * 2.5);
-                     const lookingRight = rightEyeToNoseX > (leftEyeToNoseX * 2.5);
+                     // Yaw (Relaxed to allow looking at screen edges)
+                     const lookingLeft = leftEyeToNoseX > (rightEyeToNoseX * 3.5);
+                     const lookingRight = rightEyeToNoseX > (leftEyeToNoseX * 3.5);
 
                      if (lookingDown || lookingUp || lookingLeft || lookingRight) {
                          consecutivePoseFrames.current += 1;
@@ -262,12 +262,12 @@ export default function ExamPage({ isPractice = false }) {
                  }
              }
 
-             // Violation Thresholds (Reduced from 6 to 3 frames for faster detection)
+             // Violation Thresholds (Increased to prevent micro-movement false positives)
              let violationReason = null;
 
-             if (consecutiveMissingFrames.current >= 3) violationReason = "Face not detected in frame";
-             else if (consecutiveMultipleFrames.current >= 3) violationReason = "Multiple people detected";
-             else if (consecutivePoseFrames.current >= 3) violationReason = "Suspicious head pose (looking away)";
+             if (consecutiveMissingFrames.current >= 15) violationReason = "Face not detected in frame";
+             else if (consecutiveMultipleFrames.current >= 15) violationReason = "Multiple people detected";
+             else if (consecutivePoseFrames.current >= 15) violationReason = "Suspicious head pose (looking away)";
 
              if (violationReason) {
                  cvWarningCountRef.current += 1;

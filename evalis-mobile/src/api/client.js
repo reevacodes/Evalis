@@ -5,11 +5,8 @@ import { Platform } from 'react-native';
 // React Native Localhost Bridge:
 // Configured explicitly for Physical Phone LAN Testing
 const getBaseUrl = () => {
-    if (Platform.OS === 'web') {
-        return 'http://localhost:8000';
-    }
-    // Local Wi-Fi IP for physical device testing
-    return 'http://192.168.1.10:8000';
+    // Ngrok Tunnel for remote physical device testing and APK builds
+    return 'https://uncouple-plant-contend.ngrok-free.dev';
 };
 
 const API = axios.create({

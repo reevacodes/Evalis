@@ -47,14 +47,19 @@ def check_and_send_official_exam_reminders():
                 continue
                 
             if start_time.tzinfo is None:
-                start_time = start_time.replace(tzinfo=timezone.utc)
+                # Naive datetimes are already in local time (IST) based on how they are saved in schedule_exam_api
+                start_ist = start_time
+                start_time_utc = start_time - timedelta(hours=5, minutes=30)
+                start_time_utc = start_time_utc.replace(tzinfo=timezone.utc)
+            else:
+                start_ist = start_time + timedelta(hours=5, minutes=30)
+                start_time_utc = start_time
                 
-            time_diff = start_time - now
+            time_diff = start_time_utc - now
             days_until_exam = time_diff.total_seconds() / 86400.0
             
             # Convert to IST for calendar-day comparison
             now_ist = now + timedelta(hours=5, minutes=30)
-            start_ist = start_time + timedelta(hours=5, minutes=30)
             
             is_same_day = now_ist.date() == start_ist.date()
             is_after_8am = now_ist.hour >= 8

@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Circle } from 'react-native-svg';
 import API from '../../src/api/client';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Notifications from 'expo-notifications';
 import { useThemeStyles } from '../../src/hooks/useThemeStyles';
 
 export default function PracticeScreen() {
@@ -30,6 +32,13 @@ export default function PracticeScreen() {
     const [pattern, setPattern] = useState<'mixed'|'mcq'>('mixed');
     const [preset, setPreset] = useState<'Midsem'|'Final'>('Midsem');
     const [generating, setGenerating] = useState(false);
+    
+    // Scheduling State
+    const [startMode, setStartMode] = useState<'instant'|'scheduled'>('instant');
+    const [scheduledDate, setScheduledDate] = useState<Date>(new Date(Date.now() + 3600000));
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
+    const [schedulingPaperId, setSchedulingPaperId] = useState<string | null>(null);
 
     // Play State
     const [selectedPaper, setSelectedPaper] = useState<any>(null);
@@ -40,6 +49,12 @@ export default function PracticeScreen() {
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [loadingPaper, setLoadingPaper] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [nowTime, setNowTime] = useState(Date.now());
+
+    useEffect(() => {
+        const interval = setInterval(() => setNowTime(Date.now()), 10000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         if (mode === 'list') {
@@ -112,19 +127,78 @@ export default function PracticeScreen() {
         
         setGenerating(true);
         try {
+            let finalScheduledTime = null;
+            if (startMode === 'scheduled') {
+                finalScheduledTime = scheduledDate.toISOString();
+            }
+
             const payload = {
                 subject_code: selectedSubject.code,
                 topics: topics,
                 duration_preset: preset,
                 pattern: pattern,
-                start_mode: "instant",
-                scheduled_time: null
+                start_mode: startMode,
+                scheduled_time: finalScheduledTime
             };
             const res = await API.post("/exam/mock-tests/generate", payload);
-            startPractice(res.data.exam_id);
+            if (startMode === 'instant') {
+                startPractice(res.data.exam_id);
+            } else {
+                Alert.alert("Success", "Mock exam scheduled successfully!");
+                setTab('scheduled');
+                
+                if (scheduledDate > new Date()) {
+                    try {
+                        await Notifications.scheduleNotificationAsync({
+                            content: {
+                                title: "Mock Exam Ready! 📝",
+                                body: `Your scheduled practice exam for ${selectedSubject.name || 'this subject'} is now ready to take. Good luck!`,
+                                sound: true,
+                            },
+                            trigger: scheduledDate,
+                        });
+                    } catch (notifErr) {
+                        console.log("Failed to schedule local notification", notifErr);
+                    }
+                }
+            }
         } catch (err: any) {
             console.error(err);
             Alert.alert("Error", err.response?.data?.detail || "Failed to generate mock test");
+        } finally {
+            setGenerating(false);
+        }
+    };
+
+    const confirmSchedulePastPaper = async (p: any) => {
+        setGenerating(true);
+        try {
+            const payload = {
+                scheduled_time: scheduledDate.toISOString()
+            };
+            await API.post(`/exam/mock-tests/schedule-past-paper/${p._id}`, payload);
+            
+            Alert.alert("Success", "Past paper scheduled successfully!");
+            setSchedulingPaperId(null);
+            setTab('scheduled');
+            
+            if (scheduledDate > new Date()) {
+                try {
+                    await Notifications.scheduleNotificationAsync({
+                        content: {
+                            title: "Past Paper Ready! 📝",
+                            body: `Your scheduled past paper (${p.exam_name || 'Official Paper'}) is now ready to take.`,
+                            sound: true,
+                        },
+                        trigger: scheduledDate,
+                    });
+                } catch (err) {
+                    console.log("Failed to schedule local notification", err);
+                }
+            }
+        } catch (err: any) {
+            console.error(err);
+            Alert.alert("Error", err.response?.data?.detail || "Failed to schedule past paper");
         } finally {
             setGenerating(false);
         }
@@ -208,7 +282,7 @@ export default function PracticeScreen() {
                 contentContainerStyle={{ paddingBottom: 60 }}
                 refreshControl={
                     tab === 'history' ? <RefreshControl refreshing={loadingHistory} onRefresh={fetchHistory} tintColor={theme.primary} /> : 
-                    tab === 'past_papers' ? <RefreshControl refreshing={loadingPapers} onRefresh={fetchPapers} tintColor={theme.primary} /> : 
+                    (tab === 'past_papers' || tab === 'scheduled') ? <RefreshControl refreshing={loadingPapers} onRefresh={fetchPapers} tintColor={theme.primary} /> : 
                     undefined
                 }
             >
@@ -355,6 +429,66 @@ export default function PracticeScreen() {
                     </View>
                 </View>
 
+                {/* Scheduling */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>WHEN TO START</Text>
+                    <View style={styles.rowGrid}>
+                        <TouchableOpacity 
+                            style={[styles.toggleBtn, startMode === 'instant' && styles.toggleBtnActive]}
+                            onPress={() => setStartMode('instant')}
+                        >
+                            <Text style={[styles.toggleText, startMode === 'instant' && styles.toggleTextActive]}>Start Now</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[styles.toggleBtn, startMode === 'scheduled' && styles.toggleBtnActive]}
+                            onPress={() => setStartMode('scheduled')}
+                        >
+                            <Text style={[styles.toggleText, startMode === 'scheduled' && styles.toggleTextActive]}>Schedule Later</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {startMode === 'scheduled' && (
+                        <View style={{ marginTop: 12, flexDirection: 'row', gap: 10 }}>
+                            <TouchableOpacity 
+                                style={[styles.bubbleBtn, {flex: 1, alignItems: 'center'}]}
+                                onPress={() => setShowDatePicker(true)}
+                            >
+                                <Ionicons name="calendar-outline" size={18} color={theme.primary} style={{marginBottom: 4}}/>
+                                <Text style={styles.bubbleText}>{scheduledDate.toLocaleDateString()}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={[styles.bubbleBtn, {flex: 1, alignItems: 'center'}]}
+                                onPress={() => setShowTimePicker(true)}
+                            >
+                                <Ionicons name="time-outline" size={18} color={theme.primary} style={{marginBottom: 4}}/>
+                                <Text style={styles.bubbleText}>{scheduledDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
+                            </TouchableOpacity>
+
+                            {showDatePicker && (
+                                <DateTimePicker
+                                    value={scheduledDate}
+                                    mode="date"
+                                    minimumDate={new Date()}
+                                    onChange={(event, date) => {
+                                        setShowDatePicker(false);
+                                        if (date) setScheduledDate(date);
+                                    }}
+                                />
+                            )}
+                            {showTimePicker && (
+                                <DateTimePicker
+                                    value={scheduledDate}
+                                    mode="time"
+                                    onChange={(event, date) => {
+                                        setShowTimePicker(false);
+                                        if (date) setScheduledDate(date);
+                                    }}
+                                />
+                            )}
+                        </View>
+                    )}
+                </View>
+
                 {/* Generate Button */}
                 <TouchableOpacity 
                     style={[styles.generateFinalBtn, topics.length === 0 && { opacity: 0.5 }]}
@@ -364,7 +498,9 @@ export default function PracticeScreen() {
                     {generating ? (
                         <ActivityIndicator color="#fff" />
                     ) : (
-                        <Text style={styles.generateFinalBtnText}>Generate Practice Exam</Text>
+                        <Text style={styles.generateFinalBtnText}>
+                            {startMode === 'instant' ? "Generate Practice Exam" : "Schedule Practice Exam"}
+                        </Text>
                     )}
                 </TouchableOpacity>
 
@@ -406,11 +542,56 @@ export default function PracticeScreen() {
                                             </View>
                                             <View style={[styles.cardFooter, {justifyContent: 'space-between'}]}>
                                                 <Text style={{color: theme.textSecondary, fontSize: 13}}>Format: {(p.exam_type || "Mixed").toUpperCase()}</Text>
-                                                <TouchableOpacity onPress={() => startPractice(p._id)} style={{flexDirection:'row', alignItems:'center'}}>
-                                                    <Text style={styles.viewBtnText}>Start Practice</Text>
-                                                    <Ionicons name="play" size={14} color={theme.primary} style={{marginLeft: 4}}/>
-                                                </TouchableOpacity>
+                                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                                    <TouchableOpacity onPress={() => setSchedulingPaperId(schedulingPaperId === p._id ? null : p._id)} style={{flexDirection:'row', alignItems:'center', marginRight: 15}}>
+                                                        <Text style={styles.viewBtnText}>Schedule</Text>
+                                                        <Ionicons name="calendar-outline" size={14} color={theme.primary} style={{marginLeft: 4}}/>
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity onPress={() => startPractice(p._id)} style={{flexDirection:'row', alignItems:'center'}}>
+                                                        <Text style={styles.viewBtnText}>Start Practice</Text>
+                                                        <Ionicons name="play" size={14} color={theme.primary} style={{marginLeft: 4}}/>
+                                                    </TouchableOpacity>
+                                                </View>
                                             </View>
+                                            {schedulingPaperId === p._id && (
+                                                <View style={{padding: 12, backgroundColor: 'rgba(59,130,246,0.05)', borderTopWidth: 1, borderColor: theme.border}}>
+                                                    <Text style={{color: theme.text, fontSize: 13, marginBottom: 8, fontWeight: 'bold'}}>Select Schedule Time:</Text>
+                                                    <View style={{flexDirection: 'row', gap: 10, marginBottom: 12}}>
+                                                        <TouchableOpacity style={[styles.bubbleBtn, {flex: 1, alignItems: 'center'}]} onPress={() => setShowDatePicker(true)}>
+                                                            <Ionicons name="calendar-outline" size={18} color={theme.primary} style={{marginBottom: 4}}/>
+                                                            <Text style={styles.bubbleText}>{scheduledDate.toLocaleDateString()}</Text>
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity style={[styles.bubbleBtn, {flex: 1, alignItems: 'center'}]} onPress={() => setShowTimePicker(true)}>
+                                                            <Ionicons name="time-outline" size={18} color={theme.primary} style={{marginBottom: 4}}/>
+                                                            <Text style={styles.bubbleText}>{scheduledDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                    
+                                                    {showDatePicker && (
+                                                        <DateTimePicker
+                                                            value={scheduledDate}
+                                                            mode="date"
+                                                            minimumDate={new Date()}
+                                                            onChange={(e, d) => { setShowDatePicker(false); if(d) setScheduledDate(d); }}
+                                                        />
+                                                    )}
+                                                    {showTimePicker && (
+                                                        <DateTimePicker
+                                                            value={scheduledDate}
+                                                            mode="time"
+                                                            onChange={(e, d) => { setShowTimePicker(false); if(d) setScheduledDate(d); }}
+                                                        />
+                                                    )}
+
+                                                    <TouchableOpacity 
+                                                        style={[styles.generateFinalBtn, {paddingVertical: 10, borderRadius: 8}]}
+                                                        onPress={() => confirmSchedulePastPaper(p)}
+                                                        disabled={generating}
+                                                    >
+                                                        {generating ? <ActivityIndicator color="#fff"/> : <Text style={styles.generateFinalBtnText}>Confirm Schedule</Text>}
+                                                    </TouchableOpacity>
+                                                </View>
+                                            )}
                                         </View>
                                     ))}
                                 </View>
@@ -431,7 +612,7 @@ export default function PracticeScreen() {
                             .map((p: any) => {
                                 const rawTime = p.start_time || new Date().toISOString();
                                 const d = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
-                                const isReady = d <= new Date();
+                                const isReady = d.getTime() <= nowTime;
                                 return (
                                 <View key={p._id} style={styles.attemptCard}>
                                     <View style={styles.cardHeader}>

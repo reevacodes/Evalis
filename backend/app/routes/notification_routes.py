@@ -12,8 +12,12 @@ from app.utils.auth_dependency import require_role, get_current_user
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
 def send_expo_push(user_id: str, title: str, message: str, data: dict = None):
-    # Find user
-    user = user_collection.find_one({"email": user_id})
+    user = user_collection.find_one({
+        "$or": [
+            {"email": user_id},
+            {"college_email": user_id}
+        ]
+    })
     if not user or not user.get("push_token"):
         return False
         
@@ -25,10 +29,10 @@ def send_expo_push(user_id: str, title: str, message: str, data: dict = None):
             "data": data or {}
         }
         res = requests.post("https://exp.host/--/api/v2/push/send", json=payload, timeout=5)
-        print("📡 Sent physical push notification to", user_id, "Status:", res.status_code)
+        print("Sent physical push notification to", user_id, "Status:", res.status_code)
         return True
     except Exception as e:
-        print("⚠️ Push Notification Failed:", str(e))
+        print("Push Notification Failed:", str(e))
         return False
 
 class PushTokenUpdate(BaseModel):
@@ -36,8 +40,14 @@ class PushTokenUpdate(BaseModel):
 
 @router.put("/push-token")
 def update_push_token(req: PushTokenUpdate, user=Depends(get_current_user)):
+    user_id = user.get("email") or user.get("sub")
     user_collection.update_one(
-        {"email": user.get("email") or user.get("sub")},
+        {
+            "$or": [
+                {"email": user_id},
+                {"college_email": user_id}
+            ]
+        },
         {"$set": {"push_token": req.token}}
     )
     return {"message": "Push token linked to device."}
