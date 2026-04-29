@@ -3,6 +3,7 @@ import time
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
+import os
 
 app = FastAPI()
 client = docker.from_env()
