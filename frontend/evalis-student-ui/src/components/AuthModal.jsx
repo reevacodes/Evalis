@@ -27,12 +27,16 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
     if (!email) return;
+    setLoading(true);
+    setForgotMessage("");
     try {
       const res = await forgotPassword({ email });
-      setForgotMessage(res.data.message || "If the email is registered, a new password will be sent.");
+      setForgotMessage(res.data.message || "If this email is registered, you will receive a reset link.");
     } catch (err) {
       console.error(err);
-      setForgotMessage("Failed to send reset request.");
+      setForgotMessage("If this email is registered, you will receive a reset link."); // Security best practice: don't reveal if email exists
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -131,9 +135,10 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
             />
             <button
               type="submit"
-              className="bg-white text-black py-3 rounded-lg font-medium hover:opacity-90 transition mt-2"
+              className="bg-white text-black py-3 rounded-lg font-medium hover:opacity-90 transition mt-2 flex justify-center items-center gap-2 disabled:opacity-50"
+              disabled={loading}
             >
-              Send Reset Email
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Reset Email"}
             </button>
             <p className="text-center text-sm text-gray-400 mt-4">
               Remember your password? 
