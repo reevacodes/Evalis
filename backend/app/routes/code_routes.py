@@ -66,7 +66,10 @@ def run_sample_code(
     if not question:
        raise HTTPException(status_code=404, detail="Question not found")
 
-    test_cases = question.get("test_cases", [])
+    test_cases = question.get("test_cases")
+    if not test_cases:
+        test_cases = question.get("sample_test_cases", [])
+
     if len(test_cases) == 0:
         raise HTTPException(status_code=400, detail="No test cases available")
 
@@ -113,7 +116,9 @@ def submit_code(
     if question.get("question_type") != "coding":
         raise HTTPException(status_code=400, detail="Not coding")
 
-    test_cases = question.get("test_cases", [])
+    test_cases = question.get("test_cases")
+    if not test_cases:
+        test_cases = question.get("sample_test_cases", [])
 
     sample_cases = test_cases[:1]
     hidden_cases = test_cases[1:] if len(test_cases) > 1 else test_cases[:1]
