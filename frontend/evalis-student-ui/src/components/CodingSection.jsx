@@ -448,80 +448,94 @@ export default function CodingSection({
 
             <div className="flex-1 overflow-y-auto p-3 text-sm">
               {activeTab === "console" && (
-                <>
+                <div className="flex flex-col h-full">
+                  {verdict && !verdict.includes("Failed") && !verdict.includes("Passed") && !verdict.includes("Accepted") && (
+                    <div className={`text-lg font-bold mb-3 text-red-500`}>
+                      {verdict}
+                    </div>
+                  )}
                   <textarea
                     value={customInput}
                     onChange={(e) => setCustomInput(e.target.value)}
-                    className="w-full bg-white dark:bg-slate-800 p-2 mb-3 text-xs rounded"
+                    className="w-full bg-slate-50 dark:bg-slate-800 p-3 mb-3 text-sm rounded-lg border border-slate-200 dark:border-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={3}
+                    placeholder="Custom Input..."
                   />
 
-                  <div className="bg-gray-50 dark:bg-slate-900 p-3 rounded text-gray-200 whitespace-pre-wrap border border-gray-200 dark:border-slate-800">
+                  <div className={`flex-1 overflow-y-auto p-4 rounded-lg font-mono text-sm whitespace-pre-wrap border ${verdict === "Runtime Error" || verdict === "Compilation Error" ? "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400" : "bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200"}`}>
                     {output || "Run your code to see output"}
                   </div>
-                </>
+                </div>
               )}
 
               {activeTab === "tests" && (
-                <div className="space-y-2">
-                  {testDetails.map((t, i) => {
-                    const isOpen = expandedTest === i;
+                <div className="flex flex-col h-full">
+                  {verdict && (
+                    <div className={`text-xl font-bold mb-4 ${verdict.includes('Passed') || verdict.includes('Accepted') ? 'text-green-500' : 'text-red-500'}`}>
+                      {verdict}
+                    </div>
+                  )}
 
-                    return (
-                      <div
-                        key={i}
-                        className="border border-gray-200 dark:border-slate-800 rounded overflow-hidden"
-                      >
-                        <div
-                          onClick={() => setExpandedTest(isOpen ? null : i)}
-                          className="flex justify-between items-center px-3 py-2 cursor-pointer bg-gray-50 dark:bg-slate-900 hover:bg-white dark:bg-slate-800"
-                        >
-                          <span>Test Case {i + 1}</span>
-
-                          <span
-                            className={`text-xs px-2 py-1 rounded ${
-                              t.verdict === "AC"
-                                ? "bg-green-600"
-                                : t.verdict === "PENDING"
-                                  ? "bg-yellow-600"
-                                  : "bg-red-600"
+                  {testDetails.length > 0 && (
+                    <>
+                      {/* TEST CASE PILLS */}
+                      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-thin">
+                        {testDetails.map((t, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setExpandedTest(i)}
+                            className={`flex items-center whitespace-nowrap gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              expandedTest === i 
+                                ? "bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white" 
+                                : "bg-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                             }`}
                           >
-                            {t.status}
-                          </span>
-                        </div>
-
-                        {isOpen && t.input && (
-                          <div className="p-3 text-xs bg-white dark:bg-slate-950 space-y-2">
-                            <div>
-                              <div className="text-gray-400">Input</div>
-                              <div className="bg-white dark:bg-slate-800 p-2 rounded">
-                                {t.input}
-                              </div>
-                            </div>
-
-                            <div>
-                              <div className="text-gray-400">Expected</div>
-                              <div className="bg-white dark:bg-slate-800 p-2 rounded">
-                                {t.expected}
-                              </div>
-                            </div>
-
-                            <div>
-                              <div className="text-gray-400">Your Output</div>
-                              <div className="bg-white dark:bg-slate-800 p-2 rounded">
-                                {t.output}
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                            <div className={`w-2 h-2 rounded-full ${t.verdict === "AC" ? "bg-green-500" : t.verdict === "PENDING" ? "bg-yellow-500" : "bg-red-500"}`}></div>
+                            Case {i + 1}
+                          </button>
+                        ))}
                       </div>
-                    );
-                  })}
 
+                      {/* SELECTED TEST CASE DETAILS */}
+                      {expandedTest !== null && testDetails[expandedTest] && (
+                        <div className="flex-1 overflow-y-auto space-y-5 pr-2">
+                          {(testDetails[expandedTest].verdict === "RE" || testDetails[expandedTest].verdict === "CE") ? (
+                             <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap">
+                               {testDetails[expandedTest].output || testDetails[expandedTest].status}
+                             </div>
+                          ) : (
+                            <>
+                              <div>
+                                <div className="text-xs text-slate-500 mb-1.5 font-semibold uppercase tracking-wider">Input</div>
+                                <div className="bg-slate-50 dark:bg-slate-900/50 p-3.5 rounded-lg font-mono text-sm whitespace-pre-wrap border border-slate-200 dark:border-slate-800">
+                                  {testDetails[expandedTest].input}
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <div className="text-xs text-slate-500 mb-1.5 font-semibold uppercase tracking-wider">Your Output</div>
+                                <div className={`p-3.5 rounded-lg font-mono text-sm whitespace-pre-wrap border ${testDetails[expandedTest].verdict === "AC" ? "bg-green-500/5 border-green-500/20 text-green-700 dark:text-green-400" : "bg-red-500/5 border-red-500/20 text-red-700 dark:text-red-400"}`}>
+                                  {testDetails[expandedTest].output || "No output"}
+                                </div>
+                              </div>
+
+                              {testDetails[expandedTest].expected && (
+                                <div>
+                                  <div className="text-xs text-slate-500 mb-1.5 font-semibold uppercase tracking-wider">Expected Output</div>
+                                  <div className="bg-slate-50 dark:bg-slate-900/50 p-3.5 rounded-lg font-mono text-sm whitespace-pre-wrap border border-slate-200 dark:border-slate-800">
+                                    {testDetails[expandedTest].expected}
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
                   {testDetails.length === 0 && (
-                    <div className="text-gray-500">
-                      Submit to see test cases
+                    <div className="text-slate-500 flex items-center justify-center h-full">
+                      Run or Submit to see test cases.
                     </div>
                   )}
                 </div>
