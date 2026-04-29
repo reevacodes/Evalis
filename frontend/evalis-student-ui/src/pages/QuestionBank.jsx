@@ -81,11 +81,8 @@ export default function QuestionBank() {
   }, [selection.semester]);
 
   const fetchCurriculum = async () => {
-    const res = await fetch(
-      `http://localhost:8000/curriculum/${selection.semester}`,
-    );
-    const data = await res.json();
-    setCurriculum(data);
+    const res = await API.get(`/curriculum/${selection.semester}`);
+    setCurriculum(res.data);
   };
 
   // =========================
@@ -95,12 +92,7 @@ export default function QuestionBank() {
     setLoading(true);
 
     try {
-      console.log("FILTERS:", {
-        semester: selection.semester,
-        subject: selection.subject,
-        unit: selection.unit,
-        topic: selection.topic,
-      });
+
 
       const res = await getQuestions({
         semester: Number(selection.semester),
@@ -116,7 +108,7 @@ export default function QuestionBank() {
 
       const data = res.data;
 
-      console.log("API RESPONSE:", data);
+
 
       setQuestions(data.data || []);
       setPagination({

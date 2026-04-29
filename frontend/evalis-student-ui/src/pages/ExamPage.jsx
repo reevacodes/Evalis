@@ -87,9 +87,7 @@ export default function ExamPage({ isPractice = false }) {
         const res = isPractice ? await fetchPastPaper(examId) : await fetchExam(examId);
         const data = res;
 
-        console.log("FULL DATA:", data); // 🔥 add this
-        console.log("TIME STATUS:", data.time_status); // 🔥 add this
-        console.log("START TIME:", data.start_time); // 🔥 add this
+
 
         if (!data?.sections?.length) {
           setExamExists(false);
@@ -238,7 +236,7 @@ export default function ExamPage({ isPractice = false }) {
         await tf.ready();
         blazefaceModel = await blazeface.load();
 
-        console.log("✅ Advanced AI Proctoring Active (Fast BlazeFace)");
+
 
         aiIntervalRef.current = setInterval(async () => {
           if (!videoRef.current || !blazefaceModel || isPredicting || submittedRef.current) return;
@@ -315,7 +313,7 @@ export default function ExamPage({ isPractice = false }) {
                  }
              }
           } catch (e) {
-             console.log("AI Prediction error", e);
+
           } finally {
              isPredicting = false;
           }

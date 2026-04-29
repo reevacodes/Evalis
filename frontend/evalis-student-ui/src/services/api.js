@@ -1,7 +1,10 @@
 import axios from "axios";
 
+// Automatically use the live backend URL when deployed, and localhost when developing
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const API = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },

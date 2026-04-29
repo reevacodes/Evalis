@@ -80,13 +80,13 @@ export default function TopicEditor() {
         units: units,
       });
 
-      console.log("✅ Topics saved:", units);
+
 
       // 🔥 STEP 2: GENERATE QUESTIONS
       const res = await generateSmartQuestions(examId);
       const questions = res.data.questions;
 
-      console.log("🔥 GENERATED QUESTIONS:", questions);
+
 
       // 🔥 STEP 3: STORE IN CONTEXT
       clearQuestions();
@@ -100,7 +100,7 @@ export default function TopicEditor() {
         });
       });
 
-      console.log("📦 QUESTIONS ADDED:", questions.length);
+
 
       // 🔥 STEP 4: NAVIGATE
       navigate("/exam-builder");

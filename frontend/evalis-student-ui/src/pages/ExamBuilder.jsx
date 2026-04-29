@@ -28,7 +28,7 @@ export default function ExamBuilder() {
 
       const res = await generateSmartQuestions(examId);
 
-      console.log("🔥 API RESPONSE:", res.data);
+
 
       // ✅ IMPORTANT FIX
       res.data.questions.forEach((q) => {

@@ -21,12 +21,12 @@ export const ExamProvider = ({ children }) => {
   const addQuestion = (q) => {
     setSelectedQuestions((prev) => {
       if (prev.some((item) => item.id === q.id)) {
-        console.log("⚠️ Duplicate skipped:", q.id);
+
         return prev;
       }
 
       const updated = [...prev, q];
-      console.log("✅ Added question:", q.text);
+
       return updated;
     });
   };
@@ -35,14 +35,14 @@ export const ExamProvider = ({ children }) => {
   const removeQuestion = (id) => {
     setSelectedQuestions((prev) => {
       const updated = prev.filter((q) => q.id !== id);
-      console.log("🗑️ Removed question:", id);
+
       return updated;
     });
   };
 
   // 🧹 CLEAR ALL
   const clearQuestions = () => {
-    console.log("🧹 Clearing all questions");
+
     setSelectedQuestions([]);
     localStorage.removeItem("selectedQuestions");
   };

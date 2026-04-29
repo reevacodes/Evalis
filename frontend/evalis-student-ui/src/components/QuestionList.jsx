@@ -64,7 +64,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
     if (onSelect) {
       onSelect(q);
     } else {
-      console.log("➕ Add (no handler):", q);
+
     }
   };
 
