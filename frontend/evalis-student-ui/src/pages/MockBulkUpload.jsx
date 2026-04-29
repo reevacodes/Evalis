@@ -18,17 +18,23 @@ export default function MockBulkUpload() {
       
       const parsed = JSON.parse(jsonText);
       const questions = parsed.questions || parsed;
+      const questionType = parsed.type || "coding";
 
       if (!Array.isArray(questions)) {
         throw new Error("JSON must be an array of questions or an object with a 'questions' array.");
       }
+
+      const questionsWithType = questions.map(q => ({
+        ...q,
+        type: q.type || questionType
+      }));
 
       const payload = {
         subject_code: subjectCode,
         subject_name: subjectName,
         semester: Number(semester),
         unit: unit,
-        questions: questions
+        questions: questionsWithType
       };
 
       const res = await API.post('/questions/mock-questions/bulk', payload);
