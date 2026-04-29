@@ -115,11 +115,8 @@ def submit_code(
 
     test_cases = question.get("test_cases", [])
 
-    if len(test_cases) < 2:
-        raise HTTPException(status_code=400, detail="Need at least 2 test cases")
-
     sample_cases = test_cases[:1]
-    hidden_cases = test_cases[1:]
+    hidden_cases = test_cases[1:] if len(test_cases) > 1 else test_cases[:1]
 
     sample_result = evaluate_code(req.code, sample_cases, req.language)
     hidden_result = evaluate_code(req.code, hidden_cases, req.language)
