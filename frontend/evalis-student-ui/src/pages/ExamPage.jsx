@@ -113,9 +113,20 @@ export default function ExamPage({ isPractice = false }) {
         
         // ✅ NEW: calculate start & end time
         if (data.start_time || isPractice) {
-          // If it's an instant mock test or just a generic practice, timer starts RIGHT NOW
-          const start = data.is_instant ? new Date() : (data.start_time ? new Date(data.start_time) : new Date());
-          const end = new Date(start.getTime() + (data.duration_minutes || 60) * 60000);
+          let start, end;
+          const timeStorageKey = `exam_${examId}_end_time`;
+          const savedEndTime = localStorage.getItem(timeStorageKey);
+
+          if (savedEndTime && (isPractice || data.is_instant)) {
+              end = new Date(savedEndTime);
+              start = new Date(end.getTime() - (data.duration_minutes || 60) * 60000);
+          } else {
+              start = data.is_instant || isPractice ? new Date() : (data.start_time ? new Date(data.start_time) : new Date());
+              end = new Date(start.getTime() + (data.duration_minutes || 60) * 60000);
+              if (isPractice || data.is_instant) {
+                  localStorage.setItem(timeStorageKey, end.toISOString());
+              }
+          }
 
           setStartTime(start);
           setEndTime(end);
@@ -399,6 +410,7 @@ export default function ExamPage({ isPractice = false }) {
           setSuccessMessage("Practice Exam Finished! Analytics Generated.");
           setShowSuccessModal(true);
           localStorage.removeItem(storageKey);
+          localStorage.removeItem(`exam_${examId}_end_time`);
           
           setTimeout(() => {
               navigate(`/student/practice-result/${examId}`, { state: res.data });
@@ -419,6 +431,7 @@ export default function ExamPage({ isPractice = false }) {
           setSuccessMessage("Your exam data has been securely recorded.");
           setShowSuccessModal(true);
           localStorage.removeItem(storageKey);
+          localStorage.removeItem(`exam_${examId}_end_time`);
 
           setTimeout(() => {
             navigate(`/student/results/${examId}`);

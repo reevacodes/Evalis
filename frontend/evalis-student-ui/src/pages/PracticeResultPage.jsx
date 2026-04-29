@@ -365,6 +365,60 @@ export default function PracticeResultPage() {
           
         </div>
 
+        {/* MCQ REVIEW SECTION */}
+        {result.exam_sections && result.exam_sections.length > 0 && (
+          <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl mb-8">
+            <div className="px-6 py-5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-indigo-400" /> MCQ Evaluation Review
+              </h3>
+            </div>
+            <div className="p-6 md:p-8 space-y-6">
+              {result.exam_sections.map((sec, secIdx) => (
+                <div key={secIdx} className="space-y-4">
+                  {sec.questions && sec.questions.filter(q => q.type !== 'coding').map((q, qIdx) => {
+                    const studentAnswer = result.mcq_answers?.[q.id || q._id] || null;
+                    const isCorrect = studentAnswer === q.correct_answer;
+
+                    return (
+                      <div key={q.id || q._id || qIdx} className={`p-5 rounded-2xl border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
+                        <div className="flex justify-between items-start mb-3">
+                          <h4 className="text-base font-bold text-slate-800 dark:text-slate-200">Q{qIdx + 1}. {q.question || q.question_text}</h4>
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-md ${isCorrect ? 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-500 dark:text-rose-400'}`}>
+                            {isCorrect ? '+1 Mark' : '0 Marks'}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                          {q.options && q.options.map((opt, oIdx) => {
+                            const isStudentChoice = studentAnswer === opt;
+                            const isActualCorrect = q.correct_answer === opt;
+
+                            let optClass = "bg-white dark:bg-slate-950 border-gray-200 dark:border-slate-800 text-slate-600 dark:text-slate-400";
+                            if (isActualCorrect) {
+                              optClass = "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-300 font-bold shadow-[0_0_10px_rgba(16,185,129,0.1)]";
+                            } else if (isStudentChoice && !isCorrect) {
+                              optClass = "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.1)]";
+                            }
+
+                            return (
+                              <div key={oIdx} className={`p-3 rounded-xl border text-sm flex items-center gap-3 transition-all ${optClass}`}>
+                                <div className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center ${isActualCorrect ? 'bg-emerald-500 border-emerald-500 text-white' : isStudentChoice ? 'bg-rose-500 border-rose-500 text-white' : 'border-gray-300 dark:border-slate-600'}`}>
+                                   {(isActualCorrect || isStudentChoice) && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
+                                </div>
+                                {opt}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* CODING LOG ACCORDION */}
         {coding_results && Object.keys(coding_results).length > 0 && (
            <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl overflow-hidden transition-all duration-300 shadow-lg">

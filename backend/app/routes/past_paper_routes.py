@@ -219,6 +219,8 @@ def submit_practice_attempt(
             "score": mcq_score,
             "analytics": analytics,
             "coding_results": coding_results,
+            "exam_sections": assigned_sections,
+            "mcq_answers": payload.mcq_answers,
             "timeTaken": "N/A" # Optionally track in frontend and pass through payload
         }
 
