@@ -31,7 +31,7 @@ export default function MockBulkUpload() {
         questions: questions
       };
 
-      const res = await API.post('/mock-questions/bulk', payload);
+      const res = await API.post('/questions/mock-questions/bulk', payload);
       setStatus('success');
       setMessage(`Successfully inserted ${res.data.inserted_count} questions into mock collection!`);
       setJsonText('');

@@ -13,6 +13,7 @@ export default function Sidebar() {
     { name: "Curriculum", path: "/admin/curriculum", icon: BookOpen },
     { name: "Question Bank", path: "/question-bank", icon: Boxes },
     { name: "Practice Archive", path: "/admin/practice-archive", icon: Archive },
+    { name: "Mock Upload", path: "/admin/mock-upload", icon: FileText },
   ];
 
   return (
