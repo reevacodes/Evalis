@@ -23,6 +23,26 @@ def startup_event():
 def shutdown_event():
     stop_scheduler()
 
+@app.get("/test-smtp")
+def test_smtp():
+    import smtplib
+    import os
+    server = os.getenv("SMTP_SERVER", "").strip('\"\'')
+    port = int(os.getenv("SMTP_PORT", "587"))
+    user = os.getenv("SMTP_USER", "").strip('\"\'')
+    pw = os.getenv("SMTP_PASSWORD", "").strip('\"\'')
+    try:
+        if port == 465:
+            s = smtplib.SMTP_SSL(server, port, timeout=10)
+        else:
+            s = smtplib.SMTP(server, port, timeout=10)
+            s.starttls()
+        s.login(user, pw)
+        s.quit()
+        return {"status": "SUCCESS", "message": "SMTP connection to Gmail was fully successful!"}
+    except Exception as e:
+        return {"status": "ERROR", "error_message": str(e), "hint": "If this is SMTPAuthenticationError, check your Gmail inbox for a Critical Security Alert and click 'Yes it was me'. Or, try changing SMTP_PORT to 465 in your Render environment variables."}
+
 os.makedirs("uploads/reschedule_proofs", exist_ok=True)
 app.mount("/static/reschedule_proofs", StaticFiles(directory="uploads/reschedule_proofs"), name="reschedule_proofs")
 
