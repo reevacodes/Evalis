@@ -108,6 +108,42 @@ def add_bulk_questions(questions: List[Question]):
         "inserted_ids": inserted_ids
     }
 
+# =========================
+# 📦 BULK ADD MOCK QUESTIONS
+# =========================
+from pydantic import BaseModel
+class BulkMockQuestionsPayload(BaseModel):
+    subject_code: str
+    subject_name: str
+    semester: int
+    unit: str
+    questions: list
+
+from app.database import mock_question_collection
+
+@router.post("/mock-questions/bulk")
+def add_bulk_mock_questions(payload: BulkMockQuestionsPayload):
+    docs = []
+    for q in payload.questions:
+        doc = q.copy()
+        doc["subject_code"] = payload.subject_code
+        doc["subject_name"] = payload.subject_name
+        doc["semester"] = payload.semester
+        doc["unit"] = payload.unit
+        doc["created_at"] = datetime.utcnow()
+        if "marks" not in doc:
+            doc["marks"] = 10 if doc.get("type") == "coding" else 1
+        docs.append(doc)
+
+    if not docs:
+        return {"message": "No questions provided", "inserted_count": 0}
+
+    res = mock_question_collection.insert_many(docs)
+    return {
+        "message": "Bulk upload to mocks completed",
+        "inserted_count": len(res.inserted_ids)
+    }
+
 
 # =========================
 # 📥 GET QUESTIONS (SMART SEARCH)
