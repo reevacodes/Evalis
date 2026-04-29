@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
@@ -16,6 +16,22 @@ export default function Navbar() {
   const [openNotifs, setOpenNotifs] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [expandedNotifId, setExpandedNotifId] = useState(null);
+
+  const notifRef = useRef(null);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setOpenNotifs(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -118,7 +134,7 @@ export default function Navbar() {
          {/* THEME TOGGLE MOVED TO PROFILE DROPDOWN */}
 
          {/* NOTIFICATIONS */}
-         <div className="relative">
+         <div className="relative" ref={notifRef}>
            <button 
              onClick={() => { setOpenNotifs(!openNotifs); setOpen(false); }}
              className="relative text-gray-400 hover:text-slate-900 dark:text-white transition-colors p-2 rounded-full hover:bg-white/10"
@@ -165,7 +181,7 @@ export default function Navbar() {
          <div className="hidden md:block h-10 w-px bg-white/10"></div>
 
          {/* USER PROFILE BUBBLE */}
-         <div className="relative">
+         <div className="relative" ref={profileRef}>
            <button
              onClick={() => { setOpen(!open); setOpenNotifs(false); }}
              className="flex items-center gap-3 bg-white/5 border border-white/10 pl-2 pr-4 py-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer group"
