@@ -113,7 +113,8 @@ def submit_code(
     if not question:
        raise HTTPException(status_code=404, detail="Question not found")
 
-    if question.get("question_type") != "coding":
+    q_type = question.get("question_type") or question.get("type")
+    if q_type != "coding":
         raise HTTPException(status_code=400, detail="Not coding")
 
     test_cases = question.get("test_cases")
