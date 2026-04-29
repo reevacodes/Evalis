@@ -5,7 +5,7 @@ from datetime import datetime
 
 from app.models.submission_model import save_submission
 from app.services.submission_service import run_single, evaluate_code
-from app.database import question_collection, submission_history_collection
+from app.database import question_collection, submission_history_collection, mock_question_collection
 from app.utils.auth_dependency import require_role
 
 router = APIRouter()
@@ -56,6 +56,10 @@ def run_sample_code(
         question = question_collection.find_one({
             "_id": ObjectId(req.question_id)
         })
+        if not question:
+            question = mock_question_collection.find_one({
+                "_id": ObjectId(req.question_id)
+            })
     except:
         raise HTTPException(status_code=400, detail="Invalid question id")
 
@@ -96,6 +100,10 @@ def submit_code(
         question = question_collection.find_one({
             "_id": ObjectId(req.question_id)
         })
+        if not question:
+            question = mock_question_collection.find_one({
+                "_id": ObjectId(req.question_id)
+            })
     except:
         raise HTTPException(status_code=400, detail="Invalid question id")
 
