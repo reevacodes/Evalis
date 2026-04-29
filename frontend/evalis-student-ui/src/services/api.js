@@ -76,6 +76,15 @@ export const submitCode = async ({
   return res.data;
 };
 
+export const runSampleCode = async ({ code, question_id, language = "python" }) => {
+  const res = await API.post("/code/run-sample", {
+    code,
+    question_id,
+    language,
+  });
+  return res.data;
+};
+
 // =========================
 // 📘 EXAM APIs
 // =========================
@@ -137,6 +146,9 @@ export const publishExamResults = (examId) =>
 export const fetchExamSubmissions = (examId) =>
   API.get(`/exam/${examId}/submissions`);
 
+export const fetchSubmissionDetail = (submissionId) =>
+  API.get(`/exam/submissions/detail/${submissionId}`);
+
 // =========================
 // 📚 PAST PAPERS & PRACTICE
 // =========================
@@ -156,6 +168,8 @@ export const getPracticeHistory = async () => {
   const res = await API.get("/past-papers/practice/history");
   return res.data;
 };
+
+
 
 // =========================
 // 🌐 CURRICULUM
@@ -242,6 +256,9 @@ export const uploadUsersCSV = (formData) => API.post("/auth/upload-csv", formDat
 
 export const getActivityLogs = () => API.get("/admin/activity-logs");
 export const getLiveSessions = () => API.get("/admin/live-sessions");
+export const inviteTeacher = (data) => API.post("/admin/create-teacher", data);
+export const getAllUsers = () => API.get("/admin/users");
+export const deleteUser = (userId) => API.delete(`/admin/users/${userId}`);
 
 export const getMe = () =>
   API.get("/auth/me");

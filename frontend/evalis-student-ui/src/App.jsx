@@ -21,14 +21,17 @@ import ExamFinalized from "./pages/ExamFinalized";
 import PublishExam from "./pages/PublishExam";
 import Landing from "./pages/Landing";
 import ResetPassword from "./pages/ResetPassword";
+import SetPassword from "./pages/SetPassword";
 import StudentResults from "./pages/StudentResults";
 import PracticeResultPage from "./pages/PracticeResultPage";
 import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
 import AdminLayout from "./components/AdminLayout";
 import AdminOverview from "./pages/AdminOverview";
+import AdminUsers from "./pages/AdminUsers";
 import AdminPracticeUpload from "./pages/AdminPracticeUpload";
 import InstructorSubmissions from "./pages/InstructorSubmissions";
+import InstructorStudentResult from "./pages/InstructorStudentResult";
 import TeacherLayout from "./components/TeacherLayout";
 import TeacherOverview from "./pages/TeacherOverview";
 import TeacherExamDashboard from "./pages/TeacherExamDashboard";
@@ -47,6 +50,7 @@ function AppContent() {
         {/* PUBLIC */}
         <Route path="/" element={<Landing />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/set-password" element={<SetPassword />} />
 
         <Route path="/student/exam/:examId" element={<ExamPage isPractice={false} />} />
         <Route path="/student/practice/:examId" element={<ExamPage isPractice={true} />} />
@@ -97,6 +101,17 @@ function AppContent() {
         />
 
         <Route
+          path="/admin/users"
+          element={
+            <RoleRoute role="admin">
+              <AdminLayout>
+                <AdminUsers />
+              </AdminLayout>
+            </RoleRoute>
+          }
+        />
+
+        <Route
           path="/admin/exams"
           element={
             <RoleRoute role="admin">
@@ -113,6 +128,17 @@ function AppContent() {
             <RoleRoute role="admin">
               <AdminLayout>
                 <InstructorSubmissions />
+              </AdminLayout>
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/admin/exam/:examId/submissions/:submissionId"
+          element={
+            <RoleRoute role="admin">
+              <AdminLayout>
+                <InstructorStudentResult />
               </AdminLayout>
             </RoleRoute>
           }
@@ -169,6 +195,17 @@ function AppContent() {
             <RoleRoute role="teacher">
               <TeacherLayout>
                 <InstructorSubmissions />
+              </TeacherLayout>
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/teacher/exam/:examId/submissions/:submissionId"
+          element={
+            <RoleRoute role="teacher">
+              <TeacherLayout>
+                <InstructorStudentResult />
               </TeacherLayout>
             </RoleRoute>
           }

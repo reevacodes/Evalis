@@ -18,7 +18,7 @@ export default function Navbar() {
   const [expandedNotifId, setExpandedNotifId] = useState(null);
 
   useEffect(() => {
-    if (user && user.role === "student") {
+    if (user) {
       API.get("/notifications/me").then(res => {
          setNotifications(res.data.notifications || []);
       }).catch(err => console.error(err));

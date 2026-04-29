@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UploadCloud, CheckCircle2, AlertTriangle, FileJson, Beaker } from "lucide-react";
+import { UploadCloud, CheckCircle2, AlertTriangle, FileJson, Beaker, Loader2 } from "lucide-react";
 import { uploadPastPaperJSON } from "../services/api";
 
 export default function AdminPracticeUpload() {
@@ -201,7 +201,7 @@ export default function AdminPracticeUpload() {
               disabled={status === "loading" || !jsonText}
               className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/20 transition-all flex justify-center items-center gap-2"
            >
-              <UploadCloud size={20} className={status === "loading" ? "animate-bounce" : ""} />
+              {status === "loading" ? <Loader2 size={20} className="animate-spin" /> : <UploadCloud size={20} />}
               {status === "loading" ? "Validating & Transmitting..." : "Upload Past Paper to Live DB"}
            </button>
         </div>

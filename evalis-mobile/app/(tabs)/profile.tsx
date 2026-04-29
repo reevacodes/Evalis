@@ -35,7 +35,7 @@ export default function ProfileScreen() {
         Alert.alert(
             "Privacy & Security",
             "Evalis adheres to strict data protection standards. Your performance analytics, exam attempts, and personal identifiers are end-to-end encrypted and never shared with third parties without institutional consent.\n\nFor more details, please review the institutional privacy policy.",
-            [{ text: "Acknowledge", style: "default" }]
+            [{ text: "OK", style: "default" }]
         );
     };
 

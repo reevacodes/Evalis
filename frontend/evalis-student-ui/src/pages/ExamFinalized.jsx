@@ -94,14 +94,13 @@ export default function ExamFinalized() {
         <div className="flex justify-end gap-3">
           <button
             onClick={() => setIsScheduleModalOpen(true)}
-            disabled={scheduleRequested}
             className={`px-6 py-3 rounded-lg ${
               scheduleRequested
-                ? "bg-blue-600 opacity-50 cursor-not-allowed"
+                ? "bg-indigo-600 hover:bg-indigo-700"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {scheduleRequested ? "Requested" : "Request Schedule"}
+            {scheduleRequested ? "Request Reschedule" : "Request Schedule"}
           </button>
 
         </div>

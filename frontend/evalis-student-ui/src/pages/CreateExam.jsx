@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createExam, updateExam } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
+import { Loader2 } from "lucide-react";
 
 export default function CreateExam() {
   const navigate = useNavigate();
@@ -219,8 +220,9 @@ export default function CreateExam() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded disabled:opacity-50"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
+            {loading && <Loader2 className="w-5 h-5 animate-spin" />}
             {loading
               ? isEdit
                 ? "Updating..."

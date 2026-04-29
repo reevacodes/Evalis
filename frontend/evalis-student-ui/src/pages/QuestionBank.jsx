@@ -223,7 +223,7 @@ export default function QuestionBank() {
             selection.topic) && (
             <button
               onClick={goBack}
-              className="bg-white dark:bg-slate-800 px-3 py-2 rounded flex items-center gap-2 hover:bg-gray-100 dark:bg-slate-700"
+              className="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 px-3 py-2 rounded flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 transition"
             >
               <ArrowLeft size={16} /> Back
             </button>
@@ -275,7 +275,7 @@ export default function QuestionBank() {
               updateSelection({ type: nextType });
             }}
             className="flex items-center gap-2 bg-white dark:bg-slate-950 border border-gray-300 dark:border-slate-700 
-            px-3 py-2 rounded-lg hover:bg-white dark:bg-slate-800 transition"
+            px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition"
           >
             <ArrowUpDown size={16} className="text-gray-400" />
             <span className="text-sm font-medium">
@@ -339,7 +339,7 @@ export default function QuestionBank() {
                 <div
                   key={u.unit_number}
                   onClick={() => updateSelection({ unit: u.unit_number })}
-                  className="p-4 bg-white dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-slate-700 transition"
+                  className="p-4 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition"
                 >
                   Unit {u.unit_number}
                 </div>
@@ -358,7 +358,7 @@ export default function QuestionBank() {
                       topic: t.name.trim(),
                     })
                   }
-                  className="p-4 bg-white dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:bg-slate-700 transition"
+                  className="p-4 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition"
                 >
                   {t.name}
                 </div>
@@ -407,7 +407,7 @@ export default function QuestionBank() {
                           page: prev.page - 1,
                         }))
                       }
-                      className="px-4 py-2 bg-white dark:bg-slate-800 rounded disabled:opacity-40 hover:bg-gray-100 dark:bg-slate-700"
+                      className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-slate-700 transition"
                     >
                       Prev
                     </button>
@@ -424,7 +424,7 @@ export default function QuestionBank() {
                           page: prev.page + 1,
                         }))
                       }
-                      className="px-4 py-2 bg-white dark:bg-slate-800 rounded disabled:opacity-40 hover:bg-gray-100 dark:bg-slate-700"
+                      className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-slate-700 transition"
                     >
                       Next
                     </button>
@@ -447,7 +447,7 @@ export default function QuestionBank() {
                 <div className="flex gap-4">
                     <button 
                         onClick={() => navigate(`/exam/${fromPreview.exam_id}/edit`)}
-                        className="px-6 py-2 rounded-lg font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:bg-slate-700 transition"
+                        className="px-6 py-2 rounded-lg font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition"
                     >
                         Cancel
                     </button>
@@ -468,7 +468,7 @@ export default function QuestionBank() {
                         className={`px-6 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
                             selectedIds.length > 0 
                                 ? "bg-indigo-600 text-slate-900 dark:text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/20" 
-                                : "bg-white dark:bg-slate-800 text-slate-500 cursor-not-allowed"
+                                : "bg-white dark:bg-slate-800 text-slate-500 border border-gray-300 dark:border-slate-700 cursor-not-allowed"
                         }`}
                     >
                         {selectedIds.length > 0 ? "Add to Exam" : "Select Questions"} {selectedIds.length > 0 ? `(${selectedIds.length})` : ''}

@@ -175,7 +175,7 @@ export default function TeacherExamDashboard() {
         {exams.map((exam) => {
           const timeStatus = getTimeStatus(exam);
           const canDelete =
-            (user?.role === "teacher" && exam.status === "draft") ||
+            (user?.role === "teacher" && (exam.status === "draft" || exam.status === "finalized")) ||
             (user?.role === "admin" && exam.status !== "draft");
           const canEdit = exam.status === "draft";
 
@@ -236,7 +236,7 @@ export default function TeacherExamDashboard() {
                     onClick={() => navigate(`/teacher/exam/${exam._id}/submissions`)}
                     className="bg-indigo-600 text-white px-4 py-1 rounded hover:bg-indigo-500 font-semibold"
                   >
-                    📋 Ledger
+                    📋 Report
                   </button>
                 )}
 

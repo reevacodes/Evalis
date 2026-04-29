@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FileText, BookOpen, Boxes, Archive, Sun, Moon } from "lucide-react";
+import { LayoutDashboard, FileText, BookOpen, Boxes, Archive, Sun, Moon, Users } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 
 export default function Sidebar() {
@@ -8,6 +8,7 @@ export default function Sidebar() {
 
   const menu = [
     { name: "Overview", path: "/admin", icon: LayoutDashboard },
+    { name: "Users", path: "/admin/users", icon: Users },
     { name: "Exams", path: "/admin/exams", icon: FileText },
     { name: "Curriculum", path: "/admin/curriculum", icon: BookOpen },
     { name: "Question Bank", path: "/question-bank", icon: Boxes },

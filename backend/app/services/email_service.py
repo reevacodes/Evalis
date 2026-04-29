@@ -26,16 +26,17 @@ def format_to_ist(iso_string: str) -> str:
         is_utc = "Z" in iso_string or "+00:00" in iso_string or iso_string.endswith("+00:00")
         clean_time = str(iso_string).replace("Z", "+00:00")
         
-        # If it has no timezone, it is naive. We assume it is ALREADY local time.
-        if "+" not in clean_time and "-" not in clean_time[10:]:
-            dt = datetime.fromisoformat(clean_time)
-            dt_ist = dt  # It is already naive local time from frontend
-        else:
-            dt = datetime.fromisoformat(clean_time)
-            if is_utc:
-                dt_ist = dt + timedelta(hours=5, minutes=30)
-            else:
-                dt_ist = dt # It is already offset-aware (e.g. +05:30)
+        # Parse the string into a datetime object
+        dt = datetime.fromisoformat(clean_time)
+        from datetime import timezone
+        
+        # If it's naive, assume it's UTC (since our DB stores UTC)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+            
+        # Convert to IST
+        ist_timezone = timezone(timedelta(hours=5, minutes=30))
+        dt_ist = dt.astimezone(ist_timezone)
                 
         return dt_ist.strftime("%A, %d/%m/%Y at %I:%M %p")
     except Exception as e:
@@ -458,3 +459,44 @@ Evalis Assessment Platform"""
             success = False
             
     return success
+
+def send_teacher_invite_email(to_email: str, name: str, invite_link: str):
+    """
+    Sends an invite email to a newly created teacher.
+    """
+    subject = "You've been invited as a Teacher to Evalis"
+    body = f"""Hello {name},
+
+You have been invited to join the Evalis Assessment Platform as a teacher!
+
+Please click the link below to securely set your password and activate your account:
+{invite_link}
+
+This link will expire in 7 days. If you did not expect this invitation, you can safely ignore this email.
+
+Regards,
+Evalis Admin"""
+
+    if not SMTP_SERVER or not SMTP_USER or not SMTP_PASSWORD:
+        logger.warning(f"SMTP not configured. Mocking teacher invite email to {to_email}")
+        print(f"\n{'='*40}\n[MOCK EMAIL] To: {to_email}\nSubject: {subject}\nLink: {invite_link}\n{'='*40}\n")
+        return True
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = SMTP_USER
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send teacher invite email to {to_email}: {str(e)}")
+        print(f"\n{'='*50}\n🚨 Email failed to send, but you can manually share this invite link:\n{invite_link}\n{'='*50}\n")
+        return False
+

@@ -19,6 +19,7 @@ curriculum_collection = db["curriculum"]
 
 user_collection = db["users"]
 reschedule_collection = db["reschedule_requests"]
+invite_token_collection = db["invite_tokens"]
 
 # Latest submissions (1 per user + question)
 submission_collection = db["submissions"]

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import Split from "react-split";
-import { runCode, submitCode } from "../services/api";
+import { runCode, submitCode, runSampleCode } from "../services/api";
+import { Loader2 } from "lucide-react";
 
 const languageTemplates = {
   python: "# Write your code here\n",
@@ -122,25 +123,74 @@ export default function CodingSection({
 
     setLoading(true);
     setLoadingType("run");
-    setActiveTab("console");
 
-    if (!output) setOutput("Running your code...");
+    const problem = problems[currentProblem];
+    const defaultInput = problem?.test_cases?.length > 0 ? problem.test_cases[0].input : "";
+    const isCustom = customInput !== defaultInput;
 
-    try {
-      const res = await runCode({ code, input: customInput, language });
+    if (isCustom || !problem?.test_cases?.length) {
+      setActiveTab("console");
+      if (!output) setOutput("Running your code...");
+      try {
+        const res = await runCode({ code, input: customInput, language });
 
-      if (res.status === "success") {
-        setOutput(res.output || "No output");
-      } else {
-        setOutput(res.output || res.status);
-        setVerdict(formatVerdict(res.status));
+        if (res.status === "success") {
+          setOutput(res.output || "No output");
+          setVerdict("");
+        } else {
+          setOutput(res.output || res.status);
+          setVerdict(formatVerdict(res.status));
+        }
+      } catch {
+        setOutput("Error running code");
       }
-    } catch {
-      setOutput("Error running code");
-    } finally {
-      setLoading(false);
-      setLoadingType("");
+    } else {
+      setActiveTab("tests");
+      setTestDetails([
+        { status: "Running...", verdict: "PENDING" }
+      ]);
+      try {
+        const qid = problem._id || problem.id;
+        const res = await runSampleCode({
+          code,
+          question_id: String(qid),
+          language
+        });
+
+        if (res.results) {
+           const formatted = res.results.map((t) => ({
+             ...t,
+             status: formatVerdict(t.verdict),
+           }));
+           
+           let temp = [];
+           for (let i = 0; i < formatted.length; i++) {
+             await new Promise((r) => setTimeout(r, 250));
+             temp.push(formatted[i]);
+             setTestDetails([...temp]);
+           }
+           
+           const passed = res.passed;
+           const total = res.total;
+           setVerdict(
+              passed === total
+                ? `Passed (${passed}/${total})`
+                : `Failed (${passed}/${total})`
+           );
+
+           const firstFail = formatted.findIndex((t) => t.verdict !== "AC");
+           setExpandedTest(firstFail !== -1 ? firstFail : 0);
+        } else {
+           setOutput("Error evaluating sample tests");
+        }
+      } catch (err) {
+        console.error("Run sample error:", err);
+        setOutput("Error running code");
+      }
     }
+
+    setLoading(false);
+    setLoadingType("");
   };
 
   // ================= SUBMIT =================
@@ -331,16 +381,18 @@ export default function CodingSection({
               <button
                 onClick={handleRun}
                 disabled={loading}
-                className="bg-blue-600 px-3 py-1 text-sm disabled:opacity-50"
+                className="bg-blue-600 px-3 py-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
               >
+                {loading && loadingType === "run" && <Loader2 className="w-3 h-3 animate-spin" />}
                 Run
               </button>
 
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="bg-green-600 px-3 py-1 text-sm disabled:opacity-50"
+                className="bg-green-600 px-3 py-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
               >
+                {loading && loadingType === "submit" && <Loader2 className="w-3 h-3 animate-spin" />}
                 Submit
               </button>
 

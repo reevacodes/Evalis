@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { signup, login, forgotPassword } from "../services/api";
-import AuthSuccessModal from "../components/AuthSuccessModal";
 import { useNavigate } from "react-router-dom";
-import API from "../services/api";
+import API, { login, signup, forgotPassword } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import AuthSuccessModal from "./AuthSuccessModal";
+import { Loader2 } from "lucide-react";
 
 export default function AuthModal({ onClose, hideClose = false, isInline = false }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,6 +20,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
   const [showSuccess, setShowSuccess] = useState(false);
   const [successType, setSuccessType] = useState(""); // "login" or "signup"
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
@@ -37,6 +38,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       let res;
@@ -83,7 +85,9 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
       }
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.detail || "Server error");
+      alert(err.response?.data?.detail || "An error occurred");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -144,34 +148,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
         ) : (
           <>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {/* 👇 ROLE SELECTOR (ONLY FOR SIGNUP) */}
-              {!isLogin && (
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setRole("student")}
-                    className={`flex-1 py-2 rounded-lg border ${
-                      role === "student"
-                        ? "bg-white text-black"
-                        : "border-white/20 text-white"
-                    }`}
-                  >
-                    Student
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setRole("teacher")}
-                    className={`flex-1 py-2 rounded-lg border ${
-                      role === "teacher"
-                        ? "bg-white text-black"
-                        : "border-white/20 text-white"
-                    }`}
-                  >
-                    Teacher
-                  </button>
-                </div>
-              )}
+              {/* Role selector removed - signup defaults to student */}
 
               {!isLogin && (
                 <>
@@ -271,9 +248,11 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
 
               <button
                 type="submit"
-                className="bg-white text-black py-3 rounded-lg font-medium hover:opacity-90 transition mt-2"
+                disabled={loading}
+                className="bg-white text-black py-3 rounded-lg font-medium hover:opacity-90 transition mt-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isLogin ? "Login" : "Sign up"}
+                {loading && <Loader2 className="w-5 h-5 animate-spin" />}
+                {loading ? (isLogin ? "Logging in..." : "Signing up...") : (isLogin ? "Login" : "Sign up")}
               </button>
             </form>
 

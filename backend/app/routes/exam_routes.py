@@ -142,16 +142,57 @@ def update_exam_api(
         if exam.get("status") == "published":
             raise HTTPException(400, "Cannot modify published exam")
 
+        # 🔥 SAFE INPUT HANDLING
+        exam_type = data.exam_type.lower()
+        pattern = data.pattern.lower()
+
+        if exam_type not in MIET_RULES:
+            raise HTTPException(status_code=400, detail="Invalid exam type")
+
+        if pattern not in MIET_RULES[exam_type]:
+            raise HTTPException(status_code=400, detail="Invalid pattern")
+
+        rules = MIET_RULES[exam_type][pattern]
+
+        # ==========================
+        # 🔥 CREATE SECTIONS
+        # ==========================
+        sections = []
+
+        if "mcq_count" in rules:
+            sections.append({
+                "type": "mcq",
+                "count": rules["mcq_count"],
+                "questions": []
+            })
+
+        if "coding_distribution" in rules:
+            total = sum(rules["coding_distribution"].values())
+            sections.append({
+                "type": "coding",
+                "count": total,
+                "questions": []
+            })
+
+        elif "coding_total" in rules:
+            sections.append({
+                "type": "coding",
+                "count": rules["coding_total"],
+                "questions": []
+            })
+
         # 🔥 Secure update (no frontend trust)
         updated_data = {
             "exam_name": data.exam_name,
             "subject_code": data.subject_code,
             "teacher_name": user["sub"],  # 🔐 FIXED
             "semester": int(data.semester) if data.semester else None,
-            "exam_type": data.exam_type,
-            "pattern": data.pattern,
+            "exam_type": exam_type,
+            "pattern": pattern,
             "units": data.units,
             "duration_minutes": int(data.duration_minutes) if data.duration_minutes else 30,
+            "total_marks": MIET_RULES[exam_type].get("total_marks", 100),
+            "sections": sections,
             "updated_at": datetime.utcnow(),
             "updated_by": user["sub"]  # 🔥 audit log
         }
@@ -322,10 +363,10 @@ def delete_exam_api(
             if exam.get("teacher_name") != user["sub"]:
                 raise HTTPException(403, "Not authorized for this exam")
 
-            if exam.get("status") != "draft":
+            if exam.get("status") not in ["draft", "finalized"]:
                 raise HTTPException(
                     status_code=400,
-                    detail="Teachers can only delete draft exams"
+                    detail="Teachers can only delete draft or finalized exams before scheduling"
                 )
 
         # ==========================
@@ -404,14 +445,15 @@ def validate_college_hours(dt: datetime):
     dt_ist = dt.astimezone(timezone(timedelta(hours=5, minutes=30)))
     
     # 0 = Monday, 4 = Friday, 5 = Saturday, 6 = Sunday
-    # if dt_ist.weekday() > 4:
-    #     raise HTTPException(status_code=400, detail="Exams cannot be scheduled on weekends. Please select Monday to Friday.")
+    if dt_ist.weekday() > 4:
+        raise HTTPException(status_code=400, detail="Date error: Please select a date between Monday and Friday.")
         
     # Check if time is between 09:30 and 13:00 (1 PM)
-    time_minutes = dt_ist.hour * 60 + dt_ist.minute
+    # time_minutes = dt_ist.hour * 60 + dt_ist.minute
     
     # if time_minutes < (9 * 60 + 30) or time_minutes > (13 * 60):
     #     raise HTTPException(status_code=400, detail="Exams must be scheduled during college hours (09:30 AM to 01:00 PM IST).")
+
 
 def calculate_exam_state(exam, student_id=None):
     if not exam.get("start_time"):
@@ -893,6 +935,7 @@ def get_my_submission_results(
             "is_published": True,
             "submission": submission,
             "exam_title": exam.get("exam_name"),
+            "exam_sections": exam.get("sections", []),
             "total_marks": exam.get("total_marks", 0)
         }
 
@@ -903,12 +946,48 @@ def get_my_submission_results(
         raise HTTPException(status_code=500, detail="Internal error retrieving results")
 
 # ==========================
+# 📊 GET SUBMISSION RESULTS BY ID (ADMIN/TEACHER)
+# ==========================
+@router.get("/submissions/detail/{submission_id}")
+def get_submission_results_by_id(
+    submission_id: str,
+    user=Depends(get_current_user)
+):
+    try:
+        role = user.get("role")
+        if role not in ["admin", "teacher"]:
+            raise HTTPException(403, "Not authorized to view student results")
+
+        submission = exam_submission_collection.find_one({"_id": ObjectId(submission_id)})
+        if not submission:
+            raise HTTPException(404, "Submission not found")
+
+        exam_id = submission.get("exam_id")
+        exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+        
+        # Clean ObjectIds
+        submission["_id"] = str(submission["_id"])
+
+        return {
+            "status": "submitted",
+            "is_published": True, # Always show to admin/teacher
+            "submission": submission,
+            "exam_title": exam.get("exam_name") if exam else "Unknown Exam",
+            "exam_sections": exam.get("sections", []) if exam else [],
+            "total_marks": exam.get("total_marks", 0) if exam else 100
+        }
+
+    except Exception as e:
+        print("🔥 GET SUBMISSION DETAIL ERROR:", str(e))
+        raise HTTPException(status_code=500, detail="Internal error retrieving submission details")
+
+# ==========================
 # 📊 GET EXAM SUBMISSIONS (INSTRUCTORS)
 # ==========================
 @router.get("/{exam_id}/submissions")
 def get_all_submissions_for_exam(
     exam_id: str,
-    user=Depends(require_role("admin")) # Can also add teacher if hybrid RBAC exists
+    user=Depends(require_role(["admin", "teacher"]))
 ):
     try:
         exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
@@ -917,9 +996,20 @@ def get_all_submissions_for_exam(
 
         submissions = list(exam_submission_collection.find({"exam_id": exam_id}))
         
+        # Grab all student emails to fetch their actual names
+        student_emails = list(set(sub.get("student_id") for sub in submissions if sub.get("student_id")))
+        users = list(user_collection.find({"email": {"$in": student_emails}}, {"email": 1, "name": 1}))
+        user_dict = {u["email"]: u.get("name", "Anonymous") for u in users}
+        
         # Strip massive payloads (like coding_answers chunks) and just return the high level metadata
         for sub in submissions:
             sub["_id"] = str(sub["_id"])
+            
+            email = sub.get("student_id")
+            if not sub.get("student_name"):
+                sub["student_name"] = user_dict.get(email, "Anonymous")
+            sub["student_email"] = email
+                
             if "coding_answers" in sub:
                 sub["coding_answers_count"] = len(sub["coding_answers"])
                 del sub["coding_answers"]
@@ -929,6 +1019,9 @@ def get_all_submissions_for_exam(
         return {
             "exam_title": exam.get("title", exam.get("exam_name", "Exam")),
             "total_marks": exam.get("total_marks", 100),
+            "start_time": exam.get("start_time"),
+            "duration_minutes": exam.get("duration_minutes"),
+            "enrolled_count": len(exam.get("students", [])),
             "submissions": submissions
         }
 
@@ -1330,6 +1423,13 @@ def request_schedule(
         }}
     )
 
+    from app.routes.notification_routes import notify_admins
+    notify_admins(
+        title="Schedule Request",
+        message=f"Instructor {user.get('name', user['sub'])} requested to schedule exam '{exam.get('exam_name')}'.",
+        link="/admin/exams"
+    )
+
     return {"message": "Schedule request sent"}
 
 @router.put("/{exam_id}/request-unlock")
@@ -1345,6 +1445,13 @@ def request_unlock(exam_id: str, user=Depends(require_role("teacher"))):
     exam_collection.update_one(
         {"_id": ObjectId(exam_id)},
         {"$set": {"unlock_requested": True}}
+    )
+
+    from app.routes.notification_routes import notify_admins
+    notify_admins(
+        title="Unlock Request",
+        message=f"Instructor {user.get('name', user['sub'])} requested to unlock exam '{exam.get('exam_name')}'.",
+        link="/admin/exams"
     )
 
     return {"message": "Unlock request sent"}
@@ -1366,7 +1473,7 @@ def request_reschedule(
     if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
         
-    start_time = exam.get("scheduled_start")
+    start_time = exam.get("start_time")
     if start_time:
         if isinstance(start_time, str):
             start_time = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
@@ -1444,6 +1551,13 @@ def request_reschedule(
         role="student",
         action="Reschedule Requested",
         details=f"Student requested to reschedule exam '{exam.get('exam_name')}' to {preferred_time_dt.isoformat()}."
+    )
+    
+    from app.routes.notification_routes import notify_admins
+    notify_admins(
+        title="Student Reschedule Request",
+        message=f"Student {user.get('name', user['sub'])} requested to reschedule '{exam.get('exam_name')}'.",
+        link="/admin"
     )
     
     return {"message": "Reschedule request submitted successfully."}

@@ -145,8 +145,12 @@ export default function DashboardScreen() {
             loadData(); 
         } catch (error: any) {
             console.error("Reschedule Failed", error);
-            const errorMsg = error?.response?.data?.detail || error?.message || "Failed to submit reschedule request.";
-            Alert.alert("Error", errorMsg);
+            let errorMsg = error?.response?.data?.detail || error?.message || "Failed to submit reschedule request.";
+            
+            if (errorMsg.includes("5 days") || errorMsg.includes("Date error")) {
+                errorMsg = "Date out of bound! Reschedule requests must be made at least 5 days prior to the original exam start time, and your requested date must be a weekday (Monday-Friday).";
+            }
+            Alert.alert("Request Denied", errorMsg);
         } finally {
             setSubmittingReschedule(false);
         }

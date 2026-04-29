@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useExam } from "../context/ExamContext";
 import { finalizeExam, generateSmartQuestions } from "../services/api";
+import { Loader2 } from "lucide-react";
 
 export default function ExamBuilder() {
   const navigate = useNavigate();
@@ -162,12 +163,13 @@ export default function ExamBuilder() {
           <button
             onClick={handleFinalize}
             disabled={loading}
-            className={`px-4 py-2 rounded text-white ${
+            className={`px-4 py-2 rounded text-white flex items-center gap-2 ${
               loading
-                ? "bg-gray-600 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
+                ? "bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700 transition-colors"
             }`}
           >
+            {loading && <Loader2 className="w-5 h-5 animate-spin" />}
             {loading ? "Finalizing..." : "Finalize Exam"}
           </button>
         </div>

@@ -26,13 +26,13 @@ def get_current_user(
     return payload
 
 
-def require_role(required_role: str):
+def require_role(required_role):
     """
-    Generic role-based access control
+    Generic role-based access control. Accepts a string or list of strings.
     """
-
     def role_checker(user: dict = Depends(get_current_user)):
-        if user.get("role") != required_role:
+        roles = required_role if isinstance(required_role, list) else [required_role]
+        if user.get("role") not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied"

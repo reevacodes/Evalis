@@ -73,6 +73,18 @@ export default function LoginScreen() {
                 const userRes = await API.get('/auth/me', {
                     headers: { Authorization: `Bearer ${response.data.access_token}` }
                 });
+
+                if (userRes.data.role !== 'student') {
+                    await AsyncStorage.removeItem('token');
+                    await AsyncStorage.removeItem('user');
+                    Alert.alert(
+                        "Access Denied", 
+                        "Only students can access the mobile app. Please login to the web dashboard instead."
+                    );
+                    setLoading(false);
+                    return;
+                }
+
                 await AsyncStorage.setItem('user', JSON.stringify(userRes.data));
                 
                 // Force Entry into Dashboard Ecosystem

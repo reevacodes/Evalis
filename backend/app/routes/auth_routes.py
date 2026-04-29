@@ -58,6 +58,14 @@ def signup(user: UserSignup):
             college_email=user.college_email,
             name=user.name
         )
+        
+        # Notify Admins
+        from app.routes.notification_routes import notify_admins
+        notify_admins(
+            title="New Student Registration",
+            message=f"{user.name} ({user.email}) has just registered on the platform.",
+            link="/admin/users"
+        )
 
     extra_details = f" | College: {user.college_name} | ID: {user.student_id}" if user.role == "student" and user.college_name else ""
     log_activity(
@@ -93,6 +101,13 @@ def login(user: UserLogin):
             detail="Invalid credentials"
         )
 
+    # Check if active
+    if db_user.get("is_active") is False:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account is not active. Please set your password via the invite link."
+        )
+
     # Verify password
     if not verify_password(user.password, db_user["password"]):
         raise HTTPException(
@@ -112,9 +127,61 @@ def login(user: UserLogin):
         "user": {
             "email": db_user["email"],
             "name": db_user.get("name", ""),
-            "role": db_user["role"]
+            "role": db_user["role"],
+            "student_id": db_user.get("student_id", "")
         }
     }
+
+# =========================
+# 🟠 SET PASSWORD (INVITE)
+# =========================
+class SetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+@router.post("/set-password")
+def set_password(req: SetPasswordRequest):
+    from app.database import invite_token_collection, user_collection
+    from datetime import datetime
+    
+    token_record = invite_token_collection.find_one({"token": req.token})
+    if not token_record:
+        raise HTTPException(status_code=400, detail="Invalid token")
+        
+    if token_record.get("used"):
+        raise HTTPException(status_code=400, detail="Token already used")
+        
+    if token_record.get("expires_at") < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Token has expired")
+        
+    email = token_record["email"]
+    db_user = get_user_by_email(db, email)
+    if not db_user:
+        raise HTTPException(status_code=400, detail="User not found")
+        
+    # Hash new password and update
+    hashed_password = hash_password(req.new_password)
+    user_collection.update_one(
+        {"email": email},
+        {"$set": {"password": hashed_password, "is_active": True}}
+    )
+    
+    # Mark token as used
+    invite_token_collection.update_one(
+        {"_id": token_record["_id"]},
+        {"$set": {"used": True}}
+    )
+    
+    # Notify Admins
+    from app.routes.notification_routes import notify_admins
+    notify_admins(
+        title="Teacher Account Activated",
+        message=f"{db_user.get('name', email)} has set their password and activated their teacher account.",
+        link="/admin/users"
+    )
+    
+    return {"message": "Password successfully set. You can now log in."}
+
 
 
 # =========================
@@ -134,7 +201,8 @@ def get_me(user = Depends(get_current_user)):
     return {
         "email": db_user["email"],
         "name": db_user.get("name", ""),
-        "role": db_user["role"]
+        "role": db_user["role"],
+        "student_id": db_user.get("student_id", "")
     }
 
 @router.put("/admin/make-admin")

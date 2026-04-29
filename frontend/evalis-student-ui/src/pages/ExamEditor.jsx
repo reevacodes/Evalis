@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchExam, finalizeExam, deleteExamQuestion, addBulkQuestions, addQuestionsToExam } from "../services/api";
 import SuccessModal from "../components/SuccessModal";
+import Loader from "../components/Loader";
+import { Loader2 } from "lucide-react";
 import * as XLSX from "xlsx";
 
 export default function ExamEditor() {
@@ -10,6 +12,7 @@ export default function ExamEditor() {
 
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [finalizing, setFinalizing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [uploadModal, setUploadModal] = useState({ show: false, title: "", message: "", isError: false });
 
@@ -266,6 +269,7 @@ export default function ExamEditor() {
          }
       }
       
+      setFinalizing(true);
       await finalizeExam(examId);
 
       // ✅ update UI instantly
@@ -280,10 +284,12 @@ export default function ExamEditor() {
     } catch (err) {
       console.error(err);
       alert("Failed to finalize exam");
+    } finally {
+      setFinalizing(false);
     }
   };
 
-  if (loading) return <p className="text-slate-900 dark:text-white p-6">Loading...</p>;
+  if (loading) return <Loader text="Loading Exam Data..." />;
   if (!exam) return <p className="text-red-400 p-6">Exam not found</p>;
 
   return (
@@ -419,9 +425,11 @@ export default function ExamEditor() {
         <div className="flex justify-end mt-8">
           <button
             onClick={handleFinalize}
-            className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold"
+            disabled={finalizing}
+            className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            Finalize & Lock Exam 🔒
+            {finalizing && <Loader2 className="w-5 h-5 animate-spin" />}
+            {finalizing ? "Finalizing..." : "Finalize & Lock Exam 🔒"}
           </button>
         </div>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Camera, Mic, Maximize, CheckCircle2, ShieldAlert, Video } from "lucide-react";
+import { Camera, Mic, Maximize, CheckCircle2, ShieldAlert, Video, AlertTriangle, FileWarning, Eye, MonitorOff, ListChecks, ArrowRight } from "lucide-react";
 import * as tf from "@tensorflow/tfjs";
 import * as blazeface from "@tensorflow-models/blazeface";
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
@@ -10,6 +10,8 @@ import ExamHeader from "../components/ExamHeader";
 import { fetchExam, fetchPastPaper, submitExam, submitPractice } from "../services/api";
 import { useParams, useNavigate } from "react-router-dom";
 import SuccessModal from "../components/SuccessModal";
+import Loader from "../components/Loader";
+import { Loader2 } from "lucide-react";
 
 export default function ExamPage({ isPractice = false }) {
   const { examId } = useParams();
@@ -34,8 +36,12 @@ export default function ExamPage({ isPractice = false }) {
 
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [examDetails, setExamDetails] = useState(null);
+  const [studentDetails, setStudentDetails] = useState(null);
 
   // ✅ PROCTORING STATES
+  const [instructionsRead, setInstructionsRead] = useState(false);
   const [isProctorSetupComplete, setIsProctorSetupComplete] = useState(false);
   const [mediaGranted, setMediaGranted] = useState(false);
   const [mediaStream, setMediaStream] = useState(null);
@@ -45,6 +51,14 @@ export default function ExamPage({ isPractice = false }) {
   const submittedRef = useRef(false);
   const isLoadedRef = useRef(false);
   
+  const answersRef = useRef(answers);
+  const codingAnswersRef = useRef(codingAnswers);
+
+  useEffect(() => {
+    answersRef.current = answers;
+    codingAnswersRef.current = codingAnswers;
+  }, [answers, codingAnswers]);
+
   // ✅ TIME TRACKING
   const timeTrackingRef = useRef({
     mcq: 0,
@@ -80,6 +94,19 @@ export default function ExamPage({ isPractice = false }) {
         if (!data?.sections?.length) {
           setExamExists(false);
           return;
+        }
+
+        setExamDetails({
+          exam_name: data.exam_name || data.title || "Exam",
+          course_name: data.course_name || "Course",
+          course_code: data.course_code || "",
+        });
+
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          try {
+             setStudentDetails(JSON.parse(userStr));
+          } catch(e) {}
         }
 
         // ✅ NEW: time status from backend
@@ -250,9 +277,9 @@ export default function ExamPage({ isPractice = false }) {
                      const lookingDown = noseToMouthY < (eyeToNoseY * 0.35); 
                      const lookingUp = eyeToNoseY < (noseToMouthY * 0.25);
 
-                     // Yaw (Relaxed to allow looking at screen edges)
-                     const lookingLeft = leftEyeToNoseX > (rightEyeToNoseX * 3.5);
-                     const lookingRight = rightEyeToNoseX > (leftEyeToNoseX * 3.5);
+                     // Yaw (Tightened to detect looking wide away)
+                     const lookingLeft = leftEyeToNoseX > (rightEyeToNoseX * 2.5);
+                     const lookingRight = rightEyeToNoseX > (leftEyeToNoseX * 2.5);
 
                      if (lookingDown || lookingUp || lookingLeft || lookingRight) {
                          consecutivePoseFrames.current += 1;
@@ -262,12 +289,12 @@ export default function ExamPage({ isPractice = false }) {
                  }
              }
 
-             // Violation Thresholds (Increased to prevent micro-movement false positives)
+             // Violation Thresholds (Reduced to detect after 7 seconds)
              let violationReason = null;
 
-             if (consecutiveMissingFrames.current >= 15) violationReason = "Face not detected in frame";
-             else if (consecutiveMultipleFrames.current >= 15) violationReason = "Multiple people detected";
-             else if (consecutivePoseFrames.current >= 15) violationReason = "Suspicious head pose (looking away)";
+             if (consecutiveMissingFrames.current >= 14) violationReason = "Face not detected in frame";
+             else if (consecutiveMultipleFrames.current >= 14) violationReason = "Multiple people detected";
+             else if (consecutivePoseFrames.current >= 14) violationReason = "Suspicious head pose (looking away)";
 
              if (violationReason) {
                  cvWarningCountRef.current += 1;
@@ -351,6 +378,7 @@ export default function ExamPage({ isPractice = false }) {
     }
 
     submittedRef.current = true;
+    setIsSubmitting(true);
 
     // Stop camera and AI once submitted
     if (mediaStream) {
@@ -402,6 +430,7 @@ export default function ExamPage({ isPractice = false }) {
       
     } catch (err) {
       submittedRef.current = false;
+      setIsSubmitting(false);
       const msg = err.response?.data?.detail || err.message || "Network error.";
       alert(`Submission failed: ${msg}. Your progress is saved locally. Please check your connection and retry.`);
     }
@@ -422,8 +451,8 @@ export default function ExamPage({ isPractice = false }) {
     try {
       if (isPractice) {
           const res = await submitPractice(examId, {
-            mcq_answers: answers,
-            coding_answers: codingAnswers,
+            mcq_answers: answersRef.current,
+            coding_answers: codingAnswersRef.current,
             tab_switches: warningCountRef.current,
             cv_violations: cvWarningCountRef.current,
             time_spent_mcq: timeTrackingRef.current.mcq,
@@ -440,8 +469,8 @@ export default function ExamPage({ isPractice = false }) {
       } else {
           await submitExam({
             examId,
-            mcq_answers: answers,
-            coding_answers: codingAnswers,
+            mcq_answers: answersRef.current,
+            coding_answers: codingAnswersRef.current,
             tab_switches: warningCountRef.current,
             cv_violations: cvWarningCountRef.current,
             time_spent_mcq: timeTrackingRef.current.mcq,
@@ -517,8 +546,74 @@ export default function ExamPage({ isPractice = false }) {
     );
   }
 
-  // ================= PROCTORING SETUP =================
+  // ================= INSTRUCTIONS & PROCTORING SETUP =================
   if (timeStatus === "active" && !isPractice && !isProctorSetupComplete) {
+    if (!instructionsRead) {
+      return (
+        <div className="min-h-screen w-full flex items-center justify-center bg-[#09090b] relative overflow-hidden p-6 font-sans">
+          {/* Dynamic Background */}
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.1),rgba(255,255,255,0))]"></div>
+          <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none"></div>
+
+          <div className="relative z-10 w-full max-w-4xl bg-[#111116]/80 backdrop-blur-2xl p-8 md:p-12 rounded-[32px] border border-white/10 shadow-2xl flex flex-col md:flex-row gap-10">
+            {/* Left Side: Rules Header & Info */}
+            <div className="md:w-1/3 flex flex-col justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-6">
+                  <ListChecks className="w-4 h-4" /> Assessment Briefing
+                </div>
+                <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-4 leading-tight">Rules &<br/>Guidelines</h1>
+                <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                  You are about to begin a secure, proctored assessment. Please review the criteria carefully to avoid unintended penalties or auto-submission.
+                </p>
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="text-xs text-slate-300 font-medium">Exam Name</p>
+                  <p className="text-base text-white font-bold mb-3 truncate">{examDetails?.exam_name || "Assessment"}</p>
+                  <p className="text-xs text-slate-300 font-medium">Total Duration</p>
+                  <p className="text-base text-white font-bold">{examDetails?.duration_minutes || "--"} Minutes</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side: The Rules List */}
+            <div className="md:w-2/3 flex flex-col gap-4">
+              <div className="flex gap-4 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 items-start">
+                <div className="p-2.5 bg-indigo-500/20 text-indigo-400 rounded-xl mt-0.5"><Eye className="w-5 h-5" /></div>
+                <div>
+                  <h3 className="text-white font-bold text-[15px] mb-1">AI Face Detection</h3>
+                  <p className="text-slate-400 text-xs leading-relaxed">Your webcam must be on. If multiple faces or no faces are detected continuously, the system will record a violation.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 p-4 rounded-2xl bg-red-500/5 border border-red-500/10 items-start">
+                <div className="p-2.5 bg-red-500/20 text-red-400 rounded-xl mt-0.5"><MonitorOff className="w-5 h-5" /></div>
+                <div>
+                  <h3 className="text-white font-bold text-[15px] mb-1">Tab Switching & Full Screen</h3>
+                  <p className="text-slate-400 text-xs leading-relaxed">Leaving the full-screen mode or switching tabs will immediately log a warning. <span className="text-red-400 font-bold">3 warnings = Auto-Submission</span>.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 items-start">
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl mt-0.5"><FileWarning className="w-5 h-5" /></div>
+                <div>
+                  <h3 className="text-white font-bold text-[15px] mb-1">Scoring Criteria</h3>
+                  <p className="text-slate-400 text-xs leading-relaxed">Ensure all answers are saved before the timer expires. Once the timer reaches zero, your answers will be automatically submitted.</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setInstructionsRead(true)}
+                className="mt-4 flex items-center justify-center gap-2 w-full py-4 bg-white text-black text-[15px] font-extrabold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
+              >
+                I Understand, Continue to Setup <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // PROCTORING SETUP
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-[#09090b] relative overflow-hidden p-6 font-sans">
         
@@ -678,6 +773,8 @@ export default function ExamPage({ isPractice = false }) {
       <ExamHeader
         timeLeft={timeLeft}
         onSubmit={() => setShowSubmitModal(true)}
+        examDetails={examDetails}
+        studentDetails={studentDetails}
       />
 
       {/* FLOATING PROCTORING CAMERA */}
@@ -698,23 +795,39 @@ export default function ExamPage({ isPractice = false }) {
       )}
 
       {/* SECTION SWITCH */}
-      <div className="flex gap-2 p-2 border-b border-gray-200 dark:border-slate-800">
-        {mcqQuestions.length > 0 && (
-          <button
-            onClick={() => setActiveSection("mcq")}
-            className="bg-gray-100 dark:bg-slate-700 px-3 py-1"
-          >
-            MCQ
-          </button>
-        )}
-        {codingQuestions.length > 0 && (
-          <button
-            onClick={() => setActiveSection("coding")}
-            className="bg-gray-100 dark:bg-slate-700 px-3 py-1"
-          >
-            Coding
-          </button>
-        )}
+      <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/50">
+        <div className="flex gap-2">
+          {mcqQuestions.length > 0 && (
+            <button
+              onClick={() => setActiveSection("mcq")}
+              className={`px-4 py-1.5 rounded-md font-semibold transition-colors ${activeSection === 'mcq' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+            >
+              MCQ Section
+            </button>
+          )}
+          {codingQuestions.length > 0 && (
+            <button
+              onClick={() => setActiveSection("coding")}
+              className={`px-4 py-1.5 rounded-md font-semibold transition-colors ${activeSection === 'coding' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+            >
+              Coding Section
+            </button>
+          )}
+        </div>
+        <div className="hidden md:flex text-xs font-medium text-slate-500 dark:text-slate-400 gap-6">
+           {mcqQuestions.length > 0 && (
+             <span className="flex items-center gap-1.5">
+               <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> 
+               MCQs: {mcqQuestions.length} marks (1 mark each)
+             </span>
+           )}
+           {codingQuestions.length > 0 && (
+             <span className="flex items-center gap-1.5">
+               <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> 
+               Coding: {codingQuestions.length * 10} marks (10 marks each)
+             </span>
+           )}
+        </div>
       </div>
 
       {/* MAIN AREA */}
@@ -770,9 +883,11 @@ export default function ExamPage({ isPractice = false }) {
 
               <button
                 onClick={confirmAndSubmit}
-                className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-white"
               >
-                Submit
+                {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isSubmitting ? "Submitting..." : "Submit"}
               </button>
             </div>
           </div>

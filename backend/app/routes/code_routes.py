@@ -40,6 +40,48 @@ def run_user_code(
 
 
 # =========================
+# 🧪 RUN SAMPLE TEST CASES
+# =========================
+class RunSampleRequest(BaseModel):
+    code: str
+    question_id: str
+    language: str = "python"
+
+@router.post("/run-sample")
+def run_sample_code(
+    req: RunSampleRequest,
+    user=Depends(require_role("student"))
+):
+    try:
+        question = question_collection.find_one({
+            "_id": ObjectId(req.question_id)
+        })
+    except:
+        raise HTTPException(status_code=400, detail="Invalid question id")
+
+    if not question:
+       raise HTTPException(status_code=404, detail="Question not found")
+
+    test_cases = question.get("test_cases", [])
+    if len(test_cases) == 0:
+        raise HTTPException(status_code=400, detail="No test cases available")
+
+    sample_cases = test_cases[:1]
+
+    # Evaluate against visible test cases only
+    sample_result = evaluate_code(req.code, sample_cases, req.language)
+
+    if not sample_result:
+        raise HTTPException(status_code=500, detail="Evaluation failed")
+
+    return {
+        "status": sample_result.get("status", "RE"),
+        "passed": sample_result.get("passed", 0),
+        "total": sample_result.get("total", 0),
+        "results": sample_result.get("details", [])
+    }
+
+# =========================
 # ✅ SUBMIT CODE
 # =========================
 

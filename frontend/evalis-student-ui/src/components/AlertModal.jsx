@@ -83,7 +83,7 @@ export default function AlertModal() {
                 : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-gray-100'
             }`}
           >
-            Acknowledge
+            OK
           </button>
         </div>
       </div>

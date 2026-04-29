@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { formatDateTime } from "../utils/formatDate";
+import { Loader2 } from "lucide-react";
 
 export default function AdminExamDashboard() {
   const navigate = useNavigate();
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [publishingId, setPublishingId] = useState(null);
+  const [resultsPublishingId, setResultsPublishingId] = useState(null);
 
   // ✅ NEW: schedule state
   const [scheduleData, setScheduleData] = useState({});
@@ -153,6 +156,7 @@ export default function AdminExamDashboard() {
     }
 
     try {
+      setPublishingId(examId);
       await API.put(`/exam/${examId}/publish`);
 
       setExams((prev) =>
@@ -161,6 +165,8 @@ export default function AdminExamDashboard() {
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.detail || "Failed to publish exam");
+    } finally {
+      setPublishingId(null);
     }
   };
   // =========================
@@ -168,6 +174,7 @@ export default function AdminExamDashboard() {
   // =========================
   const handlePublishResults = async (examId) => {
     try {
+      setResultsPublishingId(examId);
       const res = await API.put(`/exam/${examId}/publish-results`);
       
       setExams((prev) =>
@@ -180,6 +187,8 @@ export default function AdminExamDashboard() {
     } catch (err) {
       console.error(err);
       alert("Failed to toggle results visibility");
+    } finally {
+      setResultsPublishingId(null);
     }
   };
   // =========================
@@ -435,8 +444,10 @@ export default function AdminExamDashboard() {
                   {exam.status === "finalized" && exam.start_time && (
                     <button
                       onClick={() => handlePublish(exam._id)}
-                      className="bg-emerald-500 text-white hover:bg-emerald-600 px-4 py-2 rounded text-sm"
+                      disabled={publishingId === exam._id}
+                      className="bg-emerald-500 text-white hover:bg-emerald-600 px-4 py-2 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
+                      {publishingId === exam._id && <Loader2 className="w-4 h-4 animate-spin" />}
                       Publish
                     </button>
                   )}
@@ -447,22 +458,26 @@ export default function AdminExamDashboard() {
                         Live for students
                       </span>
                       
-                      <button
-                        onClick={() => handlePublishResults(exam._id)}
-                        className={`text-sm px-4 py-2 rounded transition-colors ${
-                          exam.is_results_published
-                            ? "bg-purple-600/30 text-purple-400 hover:bg-purple-600/50"
-                            : "bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200"
-                        }`}
-                      >
-                        {exam.is_results_published ? "Results Public" : "Release Results"}
-                      </button>
+                      {timeStatus === "expired" && (
+                         <button
+                           onClick={() => handlePublishResults(exam._id)}
+                           disabled={resultsPublishingId === exam._id}
+                           className={`text-sm px-4 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
+                             exam.is_results_published
+                               ? "bg-purple-600/30 text-purple-400 hover:bg-purple-600/50"
+                               : "bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200"
+                           }`}
+                         >
+                           {resultsPublishingId === exam._id && <Loader2 className="w-4 h-4 animate-spin" />}
+                           {exam.is_results_published ? "Results Public" : "Release Results"}
+                         </button>
+                      )}
 
                       <button
                         onClick={() => navigate(`/admin/exam/${exam._id}/submissions`)}
                         className="text-sm px-4 py-2 rounded transition-colors bg-blue-600 text-white hover:bg-blue-500 font-semibold"
                       >
-                         📋 View Ledger
+                         📊 Report / Activity
                       </button>
                     </div>
                   )}

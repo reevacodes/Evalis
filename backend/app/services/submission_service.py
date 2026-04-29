@@ -42,8 +42,9 @@ def evaluate_code(code, test_cases, language="python"):
     try:
         for i, case in enumerate(test_cases):
 
+            input_data = case.get("input", "")
             output, error, exec_time = execute_in_docker(
-                code, case["input"], language
+                code, input_data, language
             )
 
             expected = case.get("expected_output") or case.get("output")
@@ -53,7 +54,7 @@ def evaluate_code(code, test_cases, language="python"):
                 results.append({
                     "test_case": i + 1,
                     "verdict": "TLE",
-                    "input": case["input"],
+                    "input": input_data,
                     "expected": expected,
                     "output": "Time Limit Exceeded",
                     "time": exec_time
@@ -65,7 +66,7 @@ def evaluate_code(code, test_cases, language="python"):
                 results.append({
                     "test_case": i + 1,
                     "verdict": "RE",
-                    "input": case["input"],
+                    "input": input_data,
                     "expected": expected,
                     "output": error.get("message"),
                     "time": exec_time
@@ -90,12 +91,14 @@ def evaluate_code(code, test_cases, language="python"):
                 )
 
             # ✅ Correct Output
-            if output.strip() == expected.strip():
+            out_normalized = str(output).replace("\r\n", "\n").strip()
+            exp_normalized = str(expected).replace("\r\n", "\n").strip()
+            if out_normalized == exp_normalized:
                 passed += 1
                 results.append({
                     "test_case": i + 1,
                     "verdict": "AC",
-                    "input": case["input"],
+                    "input": input_data,
                     "expected": expected,
                     "output": output,
                     "time": exec_time
@@ -106,7 +109,7 @@ def evaluate_code(code, test_cases, language="python"):
                 results.append({
                     "test_case": i + 1,
                     "verdict": "WA",
-                    "input": case["input"],
+                    "input": input_data,
                     "expected": expected,
                     "output": output,
                     "time": exec_time

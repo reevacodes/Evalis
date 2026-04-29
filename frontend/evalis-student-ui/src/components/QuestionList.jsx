@@ -102,7 +102,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
               {/* HEADER */}
               <div
                 onClick={() => setExpanded(isOpen ? null : qid)}
-                className="px-4 py-3 flex justify-between items-center hover:bg-white dark:bg-slate-800"
+                className="px-4 py-3 flex justify-between items-center hover:bg-white dark:hover:bg-slate-800"
               >
                 <h2 className="text-sm md:text-base font-medium text-slate-900 dark:text-white">{preview}</h2>
                 <span className="text-xs text-slate-500 dark:text-gray-400">

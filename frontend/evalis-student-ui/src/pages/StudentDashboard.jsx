@@ -232,7 +232,7 @@ export default function StudentDashboard() {
                 : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50'
             }`}
           >
-            <BarChart2 className="w-4 h-4" /> Analytics & History
+            <BarChart2 className="w-4 h-4" /> Completed & Analytics
           </button>
         </div>
 
@@ -240,16 +240,17 @@ export default function StudentDashboard() {
         <>
           {loading ? (
             <p className="text-slate-500 dark:text-slate-400">Loading exams...</p>
-          ) : exams.length === 0 ? (
+          ) : exams.filter(e => !(e.time_status === "expired" || e.has_submitted)).length === 0 ? (
         <div className="text-center text-slate-500 dark:text-slate-400 mt-10">
-          <p className="text-lg">No exams available</p>
+          <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">No active or upcoming exams</p>
           <p className="text-sm mt-2">
-            Check back later or contact your instructor
+            You're all caught up! Check back later or contact your instructor.
           </p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-5">
           {[...exams]
+            .filter(ex => !(ex.time_status === "expired" || ex.has_submitted))
             .sort((a, b) => {
                const getPriority = (ex) => {
                  if (ex.time_status === 'expired' || ex.has_submitted) return 3;
@@ -342,7 +343,7 @@ export default function StudentDashboard() {
                         className="w-full py-3.5 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
                       >
                        <PlayCircle className="w-5 h-5" />
-                       Start Exam Now
+                       {localStorage.getItem(`exam_${exam._id}_answers`) ? "Resume Exam" : "Start Exam Now"}
                       </button>
                     )}
                     {isUpcoming && (
@@ -455,7 +456,7 @@ export default function StudentDashboard() {
                                   : "bg-white dark:bg-slate-800 text-slate-500 cursor-not-allowed"
                               }`}
                             >
-                              {isReady ? "Start Now" : "Waiting"}
+                              {isReady ? (localStorage.getItem(`exam_${mock._id}_answers`) ? "Resume Mock" : "Start Now") : "Waiting"}
                             </button>
                           </div>
                         );
@@ -470,6 +471,57 @@ export default function StudentDashboard() {
       ) : activeTab === "history" ? (
          /* 📊 PERFORMANCE HISTORY TAB */
          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            
+            {/* 🎯 OFFICIAL COMPLETED EXAMS */}
+            {(() => {
+               const completedExams = exams.filter(e => e.time_status === "expired" || e.has_submitted);
+               if (completedExams.length > 0) {
+                  return (
+                     <div className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-3xl p-6 shadow-sm mb-8">
+                        <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-200 dark:border-slate-800">
+                           <div className="p-2.5 bg-blue-500/10 rounded-xl">
+                              <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                           </div>
+                           <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Official Exam Analytics</h3>
+                        </div>
+                        
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                          {completedExams.map((exam) => (
+                              <div
+                                key={exam._id}
+                                className="flex flex-col bg-gray-50 dark:bg-[#0c0c11] border border-gray-200 dark:border-slate-800/80 rounded-2xl overflow-hidden hover:border-blue-400 dark:hover:border-blue-500/50 transition-all hover:shadow-md group"
+                              >
+                                <div className="p-5 flex-1 flex flex-col">
+                                  <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                      <h4 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{exam.exam_name}</h4>
+                                      <p className="text-blue-500 font-medium text-xs mt-1">{exam.subject_code} • Sem {exam.semester}</p>
+                                    </div>
+                                    <span className="px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                      Completed
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-slate-500 font-medium mb-4 flex items-center gap-2">
+                                    <Calendar className="w-3 h-3" /> {exam.start_time ? formatDateOnly(exam.start_time) : "TBD"}
+                                  </p>
+                                  <div className="mt-auto pt-4 border-t border-gray-200 dark:border-slate-800/50">
+                                    <button 
+                                      onClick={() => navigate(`/student/results/${exam._id}`)}
+                                      className="w-full py-2.5 rounded-xl font-bold bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:bg-blue-600/20 dark:text-blue-400 dark:hover:bg-blue-600/30 transition flex items-center justify-center gap-2 text-sm"
+                                    >
+                                      <BarChart2 className="w-4 h-4" /> View Analytics
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                          ))}
+                        </div>
+                     </div>
+                  );
+               }
+               return null;
+            })()}
+
             {practiceHistory.length === 0 ? (
                <div className="text-center text-slate-500 dark:text-slate-400 mt-16 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 p-12">
                  <div className="w-20 h-20 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -489,7 +541,7 @@ export default function StudentDashboard() {
                      <div className="p-2.5 bg-indigo-500/10 rounded-xl">
                         <Activity className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                      </div>
-                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Recent Mock Attempts</h3>
+                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Mock Practice History</h3>
                   </div>
                   
                   <div className="grid gap-4">
@@ -802,9 +854,9 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                                                                             <div className="flex gap-2">
                                                                                                 <button 
                                                                                                     onClick={() => navigate(`/student/practice/${paper._id}`)}
-                                                                                                    className="px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg font-bold hover:bg-purple-600 hover:text-slate-900 dark:text-white transition"
+                                                                                                    className="px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg font-bold hover:bg-purple-600 hover:text-white dark:hover:text-white transition"
                                                                                                 >
-                                                                                                    Instant
+                                                                                                    {localStorage.getItem(`exam_${paper._id}_answers`) ? "Resume" : "Instant"}
                                                                                                 </button>
                                                                                                 <button 
                                                                                                     onClick={() => setSchedulingPaper(paper._id)}

@@ -181,7 +181,7 @@ export default function ExamAnalyticsScreen() {
                     </View>
                     <View style={styles.logRow}>
                         <Text style={styles.logLabel}>Timestamp</Text>
-                        <Text style={styles.logValue}>{submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Protected'}</Text>
+                        <Text style={styles.logValue}>{submission.submitted_at ? new Date(submission.submitted_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Protected'}</Text>
                     </View>
                 </View>
             </View>

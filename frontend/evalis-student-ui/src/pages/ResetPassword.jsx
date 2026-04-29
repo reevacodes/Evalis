@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { resetPasswordToken } from "../services/api";
+import { Loader2 } from "lucide-react";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -117,8 +118,9 @@ export default function ResetPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-slate-900 dark:text-white py-3 rounded-lg font-medium hover:from-blue-500 hover:to-indigo-500 transition mt-4 disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-slate-900 dark:text-white py-3 rounded-lg font-medium hover:from-blue-500 hover:to-indigo-500 transition mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
+              {loading && <Loader2 className="w-5 h-5 animate-spin" />}
               {loading ? "Resetting..." : "Reset Password"}
             </button>
 

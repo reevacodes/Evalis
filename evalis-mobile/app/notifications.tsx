@@ -113,7 +113,7 @@ export default function NotificationsScreen() {
                             <View style={styles.textContainer}>
                                 <Text style={[styles.title, !notif.is_read && styles.titleUnread]}>{notif.title}</Text>
                                 <Text style={styles.message}>{notif.message}</Text>
-                                <Text style={styles.time}>{new Date(notif.created_at).toLocaleString()}</Text>
+                                <Text style={styles.time}>{new Date(notif.created_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Text>
                             </View>
                             {!notif.is_read && <View style={styles.unreadDot} />}
                         </TouchableOpacity>

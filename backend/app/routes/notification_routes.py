@@ -35,6 +35,36 @@ def send_expo_push(user_id: str, title: str, message: str, data: dict = None):
         print("Push Notification Failed:", str(e))
         return False
 
+def create_notification(user_id: str, title: str, message: str, link: str = None):
+    """
+    Creates an in-app notification and attempts to send a push notification.
+    """
+    notification = {
+        "user_id": user_id,
+        "title": title,
+        "message": message,
+        "link": link,
+        "is_read": False,
+        "created_at": datetime.utcnow().isoformat() + "Z"
+    }
+    notification_collection.insert_one(notification)
+    send_expo_push(user_id, title, message, {"link": link})
+    return True
+
+def notify_admins(title: str, message: str, link: str = None):
+    """
+    Sends a notification to all users with role='admin'.
+    """
+    admins = user_collection.find({"role": "admin"})
+    for admin in admins:
+        create_notification(
+            user_id=admin["email"],
+            title=title,
+            message=message,
+            link=link
+        )
+    return True
+
 class PushTokenUpdate(BaseModel):
     token: str
 
@@ -53,8 +83,8 @@ def update_push_token(req: PushTokenUpdate, user=Depends(get_current_user)):
     return {"message": "Push token linked to device."}
 
 @router.get("/me")
-def get_my_notifications(user = Depends(require_role("student"))):
-    """Fetch all notifications for the logged-in student, sorted newest first"""
+def get_my_notifications(user = Depends(get_current_user)):
+    """Fetch all notifications for the logged-in user, sorted newest first"""
     docs = notification_collection.find({"user_id": user.get("sub")}).sort("created_at", -1)
     
     notifications = []
@@ -65,7 +95,7 @@ def get_my_notifications(user = Depends(require_role("student"))):
     return {"notifications": notifications}
 
 @router.put("/{notification_id}/read")
-def mark_notification_read(notification_id: str, user = Depends(require_role("student"))):
+def mark_notification_read(notification_id: str, user = Depends(get_current_user)):
     """Mark a specific notification as read"""
     try:
         obj_id = ObjectId(notification_id)
@@ -83,7 +113,7 @@ def mark_notification_read(notification_id: str, user = Depends(require_role("st
     return {"message": "Notification marked as read"}
 
 @router.put("/read-all")
-def mark_all_read(user = Depends(require_role("student"))):
+def mark_all_read(user = Depends(get_current_user)):
     """Mark all notifications as read for the user"""
     notification_collection.update_many(
         {"user_id": user.get("sub"), "is_read": False},

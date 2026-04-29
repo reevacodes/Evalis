@@ -1,8 +1,8 @@
 import StatCard from "../components/StatCard";
 import { useEffect, useState } from "react";
-import { getAllExams, getRescheduleRequests, updateRescheduleRequest, deleteRescheduleRequest, getActivityLogs, getLiveSessions } from "../services/api";
+import { getAllExams, getRescheduleRequests, updateRescheduleRequest, deleteRescheduleRequest, getActivityLogs, getLiveSessions, inviteTeacher } from "../services/api";
 import { formatDateTime } from "../utils/formatDate";
-import { Activity, Radio, AlertTriangle } from "lucide-react";
+import { Activity, Radio, AlertTriangle, Loader2 } from "lucide-react";
 import AdminRejectModal from "../components/AdminRejectModal";
 
 export default function AdminOverview() {
@@ -18,6 +18,31 @@ export default function AdminOverview() {
   const [liveSessions, setLiveSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rejectModalData, setRejectModalData] = useState({ isOpen: false, request: null });
+
+  // Teacher Invite State
+  const [isInviteModalOpen, setInviteModalOpen] = useState(false);
+  const [inviteData, setInviteData] = useState({ name: "", email: "" });
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState("");
+
+  const handleInviteTeacher = async (e) => {
+    e.preventDefault();
+    setInviteLoading(true);
+    setInviteMessage("");
+    try {
+      await inviteTeacher(inviteData);
+      setInviteMessage("Teacher invited successfully!");
+      setTimeout(() => {
+        setInviteModalOpen(false);
+        setInviteData({ name: "", email: "" });
+        setInviteMessage("");
+      }, 2000);
+    } catch (err) {
+      setInviteMessage(err.response?.data?.detail || "Failed to invite teacher");
+    } finally {
+      setInviteLoading(false);
+    }
+  };
 
   const handleRejectSubmit = async (reason) => {
     try {
@@ -93,10 +118,43 @@ export default function AdminOverview() {
     <div className="space-y-8">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-semibold">Dashboard Overview</h1>
-        <p className="text-slate-600 dark:text-gray-400 mt-1">
-          Monitor exams, activity, and system performance
-        </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-semibold">Dashboard Overview</h1>
+            <p className="text-slate-600 dark:text-gray-400 mt-1">
+              Monitor exams, activity, and system performance
+            </p>
+          </div>
+          <button 
+            onClick={() => setInviteModalOpen(true)}
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+          >
+            <span className="text-xl">+</span> Invite Teacher
+          </button>
+        </div>
+
+        {isInviteModalOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-8 rounded-xl w-full max-w-md shadow-2xl relative">
+              <button onClick={() => setInviteModalOpen(false)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white">✕</button>
+              <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Invite Teacher</h2>
+              {inviteMessage && <div className={`p-3 rounded-lg text-sm mb-4 ${inviteMessage.includes("success") ? "bg-green-500/10 text-green-500 border border-green-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"}`}>{inviteMessage}</div>}
+              <form onSubmit={handleInviteTeacher} className="flex flex-col gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Full Name</label>
+                  <input type="text" value={inviteData.name} onChange={e => setInviteData({...inviteData, name: e.target.value})} required className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="John Doe" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Email Address</label>
+                  <input type="email" value={inviteData.email} onChange={e => setInviteData({...inviteData, email: e.target.value})} required className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="teacher@university.edu" />
+                </div>
+                <button type="submit" disabled={inviteLoading} className="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                  {inviteLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Invitation Link"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
         
         {/* NEW GRIDS FOR LIVE MONITORING & ACTIVITY */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 mt-8">
