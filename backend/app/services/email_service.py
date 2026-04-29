@@ -10,10 +10,10 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 # Config from environment variables
-SMTP_SERVER = os.getenv("SMTP_SERVER", "")
+SMTP_SERVER = os.getenv("SMTP_SERVER", "").strip('\"\'')
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_USER = os.getenv("SMTP_USER", "").strip('\"\'')
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "").strip('\"\'')
 
 def format_to_ist(iso_string: str) -> str:
     """Converts a UTC iso string to a nicely formatted IST string."""
