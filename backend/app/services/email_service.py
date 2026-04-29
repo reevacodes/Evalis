@@ -74,9 +74,9 @@ Evalis Core Systems"""
         msg.attach(MIMEText(body, 'plain'))
 
         if SMTP_PORT == 465:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
         else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
             server.starttls()
             
         server.login(SMTP_USER, SMTP_PASSWORD)
@@ -124,9 +124,9 @@ Evalis Assessment Platform"""
         msg.attach(MIMEText(body, 'plain'))
 
         if SMTP_PORT == 465:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
         else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
             server.starttls()
             
         server.login(SMTP_USER, SMTP_PASSWORD)
@@ -176,9 +176,9 @@ Evalis Assessment Platform"""
 
     try:
         if SMTP_PORT == 465:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
         else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
             server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
         
@@ -241,9 +241,9 @@ Evalis Assessment Platform"""
         msg.attach(MIMEText(body, 'plain'))
 
         if SMTP_PORT == 465:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
         else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
             server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)
@@ -295,9 +295,9 @@ Evalis Assessment Platform"""
         msg.attach(MIMEText(body, 'plain'))
 
         if SMTP_PORT == 465:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
         else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
             server.starttls()
             
         server.login(SMTP_USER, SMTP_PASSWORD)
@@ -339,9 +339,9 @@ Evalis Assessment Platform"""
         msg.attach(MIMEText(body, 'plain'))
 
         if SMTP_PORT == 465:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
         else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
             server.starttls()
             
         server.login(SMTP_USER, SMTP_PASSWORD)
@@ -381,9 +381,9 @@ Evalis Assessment Platform"""
         msg.attach(MIMEText(body, 'plain'))
 
         if SMTP_PORT == 465:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
         else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
             server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)
@@ -430,9 +430,9 @@ Evalis Assessment Platform"""
         msg.attach(MIMEText(body, 'plain'))
 
         if SMTP_PORT == 465:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
         else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
             server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)
@@ -478,9 +478,9 @@ Evalis Assessment Platform"""
             msg.attach(MIMEText(body, 'plain'))
 
             if SMTP_PORT == 465:
-                server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+                server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
             else:
-                server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+                server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
                 server.starttls()
                 
             server.login(SMTP_USER, SMTP_PASSWORD)
@@ -522,9 +522,9 @@ Evalis Admin"""
         msg.attach(MIMEText(body, 'plain'))
 
         if SMTP_PORT == 465:
-            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=5)
         else:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5)
             server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.send_message(msg)
