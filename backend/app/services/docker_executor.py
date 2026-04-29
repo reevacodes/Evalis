@@ -1,128 +1,53 @@
-import subprocess
 import os
-import time
-import uuid
+import requests
+from dotenv import load_dotenv
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEMP_DIR = os.path.join(BASE_DIR, "temp")
+load_dotenv()
 
-if not os.path.exists(TEMP_DIR):
-    os.makedirs(TEMP_DIR)
+# The URL of your new EC2 Microservice
+EXECUTOR_URL = os.getenv("EXECUTOR_URL", "http://YOUR_EC2_IP_ADDRESS:8000/execute")
+EXECUTOR_API_KEY = os.getenv("EXECUTOR_API_KEY", "your_super_secret_execution_key_here")
 
-
-# DOCKER EXECUTER
 def execute_in_docker(code: str, input_data: str, language: str = "python"):
-    file_id = uuid.uuid4().hex
-    container_dir = f"/app/{file_id}"
-
-    if language == "python":
-        file_name = f"{file_id}.py"
-    elif language == "cpp":
-        file_name = f"{file_id}.cpp"
-    elif language == "c":
-        file_name = f"{file_id}.c"
-    else:
-        return None, {"type": "RE", "message": "Unsupported language"}, 0
-
-    file_path = os.path.join(TEMP_DIR, file_name)
+    """
+    This function used to run Docker locally. 
+    Now it forwards the payload to our secure EC2 microservice!
+    """
+    payload = {
+        "code": code,
+        "language": language,
+        "input_data": input_data
+    }
+    
+    headers = {
+        "X-API-Key": EXECUTOR_API_KEY,
+        "Content-Type": "application/json"
+    }
 
     try:
-        start_time = time.time()
+        # Make a synchronous HTTP request to the EC2 server
+        response = requests.post(EXECUTOR_URL, json=payload, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            output = data.get("output", "")
+            error_msg = data.get("error")
+            exec_time = data.get("execution_time_seconds", 0)
 
-        # WRITE FILE
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(code)
+            if data.get("status") == "error" or error_msg:
+                # Return Runtime Error
+                return None, {"type": "RE", "message": error_msg or "Runtime Error"}, exec_time
+            
+            # Return Success
+            return output.strip(), None, exec_time
+            
+        else:
+            return None, {"type": "RE", "message": f"Execution Server Error: {response.text}"}, 0
 
-        input_data = (input_data or "").rstrip() + "\n"
-
-        # CREATE ISOLATED DIR
-        subprocess.run(
-            ["docker", "exec", "code_runner", "mkdir", "-p", container_dir],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-
-        # COPY FILE 
-        subprocess.run(
-            ["docker", "cp", file_path, f"code_runner:{container_dir}/{file_name}"],
-            check=True
-        )
-
-        exec_cmd = ""
-
-        # COMPILE (IF NEEDED)
-        if language == "cpp":
-            compile_cmd = f"g++ {container_dir}/{file_name} -o {container_dir}/{file_id}"
-
-            compile_res = subprocess.run(
-                ["docker", "exec", "code_runner", "sh", "-c", compile_cmd],
-                capture_output=True,
-                text=True
-            )
-
-            if compile_res.returncode != 0:
-                return None, {
-                    "type": "CE",
-                    "message": compile_res.stderr.strip()
-                }, 0
-
-            exec_cmd = f"{container_dir}/{file_id}"
-
-        elif language == "c":
-            compile_cmd = f"gcc {container_dir}/{file_name} -o {container_dir}/{file_id}"
-
-            compile_res = subprocess.run(
-                ["docker", "exec", "code_runner", "sh", "-c", compile_cmd],
-                capture_output=True,
-                text=True
-            )
-
-            if compile_res.returncode != 0:
-                return None, {
-                    "type": "CE",
-                    "message": compile_res.stderr.strip()
-                }, 0
-
-            exec_cmd = f"{container_dir}/{file_id}"
-
-        elif language == "python":
-            exec_cmd = f"python3 {container_dir}/{file_name}"
-
-        # RUN 
-        result = subprocess.run(
-            ["docker", "exec", "-i", "code_runner", "sh", "-c", exec_cmd],
-            input=input_data,
-            text=True,
-            capture_output=True,
-            timeout=2
-        )
-
-        end_time = time.time()
-
-        if result.returncode != 0:
-            return None, {
-                "type": "RE",
-                "message": result.stderr.strip() or "Runtime Error"
-            }, round(end_time - start_time, 4)
-
-        return result.stdout.strip(), None, round(end_time - start_time, 4)
-
-    except subprocess.TimeoutExpired:
-        return None, {"type": "TLE", "message": "Time Limit Exceeded"}, 2
+    except requests.exceptions.Timeout:
+        # Hard Time Limit Exceeded
+        return None, {"type": "TLE", "message": "Time Limit Exceeded"}, 10.0
 
     except Exception as e:
-        return None, {"type": "RE", "message": str(e)}, 0
-
-    finally:
-        # CLEANUP 
-        try:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-
-            subprocess.run(
-                ["docker", "exec", "code_runner", "rm", "-rf", container_dir],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-        except:
-            pass
+        # Connection error (EC2 is down or wrong IP)
+        return None, {"type": "RE", "message": f"Failed to connect to EC2 Sandbox: {str(e)}"}, 0
