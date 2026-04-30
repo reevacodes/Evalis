@@ -26,16 +26,44 @@ def shutdown_event():
 @app.get("/debug-env")
 def debug_env():
     import os
+    import json
+    from google.oauth2.credentials import Credentials
+    from googleapiclient.discovery import build
+    from google.auth.transport.requests import Request
+    
     val = os.getenv("GMAIL_TOKEN_JSON")
     if not val:
-        return {"status": "EMPTY", "message": "Render cannot see the variable at all."}
-    
-    import json
+        return {"status": "EMPTY"}
+        
     try:
         j = json.loads(val)
-        return {"status": "JSON_OK", "keys": list(j.keys())}
+        creds = Credentials.from_authorized_user_info(j, ['https://www.googleapis.com/auth/gmail.send'])
+        debug_info = {
+            "status": "JSON_OK",
+            "creds_valid": creds.valid,
+            "creds_expired": creds.expired,
+            "has_refresh_token": bool(creds.refresh_token)
+        }
+        
+        if not creds.valid:
+            if creds.expired and creds.refresh_token:
+                try:
+                    creds.refresh(Request())
+                    debug_info["refresh"] = "SUCCESS"
+                except Exception as e:
+                    debug_info["refresh_error"] = str(e)
+            else:
+                debug_info["why_invalid"] = "Not expired or no refresh token"
+                
+        try:
+            service = build('gmail', 'v1', credentials=creds)
+            debug_info["build"] = "SUCCESS"
+        except Exception as e:
+            debug_info["build_error"] = str(e)
+            
+        return debug_info
     except Exception as e:
-        return {"status": "JSON_ERROR", "error": str(e), "raw_value_preview": val[:50] + "..."}
+        return {"status": "ERROR", "error": str(e)}
 
 @app.get("/test-email")
 def test_email():
