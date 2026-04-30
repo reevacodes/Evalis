@@ -23,6 +23,20 @@ def startup_event():
 def shutdown_event():
     stop_scheduler()
 
+@app.get("/debug-env")
+def debug_env():
+    import os
+    val = os.getenv("GMAIL_TOKEN_JSON")
+    if not val:
+        return {"status": "EMPTY", "message": "Render cannot see the variable at all."}
+    
+    import json
+    try:
+        j = json.loads(val)
+        return {"status": "JSON_OK", "keys": list(j.keys())}
+    except Exception as e:
+        return {"status": "JSON_ERROR", "error": str(e), "raw_value_preview": val[:50] + "..."}
+
 @app.get("/test-email")
 def test_email():
     import os
