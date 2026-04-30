@@ -13,10 +13,20 @@ logger = logging.getLogger(__name__)
 def get_gmail_service():
     """Authenticates and returns the Gmail API service."""
     creds = None
-    # We will look for token.json in the current working directory
     token_path = os.path.join(os.getcwd(), 'token.json')
     
-    if os.path.exists(token_path):
+    # 1. Check if token is provided via Render Environment Variables
+    import json
+    token_env = os.getenv('GMAIL_TOKEN_JSON')
+    if token_env:
+        try:
+            token_info = json.loads(token_env)
+            creds = Credentials.from_authorized_user_info(token_info, ['https://www.googleapis.com/auth/gmail.send'])
+        except Exception as e:
+            logger.error(f"Failed to parse GMAIL_TOKEN_JSON: {e}")
+            
+    # 2. Fallback to local token.json file
+    if not creds and os.path.exists(token_path):
         creds = Credentials.from_authorized_user_file(token_path, ['https://www.googleapis.com/auth/gmail.send'])
         
     # If there are no (valid) credentials available, let the user log in.
