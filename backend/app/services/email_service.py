@@ -1,14 +1,45 @@
 import os
+import base64
 import logging
+from email.mime.text import MIMEText
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 from dotenv import load_dotenv
-import requests
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
-SENDER_EMAIL = os.getenv("SENDER_EMAIL", "evalis.team@gmail.com").strip('\"\'')
+def get_gmail_service():
+    """Authenticates and returns the Gmail API service."""
+    creds = None
+    # We will look for token.json in the current working directory
+    token_path = os.path.join(os.getcwd(), 'token.json')
+    
+    if os.path.exists(token_path):
+        creds = Credentials.from_authorized_user_file(token_path, ['https://www.googleapis.com/auth/gmail.send'])
+        
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            from google.auth.transport.requests import Request
+            try:
+                creds.refresh(Request())
+                with open(token_path, 'w') as token:
+                    token.write(creds.to_json())
+            except Exception as e:
+                logger.error(f"Failed to refresh Gmail token: {e}")
+                return None
+        else:
+            logger.error("No valid token.json found! Cannot authenticate Gmail API.")
+            return None
+            
+    try:
+        service = build('gmail', 'v1', credentials=creds)
+        return service
+    except Exception as e:
+        logger.error(f"Failed to build Gmail service: {e}")
+        return None
 
 def format_to_ist(iso_string: str) -> str:
     """Converts a UTC iso string to a nicely formatted IST string."""
@@ -30,38 +61,31 @@ def format_to_ist(iso_string: str) -> str:
         return str(iso_string)
 
 def _send_email(to_emails, subject: str, body: str) -> bool:
-    if not BREVO_API_KEY:
-        logger.warning(f"BREVO_API_KEY not configured. Mocking email to {to_emails}")
-        print(f"\n{'='*40}\n[MOCK EMAIL] To: {to_emails}\nSubject: {subject}\n{'='*40}\n")
-        return True
-    
     if isinstance(to_emails, str):
         to_emails = [to_emails]
 
+    service = get_gmail_service()
+    if not service:
+        logger.warning(f"Gmail API not configured or token missing. Mocking email to {to_emails}")
+        print(f"\n{'='*40}\n[MOCK EMAIL] To: {to_emails}\nSubject: {subject}\n{'='*40}\n")
+        return True
+
     try:
-        url = "https://api.brevo.com/v3/smtp/email"
-        headers = {
-            "accept": "application/json",
-            "api-key": BREVO_API_KEY,
-            "content-type": "application/json"
-        }
-        payload = {
-            "sender": {"email": SENDER_EMAIL, "name": "Evalis"},
-            "to": [{"email": email} for email in to_emails],
-            "subject": subject,
-            "textContent": body
-        }
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        message = MIMEText(body)
+        sender = os.getenv("SENDER_EMAIL", "evalis.team@gmail.com").strip('\"\'')
         
-        # Will raise an error if status code is not 2xx
-        response.raise_for_status() 
+        message['To'] = ", ".join(to_emails)
+        message['From'] = sender
+        message['Subject'] = subject
+
+        encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        create_message = {'raw': encoded_message}
         
-        logger.info(f"Email sent successfully via Brevo to {to_emails}")
+        send_message = (service.users().messages().send(userId="me", body=create_message).execute())
+        logger.info(f"Email sent successfully via Gmail API: {send_message['id']}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send email to {to_emails} via Brevo: {str(e)}")
-        if hasattr(e, 'response') and e.response is not None:
-             logger.error(f"Brevo API Response: {e.response.text}")
+        logger.error(f"Failed to send email to {to_emails} via Gmail API: {str(e)}")
         return False
 
 def send_password_reset_email(to_email: str, reset_link: str):
