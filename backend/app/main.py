@@ -26,27 +26,35 @@ def shutdown_event():
 @app.get("/test-email")
 def test_email():
     import os
-    import resend
+    import requests
     
-    api_key = os.getenv("RESEND_API_KEY", "")
-    sender = os.getenv("SENDER_EMAIL", "onboarding@resend.dev").strip('\"\'')
+    api_key = os.getenv("BREVO_API_KEY", "")
+    sender = os.getenv("SENDER_EMAIL", "evalis.team@gmail.com").strip('\"\'')
     
     if not api_key:
-        return {"status": "ERROR", "error_message": "RESEND_API_KEY is missing from environment variables."}
+        return {"status": "ERROR", "error_message": "BREVO_API_KEY is missing from environment variables."}
         
-    resend.api_key = api_key
-    
     try:
-        params = {
-            "from": sender,
-            "to": [sender], # Sending to the sender email as a test (must be registered email if domain not verified)
-            "subject": "Evalis - Resend API Test",
-            "text": "If you are reading this, Resend API is working perfectly on Render!",
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json"
         }
-        resend.Emails.send(params)
-        return {"status": "SUCCESS", "message": "Email sent successfully via Resend!"}
+        payload = {
+            "sender": {"email": sender, "name": "Evalis Test"},
+            "to": [{"email": sender}], # Sending to the sender email as a test
+            "subject": "Evalis - Brevo API Test",
+            "textContent": "If you are reading this, Brevo API is working perfectly on Render!"
+        }
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
+        return {"status": "SUCCESS", "message": "Email sent successfully via Brevo!"}
     except Exception as e:
-        return {"status": "ERROR", "error_message": str(e), "hint": "If using onboarding@resend.dev, you can only send to the email address you signed up to Resend with."}
+        err_msg = str(e)
+        if hasattr(e, 'response') and e.response is not None:
+             err_msg += f" | Brevo API Response: {e.response.text}"
+        return {"status": "ERROR", "error_message": err_msg, "hint": "Ensure your sender email is verified in Brevo."}
 
 os.makedirs("uploads/reschedule_proofs", exist_ok=True)
 app.mount("/static/reschedule_proofs", StaticFiles(directory="uploads/reschedule_proofs"), name="reschedule_proofs")

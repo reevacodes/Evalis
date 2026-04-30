@@ -1,14 +1,14 @@
 import os
 import logging
 from dotenv import load_dotenv
-import resend
+import requests
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-resend.api_key = os.getenv("RESEND_API_KEY", "")
-SENDER_EMAIL = os.getenv("SENDER_EMAIL", "onboarding@resend.dev").strip('\"\'')
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL", "evalis.team@gmail.com").strip('\"\'')
 
 def format_to_ist(iso_string: str) -> str:
     """Converts a UTC iso string to a nicely formatted IST string."""
@@ -30,8 +30,8 @@ def format_to_ist(iso_string: str) -> str:
         return str(iso_string)
 
 def _send_email(to_emails, subject: str, body: str) -> bool:
-    if not resend.api_key:
-        logger.warning(f"RESEND_API_KEY not configured. Mocking email to {to_emails}")
+    if not BREVO_API_KEY:
+        logger.warning(f"BREVO_API_KEY not configured. Mocking email to {to_emails}")
         print(f"\n{'='*40}\n[MOCK EMAIL] To: {to_emails}\nSubject: {subject}\n{'='*40}\n")
         return True
     
@@ -39,17 +39,29 @@ def _send_email(to_emails, subject: str, body: str) -> bool:
         to_emails = [to_emails]
 
     try:
-        params = {
-            "from": SENDER_EMAIL,
-            "to": to_emails,
-            "subject": subject,
-            "text": body,
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "api-key": BREVO_API_KEY,
+            "content-type": "application/json"
         }
-        resend.Emails.send(params)
-        logger.info(f"Email sent successfully to {to_emails}")
+        payload = {
+            "sender": {"email": SENDER_EMAIL, "name": "Evalis"},
+            "to": [{"email": email} for email in to_emails],
+            "subject": subject,
+            "textContent": body
+        }
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        
+        # Will raise an error if status code is not 2xx
+        response.raise_for_status() 
+        
+        logger.info(f"Email sent successfully via Brevo to {to_emails}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send email to {to_emails}: {str(e)}")
+        logger.error(f"Failed to send email to {to_emails} via Brevo: {str(e)}")
+        if hasattr(e, 'response') and e.response is not None:
+             logger.error(f"Brevo API Response: {e.response.text}")
         return False
 
 def send_password_reset_email(to_email: str, reset_link: str):
