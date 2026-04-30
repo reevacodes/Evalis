@@ -23,25 +23,30 @@ def startup_event():
 def shutdown_event():
     stop_scheduler()
 
-@app.get("/test-smtp")
-def test_smtp():
-    import smtplib
+@app.get("/test-email")
+def test_email():
     import os
-    server = os.getenv("SMTP_SERVER", "").strip('\"\'')
-    port = int(os.getenv("SMTP_PORT", "587"))
-    user = os.getenv("SMTP_USER", "").strip('\"\'')
-    pw = os.getenv("SMTP_PASSWORD", "").strip('\"\'')
+    import resend
+    
+    api_key = os.getenv("RESEND_API_KEY", "")
+    sender = os.getenv("SENDER_EMAIL", "onboarding@resend.dev").strip('\"\'')
+    
+    if not api_key:
+        return {"status": "ERROR", "error_message": "RESEND_API_KEY is missing from environment variables."}
+        
+    resend.api_key = api_key
+    
     try:
-        if port == 465:
-            s = smtplib.SMTP_SSL(server, port, timeout=10)
-        else:
-            s = smtplib.SMTP(server, port, timeout=10)
-            s.starttls()
-        s.login(user, pw)
-        s.quit()
-        return {"status": "SUCCESS", "message": "SMTP connection to Gmail was fully successful!"}
+        params = {
+            "from": sender,
+            "to": [sender], # Sending to the sender email as a test (must be registered email if domain not verified)
+            "subject": "Evalis - Resend API Test",
+            "text": "If you are reading this, Resend API is working perfectly on Render!",
+        }
+        resend.Emails.send(params)
+        return {"status": "SUCCESS", "message": "Email sent successfully via Resend!"}
     except Exception as e:
-        return {"status": "ERROR", "error_message": str(e), "hint": "If this is SMTPAuthenticationError, check your Gmail inbox for a Critical Security Alert and click 'Yes it was me'. Or, try changing SMTP_PORT to 465 in your Render environment variables."}
+        return {"status": "ERROR", "error_message": str(e), "hint": "If using onboarding@resend.dev, you can only send to the email address you signed up to Resend with."}
 
 os.makedirs("uploads/reschedule_proofs", exist_ok=True)
 app.mount("/static/reschedule_proofs", StaticFiles(directory="uploads/reschedule_proofs"), name="reschedule_proofs")
