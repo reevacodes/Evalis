@@ -182,7 +182,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
                             value={collegeName}
                             onChange={(e) => setCollegeName(e.target.value)}
                         />
-                        <div className="flex gap-4">
+                        <div className="flex flex-col sm:flex-row gap-4">
                             <input
                                 type="text"
                                 placeholder="Student ID / Roll No."
@@ -195,7 +195,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
                                 placeholder="Semester"
                                 min="1"
                                 max="10"
-                                className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30 w-32"
+                                className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30 w-full sm:w-32"
                                 value={semester}
                                 onChange={(e) => setSemester(e.target.value)}
                             />

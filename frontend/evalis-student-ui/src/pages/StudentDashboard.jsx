@@ -439,8 +439,8 @@ export default function StudentDashboard() {
                         const d = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
                         const isReady = d <= new Date();
                         return (
-                          <div key={mock._id} className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700/50 rounded-xl p-4 flex justify-between items-center shadow-sm">
-                            <div>
+                          <div key={mock._id} className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700/50 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+                            <div className="w-full md:w-auto">
                               <h4 className="text-lg font-bold text-slate-900 dark:text-white">{mock.exam_name}</h4>
                               <div className="flex gap-4 text-sm text-slate-500 dark:text-slate-400 mt-2">
                                 <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatDateOnly(mock.start_time)} • {formatTimeOnly(mock.start_time)}</span>
@@ -450,10 +450,10 @@ export default function StudentDashboard() {
                             <button
                               disabled={!isReady}
                               onClick={() => navigate(`/student/practice/${mock._id}`)}
-                              className={`px-6 py-2 rounded-lg font-bold transition-all ${
+                              className={`w-full md:w-auto px-6 py-2.5 rounded-lg font-bold transition-all ${
                                 isReady 
                                   ? "bg-purple-600 hover:bg-purple-500 text-slate-900 dark:text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]" 
-                                  : "bg-white dark:bg-slate-800 text-slate-500 cursor-not-allowed"
+                                  : "bg-white dark:bg-slate-800 text-slate-500 cursor-not-allowed border border-gray-300 dark:border-slate-700"
                               }`}
                             >
                               {isReady ? (localStorage.getItem(`exam_${mock._id}_answers`) ? "Resume Mock" : "Start Now") : "Waiting"}

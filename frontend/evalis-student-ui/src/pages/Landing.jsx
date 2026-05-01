@@ -21,22 +21,22 @@ export default function Landing() {
          <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/15 blur-[120px] mix-blend-screen pointer-events-none" />
          <div className="absolute bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-purple-600/15 blur-[120px] mix-blend-screen pointer-events-none" />
 
-         <div className="relative z-10 w-full max-w-7xl px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
+         <div className="relative z-10 w-full max-w-7xl px-4 sm:px-8 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
 
             {/* Left Side: Big Bold Typography */}
             <div className="flex flex-col justify-center max-w-2xl py-12 lg:py-0">
                
-               <div className="mb-10 flex items-center gap-4">
+               <div className="mb-8 md:mb-10 flex items-center gap-3 md:gap-4">
                   <img 
                      src="/evalis_logo_transparent.png" 
                      alt="Evalis Logo" 
-                     className="h-16 md:h-20 object-contain drop-shadow-[0_0_30px_rgba(37,99,235,0.4)]" 
+                     className="h-12 md:h-20 object-contain drop-shadow-[0_0_30px_rgba(37,99,235,0.4)]" 
                      onError={(e) => { e.target.style.display = 'none'; }} 
                   />
-                  <span className="text-4xl md:text-5xl font-extrabold tracking-widest text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">EVALIS</span>
+                  <span className="text-3xl md:text-5xl font-extrabold tracking-widest text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">EVALIS</span>
                </div>
 
-               <h1 className="text-7xl md:text-[6rem] lg:text-[7rem] font-extrabold tracking-tighter leading-[0.95] mb-8">
+               <h1 className="text-5xl sm:text-6xl md:text-[6rem] lg:text-[7rem] font-extrabold tracking-tighter leading-[1] md:leading-[0.95] mb-6 md:mb-8">
                   <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-indigo-600">Build.</span><br />
                   <span className="text-white">Evaluate.</span><br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-br from-purple-400 to-pink-600">Scale.</span>

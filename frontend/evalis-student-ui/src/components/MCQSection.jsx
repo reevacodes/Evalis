@@ -64,12 +64,12 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
   };
 
   return (
-    <div className="grid grid-cols-4 gap-6 h-full text-slate-900 dark:text-white">
+    <div className="flex flex-col-reverse md:grid md:grid-cols-4 gap-6 h-full text-slate-900 dark:text-white overflow-y-auto pb-24 md:pb-0">
       {/* QUESTION PALETTE */}
-      <div className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-4 rounded-lg shadow-lg">
+      <div className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-4 rounded-lg shadow-lg h-fit">
         <h3 className="font-semibold mb-4 text-slate-900 dark:text-gray-200">Questions</h3>
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-5 md:grid-cols-4 gap-2">
           {questions.map((_, i) => (
             <button
               key={i}
@@ -82,7 +82,7 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
         </div>
 
         {/* LEGEND */}
-        <div className="mt-6 text-sm space-y-2 text-slate-600 dark:text-gray-300">
+        <div className="mt-6 text-sm grid grid-cols-2 md:grid-cols-1 gap-2 text-slate-600 dark:text-gray-300">
           <div className="flex items-center gap-2">
             <span className="w-4 h-4 bg-green-600 rounded"></span>
             Answered
@@ -95,18 +95,18 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
 
           <div className="flex items-center gap-2">
             <span className="w-4 h-4 bg-yellow-500 rounded"></span>
-            Marked for Review
+            Marked Review
           </div>
 
           <div className="flex items-center gap-2">
             <span className="w-4 h-4 bg-purple-600 rounded"></span>
-            Answered + Review
+            Ans + Review
           </div>
         </div>
       </div>
 
       {/* QUESTION PANEL */}
-      <div className="col-span-3 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-6 rounded-lg shadow-lg">
+      <div className="md:col-span-3 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 p-6 rounded-lg shadow-lg h-fit">
         <h3 className="font-semibold mb-4 text-lg text-slate-900 dark:text-gray-100">
           Question {current + 1}
         </h3>
@@ -139,28 +139,28 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
         </div>
 
         {/* NAVIGATION */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mt-10 pt-6 border-t border-gray-200 dark:border-slate-800">
-          <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-10 pt-6 border-t border-gray-200 dark:border-slate-800">
+          <div className="flex w-full sm:w-auto gap-3">
             <button
               onClick={markReview}
-              className="bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-500/20 transition-all font-semibold px-5 py-3 rounded-xl shadow-sm hover:shadow active:scale-95"
+              className="flex-1 sm:flex-none justify-center bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-500/20 transition-all font-semibold px-4 py-3 rounded-xl shadow-sm hover:shadow active:scale-95 flex items-center text-sm"
             >
-              Mark for Review
+              Mark Review
             </button>
 
             <button
               onClick={clearResponse}
-              className="bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-500/20 transition-all font-semibold px-5 py-3 rounded-xl shadow-sm hover:shadow active:scale-95"
+              className="flex-1 sm:flex-none justify-center bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-500/20 transition-all font-semibold px-4 py-3 rounded-xl shadow-sm hover:shadow active:scale-95 flex items-center text-sm"
             >
               Clear Response
             </button>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex w-full sm:w-auto gap-3">
             <button
               onClick={() => setCurrent((prev) => Math.max(prev - 1, 0))}
               disabled={current === 0}
-              className={`transition-all font-bold px-8 py-3 rounded-xl shadow-sm flex items-center gap-2 ${
+              className={`flex-1 sm:flex-none justify-center transition-all font-bold px-6 py-3 rounded-xl shadow-sm flex items-center gap-2 text-sm ${
                 current === 0
                   ? "bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-600 cursor-not-allowed"
                   : "bg-white dark:bg-slate-800 text-slate-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 hover:shadow-md active:scale-95"
@@ -174,7 +174,7 @@ const MCQSection = ({ questions = [], answers = {}, setAnswers }) => {
                 setCurrent((prev) => Math.min(prev + 1, questions.length - 1))
               }
               disabled={current === questions.length - 1}
-              className={`transition-all font-bold px-8 py-3 rounded-xl shadow-md flex items-center gap-2 ${
+              className={`flex-1 sm:flex-none justify-center transition-all font-bold px-6 py-3 rounded-xl shadow-md flex items-center gap-2 text-sm ${
                 current === questions.length - 1
                   ? "bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-600 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-500 text-white hover:shadow-lg hover:shadow-blue-500/30 active:scale-95"

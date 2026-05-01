@@ -5,8 +5,8 @@ import { Platform } from 'react-native';
 // React Native Localhost Bridge:
 // Configured explicitly for Physical Phone LAN Testing
 const getBaseUrl = () => {
-    // Ngrok Tunnel for remote physical device testing and APK builds
-    return 'https://uncouple-plant-contend.ngrok-free.dev';
+    // Production Render Backend
+    return 'https://evalis-backend-vvsj.onrender.com';
 };
 
 const API = axios.create({

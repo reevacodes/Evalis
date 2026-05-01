@@ -153,12 +153,12 @@ export default function InstructorSubmissions() {
         {/* DASHBOARD BODY */}
         <div className="p-8 pb-20">
 
-          <div className="mb-8 flex justify-between items-end">
+          <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Instructor Report Dashboard</h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">Tracking aggregate cohort analytics for <span className="text-blue-400 font-medium">{examTitle}</span>.</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <button
                 onClick={() => {
                   const qid = prompt("Identify the natively generated broken Question ID (UUID):");
@@ -167,11 +167,11 @@ export default function InstructorSubmissions() {
                   if (!points) return;
                   handleGraceMark(qid, parseFloat(points));
                 }}
-                className="px-5 py-2.5 rounded-full bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-sm font-bold hover:bg-indigo-600/30 transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-full bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-sm font-bold hover:bg-indigo-600/30 transition-colors flex items-center gap-2"
               >
                 ⚡ Issue Grace Override
               </button>
-              <button onClick={() => navigate(-1)} className="px-5 py-2.5 rounded-full bg-[#151c2c] border border-gray-200 dark:border-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-slate-800 transition-colors">
+              <button onClick={() => navigate(-1)} className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-full bg-[#151c2c] border border-gray-200 dark:border-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-slate-800 transition-colors">
                 ← Back to Exams
               </button>
             </div>

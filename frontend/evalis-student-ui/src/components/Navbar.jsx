@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
-import { Bell, GraduationCap, Search, User, LogOut, Shield, Sun, Moon } from "lucide-react";
+import { Bell, GraduationCap, Search, User, LogOut, Shield, Sun, Moon, Menu, X } from "lucide-react";
 import { formatDateTime } from "../utils/formatDate";
 import { useTheme } from "../context/ThemeContext";
 
@@ -19,6 +19,8 @@ export default function Navbar() {
 
   const notifRef = useRef(null);
   const profileRef = useRef(null);
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -96,14 +98,24 @@ export default function Navbar() {
     navigate("/");
   };
   return (
-    <div className="sticky top-0 z-50 h-20 bg-[#0b0f19]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 md:px-10 text-slate-900 dark:text-white font-sans transition-all">
+    <div className="sticky top-0 z-50 h-20 bg-[#0b0f19]/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 md:px-10 text-slate-900 dark:text-white font-sans transition-all">
       {/* LEFT: Branding & Links */}
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-4 md:gap-8">
+        {/* Mobile Hamburger */}
+        {navItems[user.role] && navItems[user.role].length > 0 && (
+          <button 
+            className="md:hidden text-gray-400 hover:text-white transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        )}
+
         <div
           onClick={() => navigate("/")}
           className="cursor-pointer flex items-center transition-transform hover:scale-105"
         >
-          <img src="/evalis_logo_transparent.png" alt="Evalis Logo" className="h-[35px] md:h-[40px] object-contain drop-shadow-sm" onError={(e) => { e.target.style.display='none'; }}/>
+          <img src="/evalis_logo_transparent.png" alt="Evalis Logo" className="h-[30px] md:h-[40px] object-contain drop-shadow-sm" onError={(e) => { e.target.style.display='none'; }}/>
         </div>
 
         <nav className="hidden md:flex gap-1 items-center border-l border-white/10 pl-8">
@@ -124,7 +136,7 @@ export default function Navbar() {
       </div>
 
       {/* RIGHT: Search & Profile */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 md:gap-6">
          {/* OPTIONAL SEARCH BAR */}
          <div className="hidden lg:flex items-center bg-white/5 border border-white/10 rounded-full px-4 py-2 w-64 shadow-inner">
            <Search size={16} className="text-gray-400" />
@@ -253,6 +265,26 @@ export default function Navbar() {
            )}
          </div>
       </div>
+      
+      {/* MOBILE MENU DROPDOWN */}
+      {isMobileMenuOpen && navItems[user.role] && (
+        <div className="absolute top-20 left-0 w-full bg-[#0b0f19]/95 backdrop-blur-md border-b border-white/10 md:hidden flex flex-col p-4 z-40 animate-in slide-in-from-top-2">
+          {navItems[user.role].map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`px-4 py-3 rounded-xl text-base font-semibold mb-2 transition-all ${
+                isActive(item.path)
+                  ? "bg-blue-600/20 text-blue-400 border border-blue-500/20"
+                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

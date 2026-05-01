@@ -12,10 +12,10 @@ export default function ExamHeader({ timeLeft, onSubmit, examDetails, studentDet
   };
 
   return (
-    <div className="h-16 border-b border-gray-300 dark:border-slate-700 flex items-center justify-between px-8 bg-gray-50 dark:bg-slate-900 text-slate-900 dark:text-white">
+    <div className="h-16 border-b border-gray-300 dark:border-slate-700 flex items-center justify-between px-4 md:px-8 bg-gray-50 dark:bg-slate-900 text-slate-900 dark:text-white">
       {/* LEFT: Evalis & Exam Details */}
-      <div className="flex items-center gap-6">
-        <span className="text-2xl font-bold tracking-wide text-blue-600 dark:text-blue-400 border-r border-gray-300 dark:border-slate-700 pr-6">Evalis</span>
+      <div className="flex items-center gap-3 md:gap-6">
+        <span className="text-xl md:text-2xl font-bold tracking-wide text-blue-600 dark:text-blue-400 border-r border-gray-300 dark:border-slate-700 pr-3 md:pr-6">Evalis</span>
         
         {examDetails && (
           <div className="hidden md:flex flex-col justify-center">
@@ -48,17 +48,17 @@ export default function ExamHeader({ timeLeft, onSubmit, examDetails, studentDet
       )}
 
       {/* RIGHT: Timer & Submit */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 md:gap-6">
         {/* TIMER */}
-        <div className="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-500/20">
-          <span className="text-red-500 dark:text-red-400 text-xs font-bold uppercase tracking-widest">Time Left</span>
-          <span className="font-mono font-bold text-red-600 dark:text-red-400 text-lg">{formatTime()}</span>
+        <div className="flex items-center gap-1 md:gap-2 bg-red-50 dark:bg-red-500/10 px-2 md:px-3 py-1 md:py-1.5 rounded-lg border border-red-200 dark:border-red-500/20">
+          <span className="hidden sm:inline text-red-500 dark:text-red-400 text-xs font-bold uppercase tracking-widest">Time Left</span>
+          <span className="font-mono font-bold text-red-600 dark:text-red-400 text-base md:text-lg">{formatTime()}</span>
         </div>
 
         {/* SUBMIT BUTTON */}
         <button
           onClick={onSubmit}
-          className="bg-red-600 hover:bg-red-700 text-white transition-all px-5 py-2 rounded-lg text-sm font-bold shadow-md shadow-red-600/20"
+          className="bg-red-600 hover:bg-red-700 text-white transition-all px-3 md:px-5 py-1.5 md:py-2 rounded-lg text-sm font-bold shadow-md shadow-red-600/20 whitespace-nowrap"
         >
           Submit Test
         </button>

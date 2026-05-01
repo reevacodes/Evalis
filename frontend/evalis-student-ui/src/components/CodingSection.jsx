@@ -29,8 +29,28 @@ export default function CodingSection({
   const [activeTab, setActiveTab] = useState("console");
   const [testDetails, setTestDetails] = useState([]);
   const [expandedTest, setExpandedTest] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mainSplitSizes, setMainSplitSizes] = useState([40, 60]);
+  const [consoleSplitSizes, setConsoleSplitSizes] = useState([65, 35]);
 
-  const [splitSizes] = useState([65, 35]);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 768) {
+        setMainSplitSizes([40, 60]);
+        setConsoleSplitSizes([50, 50]);
+      } else {
+        setMainSplitSizes([40, 60]);
+        setConsoleSplitSizes([65, 35]);
+      }
+    };
+    
+    // Initial check
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // ✅ NEW: Track status like MCQ
   const [submittedMap, setSubmittedMap] = useState({});
@@ -294,7 +314,11 @@ export default function CodingSection({
         ))}
       </div>
 
-      <Split sizes={[40, 60]} className="flex flex-1 h-full overflow-hidden">
+      <Split 
+        direction={isMobile ? "vertical" : "horizontal"} 
+        sizes={mainSplitSizes} 
+        className={`flex flex-1 h-full overflow-hidden ${isMobile ? 'flex-col' : 'flex-row'}`}
+      >
         {/* KEEP EVERYTHING BELOW SAME */}
         {/* LEFT PANEL */}
         <div className="h-full overflow-y-auto p-5 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 space-y-6">
@@ -361,9 +385,9 @@ export default function CodingSection({
         {/* RIGHT PANEL */}
         <Split
           direction="vertical"
-          sizes={splitSizes}
+          sizes={consoleSplitSizes}
           minSize={120}
-          className="flex flex-col h-full"
+          className="flex flex-col h-full overflow-hidden"
         >
           {/* EDITOR */}
           <div className="flex flex-col bg-gray-50 dark:bg-slate-900">

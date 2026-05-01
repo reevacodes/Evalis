@@ -118,7 +118,7 @@ export default function AdminOverview() {
     <div className="space-y-8">
       {/* HEADER */}
       <div>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-semibold">Dashboard Overview</h1>
             <p className="text-slate-600 dark:text-gray-400 mt-1">
@@ -127,7 +127,7 @@ export default function AdminOverview() {
           </div>
           <button 
             onClick={() => setInviteModalOpen(true)}
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+            className="w-full sm:w-auto justify-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
           >
             <span className="text-xl">+</span> Invite Teacher
           </button>
@@ -268,7 +268,7 @@ export default function AdminOverview() {
       </div>
 
       {/* TABLE SECTION */}
-      <div className="bg-gray-50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-6 rounded-xl mt-8 shadow-sm dark:shadow-none">
+      <div className="bg-gray-50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-4 md:p-6 rounded-lg md:rounded-xl mt-8 shadow-sm dark:shadow-none">
         <h3 className="mb-6 font-semibold text-xl">Student Reschedule Requests</h3>
 
         {rescheduleRequests.length === 0 ? (
