@@ -89,7 +89,17 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
       }
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.detail || "An error occurred");
+      let errorMsg = "An error occurred";
+      if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+          errorMsg = err.response.data.detail.map(e => e.msg.replace("Value error, ", "")).join(" | ");
+        } else {
+          errorMsg = err.response.data.detail;
+        }
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }

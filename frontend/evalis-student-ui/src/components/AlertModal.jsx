@@ -11,14 +11,23 @@ export default function AlertModal() {
     const originalAlert = window.alert;
     
     window.alert = (msg) => {
+      // Safely convert non-strings to strings
+      let stringMsg = "";
+      if (typeof msg === 'string') {
+        stringMsg = msg;
+      } else if (Array.isArray(msg)) {
+        stringMsg = msg.map(m => typeof m === 'object' ? JSON.stringify(m) : String(m)).join(", ");
+      } else if (typeof msg === 'object' && msg !== null) {
+        stringMsg = JSON.stringify(msg);
+      } else {
+        stringMsg = String(msg);
+      }
+
       // 1. Strip emojis using Unicode properties
-      let cleanMsg = typeof msg === 'string' 
-        ? msg.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}]/gu, '') 
-        : msg;
+      let cleanMsg = stringMsg.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}]/gu, '');
       
       // 2. Clean up resulting formatting
-      if (typeof cleanMsg === 'string') {
-        cleanMsg = cleanMsg.replace(/\s+/g, ' ').trim();
+      cleanMsg = cleanMsg.replace(/\s+/g, ' ').trim();
         
         const lowerMsg = cleanMsg.toLowerCase();
         if (lowerMsg.includes("success") || lowerMsg.includes("saved") || lowerMsg.includes("sent")) {
@@ -31,7 +40,6 @@ export default function AlertModal() {
           setType("info");
           setTitle("System Notification");
         }
-      }
 
       setMessage(cleanMsg);
       setIsOpen(true);
