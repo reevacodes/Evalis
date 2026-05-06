@@ -45,8 +45,10 @@ export default function QuestionBank() {
     if (fromPreview) {
       setSelection((prev) => ({
         ...prev,
-        semester: fromPreview.semester || "",
-        subject: fromPreview.subject_code || "",
+        // We do NOT auto-apply the semester from preview because the user might have
+        // assigned a Sem 1 subject to a Sem 8 exam, which causes the curriculum to break.
+        semester: "",
+        subject: "",
         unit: "",
         topic: "",
       }));
