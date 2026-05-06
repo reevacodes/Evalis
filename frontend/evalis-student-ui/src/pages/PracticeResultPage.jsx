@@ -353,7 +353,10 @@ export default function PracticeResultPage() {
 
                    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-800 space-y-3">
                       <button onClick={() => navigate(`/student/practice/${examId}`)} className="w-full py-4 bg-white hover:bg-slate-200 text-black rounded-xl font-black transition-all flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-                         Practice Now <RotateCcw className="w-4 h-4" />
+                         Retry This Mock Test <RotateCcw className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => navigate("/student")} className="w-full py-3 bg-purple-600/10 hover:bg-purple-600/20 text-purple-400 rounded-xl font-bold transition-all flex justify-center items-center gap-2 border border-purple-500/30">
+                         Create Targeted Practice (Dashboard)
                       </button>
                       <button onClick={() => navigate("/student")} className="w-full py-3 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-xl font-bold transition-all flex justify-center items-center gap-2 border border-gray-300 dark:border-slate-700/50">
                          Return to Dashboard
