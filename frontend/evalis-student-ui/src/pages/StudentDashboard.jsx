@@ -90,6 +90,14 @@ export default function StudentDashboard() {
   useEffect(() => {
     fetchExams();
     fetchPracticePapers();
+
+    const interval = setInterval(() => {
+      fetchExams();
+      // If we want to poll practice papers as well
+      fetchPracticePapers();
+    }, 10000); // 10 seconds refresh rate
+
+    return () => clearInterval(interval);
   }, []);
 
   // =========================

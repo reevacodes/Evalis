@@ -55,6 +55,9 @@ export default function TeacherOverview() {
     };
 
     fetchStats();
+
+    const interval = setInterval(fetchStats, 10000); // 10 seconds refresh rate
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
