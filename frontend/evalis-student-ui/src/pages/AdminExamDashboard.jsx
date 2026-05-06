@@ -17,7 +17,8 @@ export default function AdminExamDashboard() {
   // =========================
   // FETCH EXAMS
   // =========================
-  const fetchExams = async () => {
+  const fetchExams = async (silent = false) => {
+    if (!silent && exams.length === 0) setLoading(true);
     try {
       const res = await API.get("/exam/");
       const allExams = res.data.exams || [];
@@ -38,7 +39,7 @@ export default function AdminExamDashboard() {
   useEffect(() => {
     fetchExams();
 
-    const interval = setInterval(fetchExams, 5000); // 🔥 auto refresh
+    const interval = setInterval(() => fetchExams(true), 5000); // 🔥 silent auto refresh
 
     return () => clearInterval(interval);
   }, []);

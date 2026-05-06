@@ -55,7 +55,8 @@ export default function StudentDashboard() {
   // =========================
   // FETCH EXAMS
   // =========================
-  const fetchExams = async () => {
+  const fetchExams = async (silent = false) => {
+    if (!silent && exams.length === 0) setLoading(true);
     try {
       const res = await API.get("/exam/");
       const allExams = res.data.exams || [];
@@ -71,8 +72,8 @@ export default function StudentDashboard() {
     }
   };
 
-  const fetchPracticePapers = async () => {
-    setLoadingPractice(true);
+  const fetchPracticePapers = async (silent = false) => {
+    if (!silent && pastPapers.length === 0) setLoadingPractice(true);
     try {
       const [resPapers, resHistory] = await Promise.all([
         getPastPapers(),
@@ -92,9 +93,8 @@ export default function StudentDashboard() {
     fetchPracticePapers();
 
     const interval = setInterval(() => {
-      fetchExams();
-      // If we want to poll practice papers as well
-      fetchPracticePapers();
+      fetchExams(true);
+      fetchPracticePapers(true);
     }, 10000); // 10 seconds refresh rate
 
     return () => clearInterval(interval);

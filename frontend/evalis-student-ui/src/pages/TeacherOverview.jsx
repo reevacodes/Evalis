@@ -21,7 +21,8 @@ export default function TeacherOverview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchStats = async (silent = false) => {
+      if (!silent && !stats.total) setLoading(true);
       try {
         const res = await getAllExams();
         const exams = res.data.exams || [];
@@ -56,7 +57,7 @@ export default function TeacherOverview() {
 
     fetchStats();
 
-    const interval = setInterval(fetchStats, 10000); // 10 seconds refresh rate
+    const interval = setInterval(() => fetchStats(true), 10000); // 10 seconds silent refresh rate
     return () => clearInterval(interval);
   }, []);
 
