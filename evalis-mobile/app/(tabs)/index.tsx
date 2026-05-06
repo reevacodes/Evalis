@@ -99,8 +99,14 @@ export default function DashboardScreen() {
     );
 
     useEffect(() => {
-        const sub = DeviceEventEmitter.addListener('notification_received', () => {
+        const sub = DeviceEventEmitter.addListener('notification_received', (notif) => {
             loadData();
+            if (notif?.request?.content) {
+                Alert.alert(
+                    notif.request.content.title || "New Notification",
+                    notif.request.content.body || ""
+                );
+            }
         });
         return () => sub.remove();
     }, []);
