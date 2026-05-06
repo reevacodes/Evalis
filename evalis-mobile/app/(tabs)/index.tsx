@@ -9,9 +9,11 @@ import { useThemeStyles } from '../../src/hooks/useThemeStyles';
 
 export default function DashboardScreen() {
     const [user, setUser] = useState<any>(null);
+    const [isNewUser, setIsNewUser] = useState(false);
     const [exams, setExams] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [examFilter, setExamFilter] = useState('All');
     const [unreadCount, setUnreadCount] = useState(0);
     const [practiceHistory, setPracticeHistory] = useState<any[]>([]);
     const [globalStats, setGlobalStats] = useState({ active: 0, upcoming: 0, mocks: 0, accuracy: "0" });
@@ -42,6 +44,8 @@ export default function DashboardScreen() {
         try {
             const storedUser = await AsyncStorage.getItem('user');
             if (storedUser) setUser(JSON.parse(storedUser));
+            const newFlag = await AsyncStorage.getItem('isNewUser');
+            setIsNewUser(newFlag === 'true');
 
             // Fetch Live Student Exams
             const res = await API.get('/exam');
@@ -169,7 +173,7 @@ export default function DashboardScreen() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <View style={{ flex: 1, paddingRight: 10 }}>
-                    <Text style={styles.greeting}>Welcome back,</Text>
+                    <Text style={styles.greeting}>{isNewUser ? 'Welcome,' : 'Welcome back,'}</Text>
                     <Text style={styles.name} numberOfLines={1}>{user?.name?.split(' ')[0] || 'Student'} 👋</Text>
                     <Text style={styles.subtext}>Track your performance and upcoming exams.</Text>
                 </View>
@@ -226,12 +230,33 @@ export default function DashboardScreen() {
 
                 <Text style={styles.sectionTitle}>Your Examination Load</Text>
 
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16, maxHeight: 40 }} contentContainerStyle={{ gap: 10 }}>
+                    {['All', 'Live', 'Upcoming', 'Completed', 'Reschedule Pending', 'Reschedule Approved'].map(f => (
+                        <TouchableOpacity 
+                            key={f}
+                            style={[styles.bubbleBtn, examFilter === f && styles.bubbleBtnActive, {paddingVertical: 6, paddingHorizontal: 12, height: 32}]}
+                            onPress={() => setExamFilter(f)}
+                        >
+                            <Text style={[styles.bubbleText, examFilter === f && styles.bubbleTextActive, {fontSize: 12}]}>{f}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+
                 {loading ? (
                     <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }}/>
                 ) : exams.length === 0 ? (
                     <Text style={styles.emptyText}>No exams are currently bridged to your profile.</Text>
                 ) : (
                     [...exams]
+                        .filter(ex => {
+                            if (examFilter === 'All') return true;
+                            if (examFilter === 'Reschedule Pending') return ex.reschedule_status === 'pending';
+                            if (examFilter === 'Reschedule Approved') return ex.reschedule_status === 'approved';
+                            if (examFilter === 'Live') return ex.time_status === 'active' && !ex.has_submitted;
+                            if (examFilter === 'Upcoming') return ex.time_status === 'scheduled' && !ex.has_submitted;
+                            if (examFilter === 'Completed') return ex.has_submitted || ex.time_status === 'expired';
+                            return true;
+                        })
                         .sort((a, b) => {
                             const getPriority = (ex: any) => {
                                 if (ex.time_status === 'expired' || ex.has_submitted) return 3;
@@ -439,6 +464,12 @@ const createStyles = (theme: any) => StyleSheet.create({
     statIcon: { padding: 4, backgroundColor: theme.cardLight, borderRadius: 8, overflow: 'hidden' },
     statValue: { color: theme.text, fontSize: 26, fontWeight: '900' },
     sectionTitle: { color: theme.text, fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
+    
+    bubbleBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: theme.cardLight, borderWidth: 1, borderColor: theme.border },
+    bubbleBtnActive: { backgroundColor: theme.primarySoft, borderColor: theme.primary },
+    bubbleText: { color: theme.textSecondary, fontWeight: '600' },
+    bubbleTextActive: { color: theme.primary },
+
     emptyText: { color: theme.textSecondary, textAlign: 'center', marginTop: 40 },
     examCard: { backgroundColor: theme.card, borderRadius: 16, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: theme.border },
     examCardFaded: { opacity: 0.6 },

@@ -184,6 +184,85 @@ export default function ExamAnalyticsScreen() {
                         <Text style={styles.logValue}>{submission.submitted_at ? new Date(submission.submitted_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Protected'}</Text>
                     </View>
                 </View>
+
+                {/* MCQ REVIEW SECTION */}
+                {result.exam_sections && result.exam_sections.length > 0 && (
+                    <View style={styles.reviewSection}>
+                        <Text style={styles.reviewSectionTitle}>MCQ Evaluation Review</Text>
+                        {result.exam_sections.map((sec: any, secIdx: number) => (
+                            <View key={secIdx}>
+                                {sec.questions?.filter((q: any) => q.type !== 'coding').map((q: any, qIdx: number) => {
+                                    const studentAnswer = submission.mcq_answers?.[q.id || q._id] || null;
+                                    const isCorrect = studentAnswer === q.correct_answer;
+                                    return (
+                                        <View key={q.id || q._id || qIdx} style={[styles.qCard, isCorrect ? styles.qCardCorrect : styles.qCardIncorrect]}>
+                                            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12}}>
+                                                <Text style={styles.qText} flex={1}>Q{qIdx + 1}. {q.question || q.question_text}</Text>
+                                                <View style={[styles.qBadge, isCorrect ? styles.qBadgeCorrect : styles.qBadgeIncorrect]}>
+                                                    <Text style={[styles.qBadgeText, isCorrect ? styles.qBadgeTextCorrect : styles.qBadgeTextIncorrect]}>
+                                                        {isCorrect ? '+1 Mark' : '0 Marks'}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <View style={styles.optionsGrid}>
+                                                {q.options?.map((opt: string, oIdx: number) => {
+                                                    const isStudentChoice = studentAnswer === opt;
+                                                    const isActualCorrect = q.correct_answer === opt;
+                                                    let optStyle = styles.optBase;
+                                                    let optTextStyle = styles.optTextBase;
+                                                    if (isActualCorrect) {
+                                                        optStyle = styles.optActualCorrect;
+                                                        optTextStyle = styles.optTextCorrect;
+                                                    } else if (isStudentChoice && !isCorrect) {
+                                                        optStyle = styles.optStudentIncorrect;
+                                                        optTextStyle = styles.optTextIncorrect;
+                                                    }
+                                                    return (
+                                                        <View key={oIdx} style={[styles.optItem, optStyle]}>
+                                                            <View style={[styles.optDot, isActualCorrect ? styles.optDotCorrect : (isStudentChoice ? styles.optDotIncorrect : styles.optDotBase)]} />
+                                                            <Text style={optTextStyle}>{opt}</Text>
+                                                        </View>
+                                                    );
+                                                })}
+                                            </View>
+                                        </View>
+                                    );
+                                })}
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                {/* CODING REVIEW SECTION */}
+                {Object.keys(submission.coding_answers || {}).length > 0 && (
+                    <View style={styles.reviewSection}>
+                        <Text style={styles.reviewSectionTitle}>Coding Solutions Report</Text>
+                        {Object.entries(submission.coding_answers).map(([key, cData]: [string, any], idx: number) => {
+                            const qInfo = result.exam_sections?.flatMap((s: any) => s.questions).find((q: any) => q.id === key || q._id === key) || {};
+                            return (
+                                <View key={key} style={styles.codeCard}>
+                                    <View style={styles.codeCardHeader}>
+                                        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1}}>
+                                            <View style={styles.codeIdxBox}>
+                                                <Text style={styles.codeIdxText}>{idx + 1}</Text>
+                                            </View>
+                                            <View style={{flex: 1}}>
+                                                <Text style={styles.codeQText} numberOfLines={1}>{qInfo.question || qInfo.question_text || `Question Vector ${idx + 1}`}</Text>
+                                                <Text style={styles.codeLangText}>{cData.language || "python"}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                    <View style={styles.codeBody}>
+                                        <Text style={styles.codeLabel}>Student Submission:</Text>
+                                        <ScrollView style={styles.codeScroll} horizontal>
+                                            <Text style={styles.codeContent}>{cData.code || "No code submitted"}</Text>
+                                        </ScrollView>
+                                    </View>
+                                </View>
+                            );
+                        })}
+                    </View>
+                )}
             </View>
         </ScrollView>
     );
@@ -230,5 +309,45 @@ const styles = StyleSheet.create({
 
     topicBox: { backgroundColor: '#0f172a', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#1e293b', marginBottom: 16 },
     topicTitle: { color: 'white', fontSize: 16, fontWeight: 'bold', marginBottom: 12 },
-    topicItem: { color: '#94a3b8', fontSize: 15, marginBottom: 6, paddingLeft: 8 }
+    topicItem: { color: '#94a3b8', fontSize: 15, marginBottom: 6, paddingLeft: 8 },
+
+    reviewSection: { marginTop: 24, backgroundColor: '#0f172a', borderRadius: 16, borderWidth: 1, borderColor: '#1e293b', overflow: 'hidden' },
+    reviewSectionTitle: { color: 'white', fontSize: 16, fontWeight: 'bold', padding: 20, borderBottomWidth: 1, borderBottomColor: '#1e293b' },
+    
+    qCard: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#1e293b' },
+    qCardCorrect: { backgroundColor: '#10b98110' },
+    qCardIncorrect: { backgroundColor: '#ef444410' },
+    qText: { color: '#e2e8f0', fontSize: 14, fontWeight: '600', flexShrink: 1, marginRight: 8 },
+    qBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+    qBadgeCorrect: { backgroundColor: '#10b98120' },
+    qBadgeIncorrect: { backgroundColor: '#ef444420' },
+    qBadgeText: { fontSize: 10, fontWeight: 'bold' },
+    qBadgeTextCorrect: { color: '#10b981' },
+    qBadgeTextIncorrect: { color: '#ef4444' },
+
+    optionsGrid: { gap: 8 },
+    optItem: { padding: 10, borderRadius: 8, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    optBase: { backgroundColor: '#1e293b80', borderColor: '#334155' },
+    optActualCorrect: { backgroundColor: '#10b98120', borderColor: '#10b98150' },
+    optStudentIncorrect: { backgroundColor: '#ef444420', borderColor: '#ef444450' },
+    
+    optDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 1 },
+    optDotBase: { borderColor: '#475569' },
+    optDotCorrect: { backgroundColor: '#10b981', borderColor: '#10b981' },
+    optDotIncorrect: { backgroundColor: '#ef4444', borderColor: '#ef4444' },
+
+    optTextBase: { color: '#94a3b8', fontSize: 12 },
+    optTextCorrect: { color: '#34d399', fontSize: 12, fontWeight: 'bold' },
+    optTextIncorrect: { color: '#f87171', fontSize: 12, fontWeight: 'bold' },
+
+    codeCard: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#1e293b' },
+    codeCardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+    codeIdxBox: { width: 32, height: 32, borderRadius: 8, backgroundColor: '#6366f120', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#6366f140' },
+    codeIdxText: { color: '#818cf8', fontWeight: 'bold', fontSize: 12 },
+    codeQText: { color: 'white', fontWeight: 'bold', fontSize: 14 },
+    codeLangText: { color: '#64748b', fontSize: 10, fontFamily: 'monospace', marginTop: 2 },
+    codeBody: { backgroundColor: '#020617', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#1e293b' },
+    codeLabel: { color: '#64748b', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 8 },
+    codeScroll: { backgroundColor: '#000', padding: 10, borderRadius: 6 },
+    codeContent: { color: '#a5b4fc', fontFamily: 'monospace', fontSize: 12 }
 });

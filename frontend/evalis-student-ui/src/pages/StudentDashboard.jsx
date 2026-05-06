@@ -162,7 +162,7 @@ export default function StudentDashboard() {
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 text-slate-900 dark:text-white">
-              Welcome back, {user?.name?.split(' ')[0] || "Student"} <span className="animate-waving-hand inline-block">👋</span>
+              {localStorage.getItem('isNewUser') === 'true' ? 'Welcome,' : 'Welcome back,'} {user?.name?.split(' ')[0] || "Student"} <span className="animate-waving-hand inline-block">👋</span>
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl">
               Track your performance, review upcoming assessments, and access your mock testing environment.

@@ -96,6 +96,12 @@ export default function LoginScreen() {
 
                 await AsyncStorage.setItem('user', JSON.stringify(userRes.data));
                 
+                if (!isLogin) {
+                    await AsyncStorage.setItem('isNewUser', 'true');
+                } else {
+                    await AsyncStorage.removeItem('isNewUser');
+                }
+
                 // Force Entry into Dashboard Ecosystem
                 router.replace('/(tabs)');
             }

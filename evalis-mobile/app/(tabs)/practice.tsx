@@ -50,6 +50,7 @@ export default function PracticeScreen() {
     const [loadingPaper, setLoadingPaper] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [nowTime, setNowTime] = useState(Date.now());
+    const [scheduledFilter, setScheduledFilter] = useState('All'); // 'All', 'Live', 'Upcoming', 'Expired'
 
     useEffect(() => {
         const interval = setInterval(() => setNowTime(Date.now()), 10000);
@@ -607,33 +608,68 @@ export default function PracticeScreen() {
                                 <Text style={styles.emptyText}>No upcoming scheduled mocks.</Text>
                             </View>
                         ) : (
-                            papers.filter(p => p.exam_type === "Practice" && p.is_instant === false)
-                            .sort((a, b) => new Date(a.start_time.endsWith('Z') ? a.start_time : a.start_time + 'Z').getTime() - new Date(b.start_time.endsWith('Z') ? b.start_time : b.start_time + 'Z').getTime())
-                            .map((p: any) => {
-                                const rawTime = p.start_time || new Date().toISOString();
-                                const start = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
-                                const durationMs = (p.duration_minutes || 30) * 60000;
-                                const end = new Date(start.getTime() + durationMs);
-                                
-                                let statusStr = 'Upcoming';
-                                let statusColor = theme.primary; 
-                                let statusBg = theme.primary + '15'; 
-                                
-                                if (nowTime < start.getTime()) {
-                                    statusStr = 'Upcoming';
-                                } else if (nowTime >= start.getTime() && nowTime <= end.getTime()) {
-                                    statusStr = 'Live';
-                                    statusColor = theme.success; 
-                                    statusBg = theme.success + '15'; 
-                                } else {
-                                    statusStr = history.some((h: any) => h.exam_id === p._id || h.paper_id === p._id) ? 'Completed' : 'Expired';
-                                    statusColor = statusStr === 'Completed' ? theme.success : theme.danger; 
-                                    statusBg = statusColor + '15';
-                                }
+                            <>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16, maxHeight: 40 }} contentContainerStyle={{ gap: 10 }}>
+                                    {['All', 'Live', 'Upcoming', 'Expired', 'Completed'].map(f => (
+                                        <TouchableOpacity 
+                                            key={f}
+                                            style={[styles.bubbleBtn, scheduledFilter === f && styles.bubbleBtnActive, {paddingVertical: 6, paddingHorizontal: 12, height: 32}]}
+                                            onPress={() => setScheduledFilter(f)}
+                                        >
+                                            <Text style={[styles.bubbleText, scheduledFilter === f && styles.bubbleTextActive, {fontSize: 12}]}>{f}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
 
-                                const canStart = statusStr === 'Live' || statusStr === 'Expired' || statusStr === 'Completed';
-                                const btnText = statusStr === 'Upcoming' ? 'Waiting' : (statusStr === 'Live' ? 'Start Now' : 'Retry');
-                                const btnIcon = statusStr === 'Upcoming' ? 'time' : (statusStr === 'Live' ? 'play' : 'refresh');
+                                {papers.filter(p => p.exam_type === "Practice" && p.is_instant === false)
+                                .map((p: any) => {
+                                    const rawTime = p.start_time || new Date().toISOString();
+                                    const start = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
+                                    const durationMs = (p.duration_minutes || 30) * 60000;
+                                    const end = new Date(start.getTime() + durationMs);
+                                    
+                                    let statusStr = 'Upcoming';
+                                    if (nowTime < start.getTime()) {
+                                        statusStr = 'Upcoming';
+                                    } else if (nowTime >= start.getTime() && nowTime <= end.getTime()) {
+                                        statusStr = 'Live';
+                                    } else {
+                                        statusStr = history.some((h: any) => h.exam_id === p._id || h.paper_id === p._id) ? 'Completed' : 'Expired';
+                                    }
+                                    return { ...p, _computedStart: start, _computedStatus: statusStr, _computedEnd: end };
+                                })
+                                .filter((p: any) => scheduledFilter === 'All' ? true : p._computedStatus === scheduledFilter)
+                                .sort((a: any, b: any) => {
+                                    if (scheduledFilter === 'All') {
+                                        const rank: any = { 'Live': 1, 'Upcoming': 2, 'Expired': 3, 'Completed': 4 };
+                                        if (rank[a._computedStatus] !== rank[b._computedStatus]) {
+                                            return rank[a._computedStatus] - rank[b._computedStatus];
+                                        }
+                                        return a._computedStart.getTime() - b._computedStart.getTime(); // Upcoming nearest first
+                                    }
+                                    return b._computedStart.getTime() - a._computedStart.getTime(); // Others latest first
+                                })
+                                .map((p: any) => {
+                                    const statusStr = p._computedStatus;
+                                    const start = p._computedStart;
+                                    
+                                    let statusColor = theme.primary; 
+                                    let statusBg = theme.primary + '15'; 
+                                    
+                                    if (statusStr === 'Live') {
+                                        statusColor = theme.success; 
+                                        statusBg = theme.success + '15'; 
+                                    } else if (statusStr === 'Expired') {
+                                        statusColor = theme.danger; 
+                                        statusBg = theme.danger + '15'; 
+                                    } else if (statusStr === 'Completed') {
+                                        statusColor = theme.success;
+                                        statusBg = theme.success + '15';
+                                    }
+
+                                    const canStart = statusStr === 'Live' || statusStr === 'Expired' || statusStr === 'Completed';
+                                    const btnText = statusStr === 'Upcoming' ? 'Waiting' : (statusStr === 'Live' ? 'Start Now' : 'Retry');
+                                    const btnIcon = statusStr === 'Upcoming' ? 'time' : (statusStr === 'Live' ? 'play' : 'refresh');
 
                                 return (
                                 <View key={p._id} style={styles.attemptCard}>
@@ -657,7 +693,8 @@ export default function PracticeScreen() {
                                     </View>
                                 </View>
                                 );
-                            })
+                            })}
+                            </>
                         )}
                     </View>
                 ) : (
@@ -679,9 +716,23 @@ export default function PracticeScreen() {
                                     <TouchableOpacity 
                                         key={hItem._id || idx} 
                                         style={styles.attemptCard}
-                                        onPress={() => {
+                                        onPress={async () => {
+                                            // Optimistically set what we have so it feels instant
                                             setResultsData(hItem);
                                             setMode('results');
+                                            // Fetch sections for full review mapping
+                                            try {
+                                                if (hItem.paper_id) {
+                                                    const res = await API.get(`/past-papers/${hItem.paper_id}`);
+                                                    const paperData = res.data;
+                                                    setResultsData(prev => ({ 
+                                                        ...prev, 
+                                                        exam_sections: paperData.sections || (paperData.sets ? paperData.sets.A : []) 
+                                                    }));
+                                                }
+                                            } catch (err) {
+                                                console.log("Failed to fetch past paper sections for review.", err);
+                                            }
                                         }}
                                     >
                                         <View style={styles.cardHeader}>
@@ -804,6 +855,85 @@ export default function PracticeScreen() {
                         {analytics.strong_topics.map((t: string, idx: number) => (
                             <Text key={idx} style={styles.topicItem}>• {t}</Text>
                         ))}
+                    </View>
+                )}
+
+                {/* MCQ REVIEW SECTION */}
+                {resultsData?.exam_sections && resultsData.exam_sections.length > 0 && (
+                    <View style={styles.reviewSection}>
+                        <Text style={styles.reviewSectionTitle}>MCQ Evaluation Review</Text>
+                        {resultsData.exam_sections.map((sec: any, secIdx: number) => (
+                            <View key={secIdx}>
+                                {sec.questions?.filter((q: any) => q.type !== 'coding').map((q: any, qIdx: number) => {
+                                    const studentAnswer = resultsData.mcq_answers?.[q.id || q._id] || answers?.[q.id || q._id] || null;
+                                    const isCorrect = studentAnswer === q.correct_answer;
+                                    return (
+                                        <View key={q.id || q._id || qIdx} style={[styles.qCard, isCorrect ? styles.qCardCorrect : styles.qCardIncorrect]}>
+                                            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12}}>
+                                                <Text style={styles.qText} flex={1}>Q{qIdx + 1}. {q.question || q.question_text}</Text>
+                                                <View style={[styles.qBadge, isCorrect ? styles.qBadgeCorrect : styles.qBadgeIncorrect]}>
+                                                    <Text style={[styles.qBadgeText, isCorrect ? styles.qBadgeTextCorrect : styles.qBadgeTextIncorrect]}>
+                                                        {isCorrect ? '+1 Mark' : '0 Marks'}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <View style={styles.optionsGrid}>
+                                                {q.options?.map((opt: string, oIdx: number) => {
+                                                    const isStudentChoice = studentAnswer === opt;
+                                                    const isActualCorrect = q.correct_answer === opt;
+                                                    let optStyle = styles.optBase;
+                                                    let optTextStyle = styles.optTextBase;
+                                                    if (isActualCorrect) {
+                                                        optStyle = styles.optActualCorrect;
+                                                        optTextStyle = styles.optTextCorrect;
+                                                    } else if (isStudentChoice && !isCorrect) {
+                                                        optStyle = styles.optStudentIncorrect;
+                                                        optTextStyle = styles.optTextIncorrect;
+                                                    }
+                                                    return (
+                                                        <View key={oIdx} style={[styles.optItem, optStyle]}>
+                                                            <View style={[styles.optDot, isActualCorrect ? styles.optDotCorrect : (isStudentChoice ? styles.optDotIncorrect : styles.optDotBase)]} />
+                                                            <Text style={optTextStyle}>{opt}</Text>
+                                                        </View>
+                                                    );
+                                                })}
+                                            </View>
+                                        </View>
+                                    );
+                                })}
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                {/* CODING REVIEW SECTION */}
+                {resultsData?.coding_answers && Object.keys(resultsData.coding_answers).length > 0 && (
+                    <View style={styles.reviewSection}>
+                        <Text style={styles.reviewSectionTitle}>Coding Solutions Report</Text>
+                        {Object.entries(resultsData.coding_answers).map(([key, cData]: [string, any], idx: number) => {
+                            const qInfo = resultsData.exam_sections?.flatMap((s: any) => s.questions).find((q: any) => q.id === key || q._id === key) || {};
+                            return (
+                                <View key={key} style={styles.codeCard}>
+                                    <View style={styles.codeCardHeader}>
+                                        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1}}>
+                                            <View style={styles.codeIdxBox}>
+                                                <Text style={styles.codeIdxText}>{idx + 1}</Text>
+                                            </View>
+                                            <View style={{flex: 1}}>
+                                                <Text style={styles.codeQText} numberOfLines={1}>{qInfo.question || qInfo.question_text || `Question Vector ${idx + 1}`}</Text>
+                                                <Text style={styles.codeLangText}>{cData.language || "python"}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                    <View style={styles.codeBody}>
+                                        <Text style={styles.codeLabel}>Student Submission:</Text>
+                                        <ScrollView style={styles.codeScroll} horizontal>
+                                            <Text style={styles.codeContent}>{cData.code || "No code submitted"}</Text>
+                                        </ScrollView>
+                                    </View>
+                                </View>
+                            );
+                        })}
                     </View>
                 )}
 
@@ -1023,5 +1153,45 @@ const createStyles = (theme: any) => StyleSheet.create({
     gridValue: { color: theme.text, fontSize: 20, fontWeight: 'bold', marginTop: 4 },
     topicBox: { backgroundColor: theme.card, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: theme.border, marginBottom: 16 },
     topicTitle: { color: theme.text, fontSize: 16, fontWeight: 'bold', marginBottom: 12 },
-    topicItem: { color: theme.textSecondary, fontSize: 15, marginBottom: 6, paddingLeft: 8 }
+    topicItem: { color: theme.textSecondary, fontSize: 15, marginBottom: 6, paddingLeft: 8 },
+
+    reviewSection: { marginTop: 24, backgroundColor: theme.card, borderRadius: 16, borderWidth: 1, borderColor: theme.border, overflow: 'hidden' },
+    reviewSectionTitle: { color: theme.text, fontSize: 16, fontWeight: 'bold', padding: 20, borderBottomWidth: 1, borderBottomColor: theme.border },
+    
+    qCard: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.border },
+    qCardCorrect: { backgroundColor: theme.successSoft },
+    qCardIncorrect: { backgroundColor: theme.dangerSoft },
+    qText: { color: theme.text, fontSize: 14, fontWeight: '600', flexShrink: 1, marginRight: 8 },
+    qBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+    qBadgeCorrect: { backgroundColor: theme.successSoft },
+    qBadgeIncorrect: { backgroundColor: theme.dangerSoft },
+    qBadgeText: { fontSize: 10, fontWeight: 'bold' },
+    qBadgeTextCorrect: { color: theme.success },
+    qBadgeTextIncorrect: { color: theme.danger },
+
+    optionsGrid: { gap: 8 },
+    optItem: { padding: 10, borderRadius: 8, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    optBase: { backgroundColor: theme.cardLight, borderColor: theme.border },
+    optActualCorrect: { backgroundColor: theme.successSoft, borderColor: theme.success },
+    optStudentIncorrect: { backgroundColor: theme.dangerSoft, borderColor: theme.danger },
+    
+    optDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 1 },
+    optDotBase: { borderColor: theme.textSecondary },
+    optDotCorrect: { backgroundColor: theme.success, borderColor: theme.success },
+    optDotIncorrect: { backgroundColor: theme.danger, borderColor: theme.danger },
+
+    optTextBase: { color: theme.textSecondary, fontSize: 12 },
+    optTextCorrect: { color: theme.success, fontSize: 12, fontWeight: 'bold' },
+    optTextIncorrect: { color: theme.danger, fontSize: 12, fontWeight: 'bold' },
+
+    codeCard: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.border },
+    codeCardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+    codeIdxBox: { width: 32, height: 32, borderRadius: 8, backgroundColor: theme.primarySoft, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: theme.primary },
+    codeIdxText: { color: theme.primary, fontWeight: 'bold', fontSize: 12 },
+    codeQText: { color: theme.text, fontWeight: 'bold', fontSize: 14 },
+    codeLangText: { color: theme.textSecondary, fontSize: 10, fontFamily: 'monospace', marginTop: 2 },
+    codeBody: { backgroundColor: theme.background, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: theme.border },
+    codeLabel: { color: theme.textSecondary, fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 8 },
+    codeScroll: { backgroundColor: '#000', padding: 10, borderRadius: 6 },
+    codeContent: { color: theme.primary, fontFamily: 'monospace', fontSize: 12 }
 });

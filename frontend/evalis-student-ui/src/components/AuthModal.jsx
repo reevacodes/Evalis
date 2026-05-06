@@ -91,6 +91,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
 
         localStorage.setItem("token", res.data.access_token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("isNewUser", "true");
         setUser(res.data.user); // 🔥 INSTANT STATE UPDATE
 
         // ✅ ADD THIS LINE
@@ -118,6 +119,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
 
         localStorage.setItem("token", res.data.access_token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.removeItem("isNewUser");
         setUser(res.data.user); // 🔥 INSTANT STATE UPDATE
 
         // ✅ ADD THIS LINE
