@@ -279,6 +279,21 @@ Evalis Assessment Platform"""
     emails_to_send = [email for email in [primary_email, college_email] if email]
     return _send_email(emails_to_send, subject, body)
 
+def send_signup_otp_email(to_email: str, name: str, otp: str):
+    subject = f"Evalis - Your Verification Code: {otp}"
+    body = f"""Hello {name},
+
+Thank you for registering with the Evalis Assessment Platform!
+To complete your sign-up, please use the following One-Time Password (OTP):
+
+{otp}
+
+This code will expire in 10 minutes. If you did not request this, please ignore this email.
+
+Regards,
+Evalis Assessment Platform"""
+    return _send_email(to_email, subject, body)
+
 def send_teacher_invite_email(to_email: str, name: str, invite_link: str):
     subject = "You've been invited as a Teacher to Evalis"
     body = f"""Hello {name},

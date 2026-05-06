@@ -249,6 +249,9 @@ export const addQuestionsToExam = (examId, payload) =>
 // 🔐 AUTH APIs
 // =========================
 
+export const sendSignupOtp = (data) =>
+  API.post("/auth/send-signup-otp", data);
+
 export const signup = (data) =>
   API.post("/auth/signup", data);
 

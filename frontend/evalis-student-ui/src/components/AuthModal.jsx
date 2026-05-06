@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API, { login, signup, forgotPassword } from "../services/api";
+import API, { login, signup, forgotPassword, sendSignupOtp } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import AuthSuccessModal from "./AuthSuccessModal";
 import { Loader2 } from "lucide-react";
@@ -17,6 +17,8 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
   const [collegeName, setCollegeName] = useState("");
   const [studentId, setStudentId] = useState("");
   const [semester, setSemester] = useState("");
+  const [otp, setOtp] = useState("");
+  const [showOtpInput, setShowOtpInput] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successType, setSuccessType] = useState(""); // "login" or "signup"
   const [showPassword, setShowPassword] = useState(false);
@@ -35,6 +37,29 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
     } catch (err) {
       console.error(err);
       setForgotMessage("If this email is registered, you will receive a reset link."); // Security best practice: don't reveal if email exists
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await sendSignupOtp({ email, name: name || "Student" });
+      setShowOtpInput(true);
+      alert("An OTP has been sent to your email!");
+    } catch (err) {
+      console.error(err);
+      let errorMsg = "Failed to send OTP";
+      if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+          errorMsg = err.response.data.detail.map(e => e.msg.replace("Value error, ", "")).join(" | ");
+        } else {
+          errorMsg = err.response.data.detail;
+        }
+      }
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -66,6 +91,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
             password, 
             role, 
             name,
+            otp,
             ...(role === 'student' && {
                 college_email: collegeEmail || null,
                 college_name: collegeName || null,
@@ -162,10 +188,8 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
           </form>
         ) : (
           <>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {/* Role selector removed - signup defaults to student */}
-
-              {!isLogin && (
+            <form onSubmit={!isLogin && !showOtpInput ? handleSendOtp : handleSubmit} className="flex flex-col gap-4">
+              {!isLogin && !showOtpInput && (
                 <>
                   <input
                     type="text"
@@ -173,6 +197,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
                     className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    required
                   />
                   
                   {role === "student" && (
@@ -215,51 +240,80 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
                 </>
               )}
 
-              <input
-                type="email"
-                placeholder="Email"
-                className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-
-              <div className="flex flex-col gap-1">
-                <div className="relative">
+              {(!showOtpInput || isLogin) && (
+                <>
                   <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30 w-full"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    type="email"
+                    placeholder="Email"
+                    className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+
+                  <div className="flex flex-col gap-1">
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30 w-full"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-3.5 text-gray-400 hover:text-white"
+                      >
+                        {showPassword ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    {isLogin && (
+                      <div className="text-right mt-1">
+                        <span 
+                          className="text-xs text-gray-400 hover:text-white cursor-pointer transition"
+                          onClick={() => setIsForgotPassword(true)}
+                        >
+                          Forgot Password?
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* OTP STEP */}
+              {!isLogin && showOtpInput && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-green-400 mb-2">We sent a 6-digit OTP to {email}</p>
+                  <input
+                    type="text"
+                    placeholder="Enter 6-digit OTP"
+                    className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:outline-none focus:border-white/30 text-center tracking-widest text-xl"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    maxLength={6}
+                    required
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-3.5 text-gray-400 hover:text-white"
+                    onClick={() => setShowOtpInput(false)}
+                    className="text-sm text-blue-400 hover:text-blue-300 text-left mt-2"
                   >
-                    {showPassword ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    )}
+                    ← Back to edit details
                   </button>
                 </div>
-                {isLogin && (
-                  <div className="text-right mt-1">
-                    <span 
-                      className="text-xs text-gray-400 hover:text-white cursor-pointer transition"
-                      onClick={() => setIsForgotPassword(true)}
-                    >
-                      Forgot Password?
-                    </span>
-                  </div>
-                )}
-              </div>
+              )}
 
               <button
                 type="submit"
@@ -267,7 +321,9 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
                 className="bg-white text-black py-3 rounded-lg font-medium hover:opacity-90 transition mt-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading && <Loader2 className="w-5 h-5 animate-spin" />}
-                {loading ? (isLogin ? "Logging in..." : "Signing up...") : (isLogin ? "Login" : "Sign up")}
+                {loading 
+                  ? (isLogin ? "Logging in..." : (showOtpInput ? "Creating Account..." : "Sending OTP...")) 
+                  : (isLogin ? "Login" : (showOtpInput ? "Verify & Sign Up" : "Continue"))}
               </button>
             </form>
 
@@ -275,7 +331,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
             <p className="text-center text-sm text-gray-400 mt-6">
               {isLogin ? "Don’t have an account?" : "Already have an account?"}
               <span
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => { setIsLogin(!isLogin); setShowOtpInput(false); }}
                 className="ml-2 text-white cursor-pointer hover:underline"
               >
                 {isLogin ? "Sign up" : "Login"}

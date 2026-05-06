@@ -12,7 +12,7 @@ from app.models.user_model import update_user_role, update_user_password
 from app.utils.auth_dependency import get_current_user, require_admin
 from app.services.email_service import send_password_reset_email, send_welcome_email
 from app.services.activity_service import log_activity
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 class ForgotPasswordRequest(BaseModel):
     email: str
@@ -21,14 +21,62 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
+class SendOtpRequest(BaseModel):
+    email: EmailStr
+    name: str
+
 router = APIRouter()
 
+# =========================
+# 📨 SEND OTP
+# =========================
+@router.post("/send-signup-otp")
+def send_signup_otp(req: SendOtpRequest):
+    import random
+    from datetime import datetime, timedelta
+    from app.services.email_service import send_signup_otp_email
+    
+    clean_email = req.email.strip().lower()
+    
+    # Check if user already exists
+    if get_user_by_email(db, clean_email):
+        raise HTTPException(status_code=400, detail="Email already registered")
+        
+    otp_code = str(random.randint(100000, 999999))
+    
+    db["otp_collection"].update_one(
+        {"email": clean_email},
+        {"$set": {
+            "email": clean_email,
+            "otp": otp_code,
+            "expires_at": datetime.utcnow() + timedelta(minutes=10)
+        }},
+        upsert=True
+    )
+    
+    send_signup_otp_email(clean_email, req.name, otp_code)
+    return {"message": "OTP sent successfully"}
 
 # =========================
 # 🟢 SIGNUP
 # =========================
 @router.post("/signup")
 def signup(user: UserSignup):
+    from datetime import datetime
+    
+    clean_email = user.email.strip().lower()
+    
+    # Verify OTP
+    otp_record = db["otp_collection"].find_one({"email": clean_email, "otp": user.otp})
+    if not otp_record:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+        
+    if otp_record.get("expires_at", datetime.utcnow()) < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="OTP has expired")
+        
+    # Delete OTP after verification
+    db["otp_collection"].delete_one({"_id": otp_record["_id"]})
+
     # Hash password
     hashed_password = hash_password(user.password)
 
@@ -36,7 +84,7 @@ def signup(user: UserSignup):
     try:
         create_user(
             db,
-            email=user.email.strip().lower(),
+            email=clean_email,
             hashed_password=hashed_password,
             role=user.role,
             name=user.name,
