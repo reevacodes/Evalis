@@ -214,6 +214,23 @@ def submit_practice_attempt(
         
         practice_attempts_collection.insert_one(practice_doc)
 
+        # 📨 Send Instant Mock Analytics Email
+        try:
+            from app.database import users_collection
+            from app.services.email_service import send_analytics_report_email
+            student = users_collection.find_one({"email": user.get("sub")})
+            student_name = student.get("name", "Student") if student else "Student"
+            send_analytics_report_email(
+                to_email=user.get("sub"),
+                name=student_name,
+                exam_name=paper.get("exam_name", "Mock Test"),
+                score=mcq_score,
+                analytics=analytics,
+                is_mock=True
+            )
+        except Exception as email_err:
+            print("Failed to send mock analytics email:", email_err)
+
         # Return instantly to the Client Result Page wrapper
         return {
             "score": mcq_score,

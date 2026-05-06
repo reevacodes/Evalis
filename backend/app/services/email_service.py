@@ -311,3 +311,31 @@ Evalis Admin"""
     if not success:
         print(f"\n{'='*50}\n🚨 Email failed to send, but you can manually share this invite link:\n{invite_link}\n{'='*50}\n")
     return success
+
+def send_analytics_report_email(to_email: str, name: str, exam_name: str, score: float, analytics: dict, is_mock: bool = False):
+    exam_type = "Mock Test" if is_mock else "Official Examination"
+    subject = f"Evalis - {exam_type} Analytics Report: {exam_name}"
+    
+    accuracy = analytics.get("accuracy", 0)
+    strong_topics = ", ".join(analytics.get("strong_topics", [])) or "None identified"
+    weak_topics = ", ".join(analytics.get("weak_topics", [])) or "None identified"
+    
+    body = f"""Hello {name},
+
+Here is your analytics report for the {exam_type}: '{exam_name}'.
+
+Performance Summary:
+- Total Score: {score}
+- Accuracy: {accuracy}%
+
+Topic Breakdown:
+- Strong Topics: {strong_topics}
+- Areas for Improvement: {weak_topics}
+
+Please log in to your Evalis portal or mobile app to view the detailed breakdown, coding traces, and correct answers.
+
+Keep up the great work!
+
+Regards,
+Evalis Assessment Platform"""
+    return _send_email(to_email, subject, body)

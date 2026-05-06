@@ -26,7 +26,7 @@ from app.services.evaluation_service import async_evaluate_submission
 from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
 from app.routes.notification_routes import send_expo_push
-from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email, send_exam_timing_updated_email
+from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email, send_exam_timing_updated_email, send_analytics_report_email
 from app.services.activity_service import log_activity
 
 router = APIRouter()
@@ -1110,7 +1110,13 @@ def publish_results_api(
         
         # 📌 NOTIFICATION TRIGGER
         if not current_val: # Only notify if turning ON publishing
-            submissions = exam_submission_collection.find({"exam_id": exam_id})
+            submissions = list(exam_submission_collection.find({"exam_id": exam_id}))
+            
+            # Fetch student names in bulk
+            student_emails = [sub["student_id"] for sub in submissions]
+            users = list(user_collection.find({"email": {"$in": student_emails}}, {"email": 1, "name": 1}))
+            user_dict = {u["email"]: u.get("name", "Student") for u in users}
+
             notifications = []
             for sub in submissions:
                 notifications.append({
@@ -1129,10 +1135,18 @@ def publish_results_api(
                     send_expo_push(n["user_id"], n["title"], n["message"], {"link": n["link"]})
 
                 # Fire off Emails
-                total = float(exam.get("total_marks", 100))
                 for sub in submissions:
                     score = float(sub.get("total_score", 0))
-                    send_results_published_email(sub["student_id"], exam.get("exam_name", "Exam"), score, total)
+                    analytics = sub.get("analytics", {})
+                    student_name = user_dict.get(sub["student_id"], "Student")
+                    send_analytics_report_email(
+                        to_email=sub["student_id"],
+                        name=student_name,
+                        exam_name=exam.get("exam_name", "Exam"),
+                        score=score,
+                        analytics=analytics,
+                        is_mock=False
+                    )
         
         return {"message": "Results visibility toggled", "is_results_published": not current_val}
         
