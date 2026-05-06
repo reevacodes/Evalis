@@ -14,7 +14,6 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState('');
-    const [collegeEmail, setCollegeEmail] = useState('');
     const [collegeName, setCollegeName] = useState('');
     const [studentId, setStudentId] = useState('');
     const [semester, setSemester] = useState('');
@@ -47,12 +46,22 @@ export default function LoginScreen() {
         try {
             // First: Route Signup Sequence if necessary
             if (!isLogin) {
+                const emailPrefix = email.split('@')[0];
+                if (emailPrefix.toLowerCase() !== studentId.toLowerCase()) {
+                    Alert.alert(
+                        "Invalid Details",
+                        "Your College Enrollment Number must exactly match the first part of your College Email Address."
+                    );
+                    setLoading(false);
+                    return;
+                }
+
                 await API.post('/auth/signup', { 
                     email, 
                     password, 
                     role: 'student', 
                     name,
-                    college_email: collegeEmail || null,
+                    college_email: email,
                     college_name: collegeName || null,
                     student_id: studentId || null,
                     semester: semester ? parseInt(semester) : null
@@ -203,30 +212,32 @@ export default function LoginScreen() {
                                         />
                                         <View style={styles.institutionalBox}>
                                             <Text style={styles.institutionalLabel}>Institutional Details</Text>
-                                            <TextInput 
-                                                style={styles.input}
-                                                placeholder="College Email Address"
-                                                placeholderTextColor="rgba(255,255,255,0.4)"
-                                                value={collegeEmail}
-                                                onChangeText={setCollegeEmail}
-                                                autoCapitalize="none"
-                                                keyboardType="email-address"
-                                            />
-                                            <TextInput 
-                                                style={styles.input}
-                                                placeholder="College / University Name"
-                                                placeholderTextColor="rgba(255,255,255,0.4)"
-                                                value={collegeName}
-                                                onChangeText={setCollegeName}
-                                            />
+                                            <TouchableOpacity onPress={() => {
+                                                Alert.alert(
+                                                    "Select College",
+                                                    "Choose your institution",
+                                                    [
+                                                        { text: "Model Institute of Engineering and Technology, Jammu", onPress: () => setCollegeName("Model Institute of Engineering and Technology, Jammu") },
+                                                        { text: "Other", onPress: () => setCollegeName("Other") },
+                                                        { text: "Cancel", style: "cancel" }
+                                                    ]
+                                                );
+                                            }}>
+                                                <View style={[styles.input, { justifyContent: 'center' }]}>
+                                                    <Text style={{ color: collegeName ? 'white' : 'rgba(255,255,255,0.4)', fontSize: 16 }}>
+                                                        {collegeName || "Select College / University"}
+                                                    </Text>
+                                                </View>
+                                            </TouchableOpacity>
                                             <View style={{flexDirection: 'row', gap: 12}}>
-                                                <TextInput 
-                                                    style={[styles.input, { flex: 1 }]}
-                                                    placeholder="Student ID / Roll No."
-                                                    placeholderTextColor="rgba(255,255,255,0.4)"
-                                                    value={studentId}
-                                                    onChangeText={setStudentId}
-                                                />
+                                                    <TextInput 
+                                                        style={[styles.input, { flex: 1, paddingHorizontal: 12 }]}
+                                                        placeholder="Enrollment No."
+                                                        placeholderTextColor="rgba(255,255,255,0.4)"
+                                                        value={studentId}
+                                                        onChangeText={setStudentId}
+                                                        autoCapitalize="none"
+                                                    />
                                                 <TextInput 
                                                     style={[styles.input, { width: 100 }]}
                                                     placeholder="Semester"
@@ -242,7 +253,7 @@ export default function LoginScreen() {
 
                                 <TextInput 
                                     style={styles.input}
-                                    placeholder="Email"
+                                    placeholder={!isLogin ? "College Email Address" : "Email"}
                                     placeholderTextColor="rgba(255,255,255,0.4)"
                                     value={email}
                                     onChangeText={setEmail}
@@ -270,6 +281,24 @@ export default function LoginScreen() {
                                         />
                                     </TouchableOpacity>
                                 </View>
+
+                                {!isLogin && password.length > 0 && (
+                                    <View style={{ marginBottom: 16 }}>
+                                        <Text style={{ color: '#9ca3af', fontSize: 12, marginBottom: 4 }}>Password requirements:</Text>
+                                        <Text style={{ color: password.length >= 8 ? '#4ade80' : '#ef4444', fontSize: 12, marginBottom: 2 }}>
+                                            {password.length >= 8 ? "✓" : "✗"} At least 8 characters
+                                        </Text>
+                                        <Text style={{ color: /[a-zA-Z]/.test(password) ? '#4ade80' : '#ef4444', fontSize: 12, marginBottom: 2 }}>
+                                            {/[a-zA-Z]/.test(password) ? "✓" : "✗"} At least one letter
+                                        </Text>
+                                        <Text style={{ color: /\d/.test(password) ? '#4ade80' : '#ef4444', fontSize: 12, marginBottom: 2 }}>
+                                            {/\d/.test(password) ? "✓" : "✗"} At least one number
+                                        </Text>
+                                        <Text style={{ color: /[@$!%*?&#^_-]/.test(password) ? '#4ade80' : '#ef4444', fontSize: 12 }}>
+                                            {/[@$!%*?&#^_-]/.test(password) ? "✓" : "✗"} At least one special character
+                                        </Text>
+                                    </View>
+                                )}
 
                                 {isLogin && (
                                     <View style={styles.forgotRow}>

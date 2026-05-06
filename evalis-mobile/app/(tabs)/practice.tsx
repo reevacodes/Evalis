@@ -611,26 +611,48 @@ export default function PracticeScreen() {
                             .sort((a, b) => new Date(a.start_time.endsWith('Z') ? a.start_time : a.start_time + 'Z').getTime() - new Date(b.start_time.endsWith('Z') ? b.start_time : b.start_time + 'Z').getTime())
                             .map((p: any) => {
                                 const rawTime = p.start_time || new Date().toISOString();
-                                const d = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
-                                const isReady = d.getTime() <= nowTime;
+                                const start = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
+                                const durationMs = (p.duration_minutes || 30) * 60000;
+                                const end = new Date(start.getTime() + durationMs);
+                                
+                                let statusStr = 'Upcoming';
+                                let statusColor = theme.primary; 
+                                let statusBg = theme.primary + '15'; 
+                                
+                                if (nowTime < start.getTime()) {
+                                    statusStr = 'Upcoming';
+                                } else if (nowTime >= start.getTime() && nowTime <= end.getTime()) {
+                                    statusStr = 'Live';
+                                    statusColor = theme.success; 
+                                    statusBg = theme.success + '15'; 
+                                } else {
+                                    statusStr = history.some((h: any) => h.exam_id === p._id || h.paper_id === p._id) ? 'Completed' : 'Expired';
+                                    statusColor = statusStr === 'Completed' ? theme.success : theme.danger; 
+                                    statusBg = statusColor + '15';
+                                }
+
+                                const canStart = statusStr === 'Live' || statusStr === 'Expired' || statusStr === 'Completed';
+                                const btnText = statusStr === 'Upcoming' ? 'Waiting' : (statusStr === 'Live' ? 'Start Now' : 'Retry');
+                                const btnIcon = statusStr === 'Upcoming' ? 'time' : (statusStr === 'Live' ? 'play' : 'refresh');
+
                                 return (
                                 <View key={p._id} style={styles.attemptCard}>
                                     <View style={styles.cardHeader}>
                                         <View style={{ flex: 1, paddingRight: 12 }}>
                                             <Text style={styles.examName} numberOfLines={1}>{p.exam_name || "Scheduled Mock"}</Text>
-                                            <Text style={styles.examSubject} numberOfLines={1}>{d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' })} • {d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
+                                            <Text style={styles.examSubject} numberOfLines={1}>{start.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' })} • {start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</Text>
                                         </View>
-                                        <View style={[styles.badge, { borderColor: theme.primary, backgroundColor: theme.primary + '15', alignSelf: 'flex-start' }]}>
-                                            <Text style={{ color: theme.primary, fontSize: 12, fontWeight: 'bold' }}>{p.duration_minutes} Mins</Text>
+                                        <View style={[styles.badge, { borderColor: statusColor, backgroundColor: statusBg, alignSelf: 'flex-start' }]}>
+                                            <Text style={{ color: statusColor, fontSize: 12, fontWeight: 'bold' }}>{statusStr}</Text>
                                         </View>
                                     </View>
                                     <View style={[styles.cardFooter, {justifyContent: 'flex-end'}]}>
                                         <TouchableOpacity 
-                                            onPress={() => isReady ? startPractice(p._id) : Alert.alert("Not Ready", "This exam is scheduled for a future time.")} 
-                                            style={{flexDirection:'row', alignItems:'center', opacity: isReady ? 1 : 0.5}}
+                                            onPress={() => canStart ? startPractice(p._id) : Alert.alert("Not Ready", "This exam is scheduled for a future time.")} 
+                                            style={{flexDirection:'row', alignItems:'center', opacity: canStart ? 1 : 0.5}}
                                         >
-                                            <Text style={styles.viewBtnText}>{isReady ? "Start Exam" : "Waiting"}</Text>
-                                            <Ionicons name={isReady ? "play" : "time"} size={14} color={theme.primary} style={{marginLeft: 4}}/>
+                                            <Text style={styles.viewBtnText}>{btnText}</Text>
+                                            <Ionicons name={btnIcon as any} size={14} color={theme.primary} style={{marginLeft: 4}}/>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
