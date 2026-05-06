@@ -75,3 +75,12 @@ def update_user_password(db, email: str, hashed_password: str):
         },
         {"$set": {"password": hashed_password}}
     )
+
+def update_user_profile(db, email: str, data: dict):
+    """
+    Update general user profile (name, profile_picture).
+    """
+    return db.users.update_one(
+        {"email": email},
+        {"$set": data}
+    )

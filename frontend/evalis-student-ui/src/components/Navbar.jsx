@@ -199,8 +199,12 @@ export default function Navbar() {
              className="flex items-center gap-3 bg-white/5 border border-white/10 pl-2 pr-4 py-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer group"
            >
              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-0.5 shadow-lg shadow-blue-500/20">
-               <div className="w-full h-full bg-[#0b0f19] rounded-full flex items-center justify-center">
-                  <GraduationCap size={18} className="text-gray-200" />
+               <div className="w-full h-full bg-[#0b0f19] rounded-full flex items-center justify-center overflow-hidden">
+                 {user?.profile_picture ? (
+                   <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                 ) : (
+                   <GraduationCap size={18} className="text-gray-200" />
+                 )}
                </div>
              </div>
 

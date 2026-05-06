@@ -8,7 +8,7 @@ from app.database import db
 from pymongo.errors import DuplicateKeyError
 from app.utils.auth_dependency import get_current_user
 from app.database import get_db
-from app.models.user_model import update_user_role, update_user_password
+from app.models.user_model import update_user_role, update_user_password, update_user_profile
 from app.utils.auth_dependency import get_current_user, require_admin
 from app.services.email_service import send_password_reset_email, send_welcome_email
 from app.services.activity_service import log_activity
@@ -250,8 +250,32 @@ def get_me(user = Depends(get_current_user)):
         "email": db_user["email"],
         "name": db_user.get("name", ""),
         "role": db_user["role"],
-        "student_id": db_user.get("student_id", "")
+        "student_id": db_user.get("student_id", ""),
+        "semester": db_user.get("semester", None),
+        "college_name": db_user.get("college_name", ""),
+        "profile_picture": db_user.get("profile_picture", None)
     }
+
+class ProfileUpdateRequest(BaseModel):
+    name: str = None
+    profile_picture: str = None
+
+@router.put("/me")
+def update_me(req: ProfileUpdateRequest, user = Depends(get_current_user)):
+    db_user = get_user_by_email(db, user["sub"])
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    update_data = {}
+    if req.name is not None:
+        update_data["name"] = req.name
+    if req.profile_picture is not None:
+        update_data["profile_picture"] = req.profile_picture
+        
+    if update_data:
+        update_user_profile(db, db_user["email"], update_data)
+        
+    return {"message": "Profile updated successfully"}
 
 @router.put("/admin/make-admin")
 def make_admin(

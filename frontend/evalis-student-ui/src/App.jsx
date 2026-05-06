@@ -23,6 +23,7 @@ import Landing from "./pages/Landing";
 import ResetPassword from "./pages/ResetPassword";
 import SetPassword from "./pages/SetPassword";
 import StudentResults from "./pages/StudentResults";
+import Profile from "./pages/Profile";
 import PracticeResultPage from "./pages/PracticeResultPage";
 import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
@@ -58,6 +59,10 @@ function AppContent() {
         <Route path="/student/practice-result/:examId" element={<RoleRoute role="student"><PracticeResultPage /></RoleRoute>} />
         {/* <Route path="/results" element={<ResultPage />} /> */}
 
+        {/* SHARED LOGGED-IN ROUTES */}
+        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+
+        {/* STUDENT ONLY */}
         {/* 🔥 Question Bank */}
         <Route
           path="/question-bank"
