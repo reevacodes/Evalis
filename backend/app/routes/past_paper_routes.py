@@ -15,7 +15,20 @@ router = APIRouter()
 @router.get("/")
 def get_all_past_papers(user=Depends(get_current_user)):
     try:
-        papers = list(past_papers_collection.find({}).sort("year", -1))
+        # Fetch standard curriculum papers AND practice mocks specifically created/scheduled by this user
+        query = {
+            "$or": [
+                {"exam_type": {"$ne": "Practice"}},
+                {"$and": [
+                    {"exam_type": "Practice"},
+                    {"$or": [
+                        {"scheduled_by": user.get("sub")},
+                        {"created_by": user.get("sub")}
+                    ]}
+                ]}
+            ]
+        }
+        papers = list(past_papers_collection.find(query).sort("year", -1))
         
         # Strip massive payloads (sections) for the listing
         for p in papers:
