@@ -401,23 +401,91 @@ export default function StudentDashboard() {
         /* 🟠 PRACTICE ARENA HIERARCHY TAB */
         <>
           <div className="mt-4">
+            
+            {/* 🗓 SCHEDULED MOCK TESTS (Moved out of mockTab) */}
+            {pastPapers.filter(p => p.exam_type === "Practice" && p.is_instant === false).length > 0 && (
+              <div className="mb-10 pb-8 border-b border-gray-200 dark:border-slate-800/80">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Your Scheduled Mock Tests</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {pastPapers.filter(p => p.exam_type === "Practice" && p.is_instant === false).map(mock => {
+                    const rawTime = mock.start_time || new Date().toISOString();
+                    const startTime = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
+                    const endTime = new Date(startTime.getTime() + (mock.duration_minutes || 60) * 60000);
+                    const now = new Date();
+                    const isGiven = practiceHistory.some(h => h.paper_id === mock._id);
+                    
+                    let statusText = "Upcoming";
+                    let statusColor = "text-yellow-500 bg-yellow-500/10 border-yellow-500/30";
+                    let btnText = "Waiting";
+                    let btnDisabled = true;
+                    let btnClass = "bg-white dark:bg-slate-800 text-slate-500 cursor-not-allowed border border-gray-300 dark:border-slate-700";
+
+                    if (isGiven) {
+                        statusText = "Completed";
+                        statusColor = "text-green-500 bg-green-500/10 border-green-500/30";
+                        btnText = "Practice Again";
+                        btnDisabled = false;
+                        btnClass = "bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-gray-300 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700";
+                    } else if (now > endTime) {
+                        statusText = "Expired";
+                        statusColor = "text-red-500 bg-red-500/10 border-red-500/30";
+                        btnText = "Retry Mock";
+                        btnDisabled = false;
+                        btnClass = "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 hover:bg-red-100 dark:hover:bg-red-900/40";
+                    } else if (now >= startTime) {
+                        statusText = "Live";
+                        statusColor = "text-blue-500 bg-blue-500/10 border-blue-500/30";
+                        btnText = localStorage.getItem(`exam_${mock._id}_answers`) ? "Resume Mock" : "Start Now";
+                        btnDisabled = false;
+                        btnClass = "bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]";
+                    }
+
+                    return (
+                      <div key={mock._id} className={`bg-white dark:bg-slate-900 border ${isGiven || now > endTime ? 'border-gray-200 dark:border-slate-800 opacity-80' : 'border-gray-300 dark:border-slate-700/50'} rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm transition-all hover:opacity-100 hover:border-gray-400 dark:hover:border-slate-600`}>
+                        <div className="w-full md:w-auto">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="text-lg font-bold text-slate-900 dark:text-white">{mock.exam_name}</h4>
+                            <span className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded border ${statusColor}`}>
+                              {statusText}
+                            </span>
+                          </div>
+                          <div className="flex gap-4 text-sm text-slate-500 dark:text-slate-400 mt-2">
+                            <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatDateOnly(mock.start_time)} • {formatTimeOnly(mock.start_time)}</span>
+                            <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> {mock.duration_minutes || 60} Mins</span>
+                          </div>
+                        </div>
+                        <button
+                          disabled={btnDisabled}
+                          onClick={() => navigate(`/student/practice/${mock._id}`)}
+                          className={`w-full md:w-auto px-6 py-2.5 rounded-lg font-bold transition-all ${btnClass}`}
+                        >
+                          {btnText}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">Mock Library</h3>
               <div className="bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700/50 rounded-lg p-1 flex">
                  <button 
                     onClick={() => setMockTab('curriculum')}
-                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'curriculum' ? 'bg-indigo-600 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}
+                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'curriculum' ? 'bg-indigo-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}
                  >
                     Year-wise Mocks
                  </button>
                  <button 
                     onClick={() => setMockTab('chapter')}
-                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'chapter' ? 'bg-purple-600 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}
+                    className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${mockTab === 'chapter' ? 'bg-purple-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}
                  >
                     Chapter-wise Mocks
                  </button>
               </div>
             </div>
+            
             {mockTab === 'curriculum' ? (
               <PracticeHierarchy 
                   pastPapers={pastPapers} 
@@ -429,41 +497,6 @@ export default function StudentDashboard() {
             ) : (
               <div className="space-y-8">
                 <MockTestGenerator navigate={navigate} />
-                
-                {pastPapers.filter(p => p.exam_type === "Practice" && p.is_instant === false).length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Scheduled Mock Tests</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {pastPapers.filter(p => p.exam_type === "Practice" && p.is_instant === false).map(mock => {
-                        const rawTime = mock.start_time || new Date().toISOString();
-                        const d = new Date(rawTime.endsWith('Z') || rawTime.includes('+') ? rawTime : rawTime + 'Z');
-                        const isReady = d <= new Date();
-                        return (
-                          <div key={mock._id} className="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700/50 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
-                            <div className="w-full md:w-auto">
-                              <h4 className="text-lg font-bold text-slate-900 dark:text-white">{mock.exam_name}</h4>
-                              <div className="flex gap-4 text-sm text-slate-500 dark:text-slate-400 mt-2">
-                                <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {formatDateOnly(mock.start_time)} • {formatTimeOnly(mock.start_time)}</span>
-                                <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> {mock.duration_minutes} Mins</span>
-                              </div>
-                            </div>
-                            <button
-                              disabled={!isReady}
-                              onClick={() => navigate(`/student/practice/${mock._id}`)}
-                              className={`w-full md:w-auto px-6 py-2.5 rounded-lg font-bold transition-all ${
-                                isReady 
-                                  ? "bg-purple-600 hover:bg-purple-500 text-slate-900 dark:text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]" 
-                                  : "bg-white dark:bg-slate-800 text-slate-500 cursor-not-allowed border border-gray-300 dark:border-slate-700"
-                              }`}
-                            >
-                              {isReady ? (localStorage.getItem(`exam_${mock._id}_answers`) ? "Resume Mock" : "Start Now") : "Waiting"}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
