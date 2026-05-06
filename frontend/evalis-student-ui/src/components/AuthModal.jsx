@@ -22,6 +22,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
   const [successType, setSuccessType] = useState(""); // "login" or "signup"
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorModal, setErrorModal] = useState({ show: false, title: "", message: "" });
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
@@ -44,6 +45,20 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!isLogin && role === "student") {
+        const emailPrefix = email.split('@')[0];
+        if (emailPrefix.toLowerCase() !== studentId.toLowerCase()) {
+            setErrorModal({
+                show: true,
+                title: "Invalid Details",
+                message: "Your College Enrollment Number must exactly match the first part of your College Email Address."
+            });
+            setLoading(false);
+            return;
+        }
+    }
+
     try {
       await sendSignupOtp({ email, name: name || "Student" });
       setShowOtpInput(true);
@@ -58,7 +73,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
           errorMsg = err.response.data.detail;
         }
       }
-      alert(errorMsg);
+      setErrorModal({ show: true, title: "Registration Error", message: errorMsg });
     } finally {
       setLoading(false);
     }
@@ -124,7 +139,7 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
       } else if (err.message) {
         errorMsg = err.message;
       }
-      alert(errorMsg);
+      setErrorModal({ show: true, title: "Authentication Error", message: errorMsg });
     } finally {
       setLoading(false);
     }
@@ -388,6 +403,29 @@ export default function AuthModal({ onClose, hideClose = false, isInline = false
             onClose();
           }}
         />
+      )}
+
+      {/* 🔴 Error Modal */}
+      {errorModal.show && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+            <div className="bg-[#131825] border border-red-500/30 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="p-6 text-center">
+                    <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">{errorModal.title}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed mb-6">{errorModal.message}</p>
+                    <button 
+                        onClick={() => setErrorModal({ show: false, title: "", message: "" })}
+                        className="w-full bg-red-600 hover:bg-red-500 text-white font-medium py-2.5 rounded-xl transition-colors"
+                    >
+                        Understood
+                    </button>
+                </div>
+            </div>
+        </div>
       )}
     </div>
   );
