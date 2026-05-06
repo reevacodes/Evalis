@@ -106,8 +106,19 @@ export default function AdminOverview() {
         setLoading(false);
       }
     };
-
     fetchData();
+
+    // ⚡ Real-Time Polling for Live Monitor
+    const interval = setInterval(async () => {
+      try {
+        const sessionsRes = await getLiveSessions().catch(() => ({ data: [] }));
+        setLiveSessions(sessionsRes.data || []);
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    }, 5000); // 5 seconds refresh rate
+
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
