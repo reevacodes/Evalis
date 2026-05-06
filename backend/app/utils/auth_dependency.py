@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.utils.jwt_handler import decode_token
+from app.database import user_collection
 
 # Auto error False → lets us control error messages
 security = HTTPBearer(auto_error=False)
@@ -22,6 +23,14 @@ def get_current_user(
     token = credentials.credentials
 
     payload = decode_token(token)
+
+    # Validate that the user still exists in the database
+    user_in_db = user_collection.find_one({"email": payload.get("sub")})
+    if not user_in_db:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account no longer exists or has been removed."
+        )
 
     return payload
 

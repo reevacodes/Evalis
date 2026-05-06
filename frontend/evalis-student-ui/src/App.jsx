@@ -53,9 +53,9 @@ function AppContent() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/set-password" element={<SetPassword />} />
 
-        <Route path="/student/exam/:examId" element={<ExamPage isPractice={false} />} />
-        <Route path="/student/practice/:examId" element={<ExamPage isPractice={true} />} />
-        <Route path="/student/practice-result/:examId" element={<PracticeResultPage />} />
+        <Route path="/student/exam/:examId" element={<RoleRoute role="student"><ExamPage isPractice={false} /></RoleRoute>} />
+        <Route path="/student/practice/:examId" element={<RoleRoute role="student"><ExamPage isPractice={true} /></RoleRoute>} />
+        <Route path="/student/practice-result/:examId" element={<RoleRoute role="student"><PracticeResultPage /></RoleRoute>} />
         {/* <Route path="/results" element={<ResultPage />} /> */}
 
         {/* 🔥 Question Bank */}
@@ -84,8 +84,22 @@ function AppContent() {
         <Route path="/exam/:examId/preview" element={<PreviewExam />} />
         {/* <Route path="/exam/:examId/paper" element={<ExamPaper />} />  */}
         <Route path="/exams" element={<AllExams />} />
-        <Route path="/student" element={<StudentDashboard />} />
-        <Route path="/student/results/:examId" element={<StudentResults />} />
+        <Route 
+          path="/student" 
+          element={
+            <RoleRoute role="student">
+              <StudentDashboard />
+            </RoleRoute>
+          } 
+        />
+        <Route 
+          path="/student/results/:examId" 
+          element={
+            <RoleRoute role="student">
+              <StudentResults />
+            </RoleRoute>
+          } 
+        />
         <Route path="/exam/:examId/edit" element={<ExamEditor />} />
         <Route path="/exam/:examId/finalized" element={<ExamFinalized />} />
         <Route path="/exam/:examId/published" element={<PublishExam />} />
