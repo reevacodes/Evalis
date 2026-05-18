@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Automatically use the live backend URL when deployed, and localhost when developing
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "https://evalis-backend-vvsj.onrender.com";
 
 const API = axios.create({
   baseURL: API_URL,

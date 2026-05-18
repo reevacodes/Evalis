@@ -298,12 +298,12 @@ export default function ExamPage({ isPractice = false }) {
                  }
              }
 
-             // Violation Thresholds (Reduced to detect after 7 seconds)
+             // Violation Thresholds (Reduced to detect after 3 seconds)
              let violationReason = null;
 
-             if (consecutiveMissingFrames.current >= 14) violationReason = "Face not detected in frame";
-             else if (consecutiveMultipleFrames.current >= 14) violationReason = "Multiple people detected";
-             else if (consecutivePoseFrames.current >= 14) violationReason = "Suspicious head pose (looking away)";
+             if (consecutiveMissingFrames.current >= 6) violationReason = "Face not detected in frame";
+             else if (consecutiveMultipleFrames.current >= 6) violationReason = "Multiple people detected";
+             else if (consecutivePoseFrames.current >= 6) violationReason = "Suspicious head pose (looking away)";
 
              if (violationReason) {
                  cvWarningCountRef.current += 1;
