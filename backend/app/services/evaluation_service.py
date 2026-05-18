@@ -154,13 +154,41 @@ def async_evaluate_submission(submission_id: str):
                 
             coding_score_earned += points
 
+            # 🤖 AI CODE REVIEW (Senior Dev Feedback)
+            ai_feedback = None
+            if ai_model and code.strip():
+                try:
+                    q_text = question.get("question", question.get("question_text", "A coding problem"))
+                    prompt = f"""
+                    You are a Senior Software Engineer reviewing a junior developer's code.
+                    The problem they are solving is:
+                    {q_text}
+                    
+                    Their code in {language}:
+                    ```
+                    {code}
+                    ```
+                    
+                    The code passed {passed_cases} out of {total_cases} test cases.
+                    
+                    Analyze their code for Time Complexity (Big O), Memory Efficiency, and Readability.
+                    Provide a short, constructive paragraph (max 3 sentences) of feedback. 
+                    If they got 100%, praise them but suggest how they could optimize it if possible (e.g., using a Hash Map for O(n) instead of an O(n^2) nested loop).
+                    Return ONLY the text paragraph, no markdown blocks.
+                    """
+                    resp = ai_model.generate_content(prompt)
+                    ai_feedback = resp.text.strip()
+                except Exception as ex:
+                    print(f"Failed to generate AI code review for {qid}: {ex}")
+
             execution_metadata[qid] = {
                 "status": status,
                 "passed": passed_cases,
                 "total_cases": total_cases,
                 "score": points,
                 "max_score": round(marks_per_coding_question, 2),
-                "details": hidden_result.get("details", [])
+                "details": hidden_result.get("details", []),
+                "ai_feedback": ai_feedback
             }
 
         # 3. Securely overwrite DB Ledger

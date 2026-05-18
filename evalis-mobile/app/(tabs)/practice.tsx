@@ -930,6 +930,18 @@ export default function PracticeScreen() {
                                         <ScrollView style={styles.codeScroll} horizontal>
                                             <Text style={styles.codeContent}>{cData.code || "No code submitted"}</Text>
                                         </ScrollView>
+                                        
+                                        {resultsData?.coding_review_data?.[key]?.ai_feedback && (
+                                            <View style={{marginTop: 15, backgroundColor: '#8b5cf615', borderWidth: 1, borderColor: '#8b5cf640', borderRadius: 8, padding: 12}}>
+                                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8}}>
+                                                    <Ionicons name="hardware-chip-outline" size={16} color="#a78bfa" />
+                                                    <Text style={{color: '#a78bfa', fontWeight: 'bold', fontSize: 12, textTransform: 'uppercase'}}>AI Code Review</Text>
+                                                </View>
+                                                <Text style={{color: '#ddd6fe', fontSize: 13, lineHeight: 20}}>
+                                                    {resultsData.coding_review_data[key].ai_feedback}
+                                                </Text>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
                             );
