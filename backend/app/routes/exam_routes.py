@@ -22,7 +22,7 @@ from app.database import (
 )
 from app.models.question_model import question_helper
 from app.services.exam_service import generate_exam
-from app.services.evaluation_service import async_evaluate_submission
+from app.services.evaluation_service import async_evaluate_submission, async_generate_ai_study_plan
 from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
 from app.routes.notification_routes import send_expo_push
@@ -909,10 +909,16 @@ def submit_exam_api(
         if not submission_id:
              new_doc = exam_submission_collection.find_one({"exam_id": exam_id, "student_id": user.get("sub")})
              submission_id = new_doc["_id"]
+        
+        submission_id_str = str(submission_id)
 
-        # FIRE BACKGROUND WORKER 
-        if submission_id:
-            background_tasks.add_task(async_evaluate_submission, str(submission_id))
+        # 🚀 FIRE BACKGROUND WORKERS
+        if not payload.is_suspended:
+            if len(payload.coding_answers) > 0:
+                background_tasks.add_task(async_evaluate_submission, submission_id_str)
+            
+            # Fire AI Study Plan Generator
+            background_tasks.add_task(async_generate_ai_study_plan, submission_id_str)
 
         return {"message": "Exam submitted successfully", "mcq_score": mcq_score}
 

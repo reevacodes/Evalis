@@ -195,6 +195,22 @@ export default function ExamAnalyticsScreen() {
                     </View>
                 )}
 
+                {/* 🤖 AI TUTOR FEEDBACK */}
+                {submission.ai_study_plan && submission.ai_study_plan.length > 0 && (
+                    <View style={[styles.topicBox, { borderColor: '#8b5cf6', backgroundColor: '#8b5cf610' }]}>
+                        <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8}}>
+                            <Ionicons name="sparkles" size={20} color="#a78bfa" />
+                            <Text style={[styles.topicTitle, {color: '#a78bfa', marginBottom: 0}]}>AI Tutor Feedback</Text>
+                        </View>
+                        {submission.ai_study_plan.map((point: string, idx: number) => (
+                            <View key={idx} style={{flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8, gap: 8}}>
+                                <View style={{width: 6, height: 6, borderRadius: 3, backgroundColor: '#8b5cf6', marginTop: 6}} />
+                                <Text style={{color: '#d8b4fe', fontSize: 14, flex: 1, leading: 22}}>{point}</Text>
+                            </View>
+                        ))}
+                    </View>
+                )}
+
                 <View style={styles.submissionLog}>
                     <Text style={styles.logTitle}>Submission Telemetry</Text>
                     <View style={styles.logRow}>
