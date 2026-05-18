@@ -143,13 +143,13 @@ export default function AdminOverview() {
               onClick={() => setRagModalOpen(true)}
               className="w-full sm:w-auto justify-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
             >
-              <Sparkles className="w-5 h-5" /> RAG Mocks
+              Contextual Mock Generator (RAG)
             </button>
             <button 
               onClick={() => setInviteModalOpen(true)}
               className="w-full sm:w-auto justify-center px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-all flex items-center gap-2"
             >
-              <span className="text-xl">+</span> Invite Teacher
+              Invite Teacher
             </button>
           </div>
         </div>

@@ -79,7 +79,7 @@ export default function TeacherOverview() {
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 text-slate-900 dark:text-white">
-              Hello, Instructor {user?.name?.split(' ')[0] || ""} <span className="animate-waving-hand inline-block">👋</span>
+              Hello, Instructor {user?.name?.split(' ')[0] || ""}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-lg">
               Welcome to your command center. Manage assessments, review results, and guide your students.
@@ -88,10 +88,9 @@ export default function TeacherOverview() {
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0">
             <button 
                onClick={() => setRagModalOpen(true)}
-               className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-500/20 flex items-center gap-2 justify-center w-full sm:w-auto"
+               className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-500/20 flex items-center gap-2 justify-center w-full sm:w-auto"
             >
-               <Sparkles className="w-5 h-5" />
-               RAG Mocks
+               Contextual Mock Generator (RAG)
             </button>
             <button 
                onClick={() => navigate('/create-exam')}
@@ -168,7 +167,7 @@ export default function TeacherOverview() {
         {/* ⚡ QUICK ACTIONS WIDGET */}
         <div className="space-y-4">
            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              ⚡ Quick Actions
+              Quick Actions
            </h2>
            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
               <button 
