@@ -365,7 +365,14 @@ export default function InstructorSubmissions() {
                               const cvViolations = sub.cv_violations || 0;
                               const totalInfractions = tabSwitches + cvViolations;
 
-                              if (totalInfractions === 0) {
+                              if (sub.is_suspended) {
+                                return (
+                                  <div className="flex flex-col">
+                                    <span className="text-red-500 font-bold text-[10px] bg-red-500/20 px-2 py-1 rounded border border-red-500/40 w-max uppercase tracking-wider">🚨 SUSPENDED</span>
+                                    <span className="text-[10px] text-red-400 mt-1 font-semibold max-w-[150px] leading-tight">{sub.suspension_reason || "Proctoring Violation"}</span>
+                                  </div>
+                                );
+                              } else if (totalInfractions === 0) {
                                 return (
                                   <div className="flex flex-col">
                                     <span className="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 w-max">🟢 Validated</span>
@@ -391,7 +398,9 @@ export default function InstructorSubmissions() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                              {sub.pending_manual_review
+                              {sub.is_suspended 
+                                ? <span className="text-red-500 font-bold text-xs bg-red-500/20 px-2 py-1 rounded">Suspended</span>
+                                : sub.pending_manual_review
                                 ? <span className="text-orange-400 font-bold text-xs bg-orange-500/10 px-2 py-1 rounded">Needs Review</span>
                                 : <span className="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-1 rounded">Validated</span>
                               }

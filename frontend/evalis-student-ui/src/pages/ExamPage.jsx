@@ -40,6 +40,9 @@ export default function ExamPage({ isPractice = false }) {
   const [examDetails, setExamDetails] = useState(null);
   const [studentDetails, setStudentDetails] = useState(null);
 
+  const [isSuspended, setIsSuspended] = useState(false);
+  const [suspensionReason, setSuspensionReason] = useState("");
+
   // ✅ PROCTORING STATES
   const [instructionsRead, setInstructionsRead] = useState(false);
   const [isProctorSetupComplete, setIsProctorSetupComplete] = useState(false);
@@ -210,10 +213,10 @@ export default function ExamPage({ isPractice = false }) {
         if (violations === 1) {
           alert("⚠️ WARNING 1: Tab switching is strictly prohibited! Return to the exam immediately.");
         } else if (violations === 2) {
-          alert("⚠️ FINAL WARNING: If you switch tabs one more time, your exam will be automatically submitted and locked.");
+          alert("⚠️ FINAL WARNING: If you switch tabs one more time, your exam will be automatically suspended.");
         } else if (violations >= 3) {
-          alert("🚨 INFRACTION LIMIT EXCEEDED: You switched tabs 3 times. Your exam is now being automatically submitted.");
-          handleAutoSubmit("Infraction limit exceeded. Exam terminated.");
+          alert("🚨 INFRACTION LIMIT EXCEEDED: You switched tabs 3 times. Your exam is now suspended.");
+          handleSuspend("Tab switching limit exceeded (3 infractions).");
         }
       }
     };
@@ -317,10 +320,10 @@ export default function ExamPage({ isPractice = false }) {
                  if (cvViolations === 1) {
                      alert(`⚠️ AI PROCTORING WARNING 1: ${violationReason}. Please ensure a quiet, distraction-free environment.`);
                  } else if (cvViolations === 2) {
-                     alert(`⚠️ AI FINAL WARNING: ${violationReason}. One more violation will auto-submit your exam.`);
+                     alert(`⚠️ AI FINAL WARNING: ${violationReason}. One more violation will suspend your exam.`);
                  } else if (cvViolations >= 3) {
-                     alert(`🚨 AI INFRACTION LIMIT EXCEEDED: ${violationReason}. Your exam is being automatically submitted.`);
-                     handleAutoSubmit("AI Proctoring limit exceeded. Exam terminated.");
+                     alert(`🚨 AI INFRACTION LIMIT EXCEEDED: ${violationReason}. Your exam is being suspended.`);
+                     handleSuspend(`AI Proctoring limit exceeded: ${violationReason}`);
                  }
              }
           } catch (e) {
@@ -506,10 +509,85 @@ export default function ExamPage({ isPractice = false }) {
     }
   };
 
+  // ✅ EXAM SUSPENSION (Kicks out student)
+  const handleSuspend = async (reason) => {
+    if (submittedRef.current) return;
+    
+    submittedRef.current = true;
+    
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+    }
+    if (aiIntervalRef.current) clearInterval(aiIntervalRef.current);
+    
+    setIsSuspended(true);
+    setSuspensionReason(reason);
+    localStorage.removeItem(storageKey);
+    localStorage.removeItem(`exam_${examId}_end_time`);
+    
+    if (document.fullscreenElement) {
+        document.exitFullscreen().catch(()=>{});
+    }
+
+    try {
+      await submitExam({
+        examId,
+        mcq_answers: answersRef.current,
+        coding_answers: codingAnswersRef.current,
+        tab_switches: warningCountRef.current,
+        cv_violations: cvWarningCountRef.current,
+        time_spent_mcq: timeTrackingRef.current.mcq,
+        time_spent_coding: timeTrackingRef.current.coding,
+        time_spent_total: timeTrackingRef.current.mcq + timeTrackingRef.current.coding,
+        is_suspended: true,
+        suspension_reason: reason
+      });
+    } catch (err) {
+      console.error("Failed to sync suspension state to backend", err);
+    }
+  };
+
   // ================= UI STATES =================
 
   if (loading) {
     return <div className="text-slate-900 dark:text-white p-6">Loading...</div>;
+  }
+
+  if (isSuspended) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-950 p-6">
+        <div className="max-w-xl w-full bg-slate-900/80 backdrop-blur-md p-8 rounded-2xl border border-red-500/30 text-center shadow-[0_0_50px_rgba(239,68,68,0.1)]">
+            <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShieldAlert className="w-10 h-10" />
+            </div>
+            <h1 className="text-3xl font-black text-white mb-4">EXAM SUSPENDED</h1>
+            <p className="text-slate-400 mb-6 leading-relaxed">
+                Your examination has been forcefully suspended due to strict proctoring violations. All progress up to this point has been locked.
+            </p>
+            <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 mb-8 text-left">
+                <p className="text-xs text-red-400 font-bold uppercase tracking-wider mb-1">Reason for Suspension</p>
+                <p className="text-white text-sm">{suspensionReason}</p>
+            </div>
+            <p className="text-slate-500 text-sm mb-8">
+                An incident report has been sent to the examination administration. If you believe this was an error, you may submit a request to reschedule this exam.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <button 
+                    onClick={() => navigate('/student/dashboard')}
+                    className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition-colors"
+                >
+                    Return to Dashboard
+                </button>
+                <button 
+                    onClick={() => navigate(`/student/dashboard?requestReschedule=${examId}`)}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/20"
+                >
+                    Request Reschedule
+                </button>
+            </div>
+        </div>
+      </div>
+    );
   }
 
   if (!examExists) {
@@ -600,7 +678,7 @@ export default function ExamPage({ isPractice = false }) {
                 <div className="p-2.5 bg-red-500/20 text-red-400 rounded-xl mt-0.5"><MonitorOff className="w-5 h-5" /></div>
                 <div>
                   <h3 className="text-white font-bold text-[15px] mb-1">Tab Switching & Full Screen</h3>
-                  <p className="text-slate-400 text-xs leading-relaxed">Leaving the full-screen mode or switching tabs will immediately log a warning. <span className="text-red-400 font-bold">3 warnings = Auto-Submission</span>.</p>
+                  <p className="text-slate-400 text-xs leading-relaxed">Leaving the full-screen mode or switching tabs will immediately log a warning. <span className="text-red-400 font-bold">3 warnings = Exam Suspension</span>.</p>
                 </div>
               </div>
 

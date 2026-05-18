@@ -72,3 +72,5 @@ class SubmissionRequest(BaseModel):
     time_spent_mcq: int = 0
     time_spent_coding: int = 0
     time_spent_total: int = 0
+    is_suspended: bool = False
+    suspension_reason: Optional[str] = None

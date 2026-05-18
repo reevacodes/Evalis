@@ -26,7 +26,7 @@ from app.services.evaluation_service import async_evaluate_submission
 from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
 from app.routes.notification_routes import send_expo_push
-from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email, send_exam_timing_updated_email, send_analytics_report_email
+from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email, send_exam_timing_updated_email, send_analytics_report_email, send_exam_suspended_email, send_exam_suspended_notification_to_admin
 from app.services.activity_service import log_activity
 
 router = APIRouter()
@@ -870,13 +870,38 @@ def submit_exam_api(
             "tab_switches": payload.tab_switches,
             "cv_violations": payload.cv_violations,
             "pending_manual_review": len(payload.coding_answers) > 0,
-            "submitted_at": datetime.now(timezone.utc)
+            "submitted_at": datetime.now(timezone.utc),
+            "is_suspended": payload.is_suspended,
+            "suspension_reason": payload.suspension_reason
         }
         doc_info = exam_submission_collection.update_one(
             {"exam_id": exam_id, "student_id": user.get("sub")},
             {"$set": doc},
             upsert=True
         )
+
+        if payload.is_suspended:
+            # 🚨 Notify Student
+            background_tasks.add_task(
+                send_exam_suspended_email,
+                to_email=user.get("email"),
+                exam_name=exam.get("exam_name", "Assessment"),
+                reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded"
+            )
+            
+            # 🚨 Notify Admins & Teacher
+            admin_cursor = user_collection.find({"role": "admin"})
+            admin_emails = [admin.get("email") for admin in admin_cursor if admin.get("email")]
+            teacher_email = exam.get("instructor_email")
+            
+            background_tasks.add_task(
+                send_exam_suspended_notification_to_admin,
+                admin_emails=admin_emails,
+                teacher_email=teacher_email,
+                exam_name=exam.get("exam_name", "Assessment"),
+                student_email=user.get("email"),
+                reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded"
+            )
         
         submission_id = doc_info.upserted_id or (existing.get("_id") if existing else None)
         

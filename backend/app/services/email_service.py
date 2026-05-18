@@ -244,6 +244,46 @@ Regards,
 Evalis Assessment Platform"""
     return _send_email(to_email, subject, body)
 
+def send_exam_suspended_email(to_email: str, exam_name: str, reason: str):
+    subject = f"URGENT: Exam Suspended - {exam_name}"
+    body = f"""EXAM SUSPENDED
+
+Hello,
+
+Your examination '{exam_name}' has been SUSPENDED due to strict proctoring violations.
+
+Reason for Suspension: {reason}
+
+If you believe this was an error, or if you had technical difficulties, please log in to the Evalis application and submit a Reschedule Request for your instructor to review.
+
+Regards,
+Evalis Assessment Platform"""
+    return _send_email(to_email, subject, body)
+
+def send_exam_suspended_notification_to_admin(admin_emails: list, teacher_email: str, exam_name: str, student_email: str, reason: str):
+    subject = f"Alert: Exam Suspended for Student - {exam_name}"
+    body = f"""Hello,
+
+This is an automated alert to notify you that the examination '{exam_name}' has been SUSPENDED for a student due to proctoring violations.
+
+Student: {student_email}
+Reason for Suspension: {reason}
+
+The student has been instructed to submit a reschedule request if necessary.
+
+Regards,
+Evalis Assessment Platform"""
+    
+    # Notify admins
+    if admin_emails:
+        _send_email(admin_emails, subject, body)
+    
+    # Notify teacher
+    if teacher_email:
+        _send_email(teacher_email, subject, body)
+    
+    return True
+
 def send_mock_scheduled_email(to_email: str, exam_name: str, scheduled_time: str, is_reminder: bool = False):
     formatted_time = format_to_ist(scheduled_time)
     subject = f"Evalis - Reminder: Mock Test Scheduled" if is_reminder else f"Evalis - Mock Test Scheduled: {exam_name}"

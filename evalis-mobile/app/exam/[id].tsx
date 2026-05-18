@@ -49,6 +49,28 @@ export default function ExamAnalyticsScreen() {
         );
     }
 
+    if (result?.submission?.is_suspended) {
+        return (
+            <View style={styles.centerBox}>
+                <Ionicons name="alert-circle-outline" size={60} color="#ef4444" />
+                <Text style={[styles.pendingTitle, {color: '#ef4444', marginTop: 10}]}>EXAM SUSPENDED</Text>
+                <Text style={styles.pendingMessage}>Your examination has been forcefully suspended due to strict proctoring violations.</Text>
+                
+                <View style={{backgroundColor: '#ef444410', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: '#ef444430', marginTop: 20, width: '100%'}}>
+                    <Text style={{color: '#f87171', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 5}}>Reason for Suspension</Text>
+                    <Text style={{color: 'white', fontSize: 14}}>{result.submission.suspension_reason || "Proctoring violation limit exceeded."}</Text>
+                </View>
+
+                <TouchableOpacity style={[styles.backBtn, {backgroundColor: '#4f46e5', marginTop: 30, width: '100%', alignItems: 'center'}]} onPress={() => router.replace(`/(tabs)?requestReschedule=${id}`)}>
+                    <Text style={styles.backBtnText}>Request Reschedule</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.backBtn, {backgroundColor: 'transparent', marginTop: 10}]} onPress={() => router.replace('/(tabs)')}>
+                    <Text style={[styles.backBtnText, {color: '#94a3b8'}]}>Return to Dashboard</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     if (result && !result.is_published) {
         return (
             <View style={styles.centerBox}>
