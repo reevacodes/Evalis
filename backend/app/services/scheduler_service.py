@@ -161,12 +161,13 @@ def start_scheduler():
         scheduler.start()
         logger.info("APScheduler started successfully.")
         
-        # Run it once immediately on boot
+        # Run it once immediately on boot (in the background so it doesn't block Uvicorn startup)
         try:
-            check_and_send_mock_reminders()
-            check_and_send_official_exam_reminders()
-        except Exception:
-            pass
+            now = datetime.now(timezone.utc)
+            scheduler.add_job(check_and_send_mock_reminders, 'date', run_date=now)
+            scheduler.add_job(check_and_send_official_exam_reminders, 'date', run_date=now)
+        except Exception as e:
+            logger.error(f"Failed to queue boot jobs: {e}")
 
 def stop_scheduler():
     if scheduler.running:
