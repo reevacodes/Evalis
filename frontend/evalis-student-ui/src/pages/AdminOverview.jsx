@@ -2,8 +2,9 @@ import StatCard from "../components/StatCard";
 import { useEffect, useState } from "react";
 import { getAllExams, getRescheduleRequests, updateRescheduleRequest, deleteRescheduleRequest, getActivityLogs, getLiveSessions, inviteTeacher } from "../services/api";
 import { formatDateTime } from "../utils/formatDate";
-import { Activity, Radio, AlertTriangle, Loader2 } from "lucide-react";
+import { Activity, Radio, AlertTriangle, Loader2, Sparkles } from "lucide-react";
 import AdminRejectModal from "../components/AdminRejectModal";
+import RAGUploadModal from "../components/RAGUploadModal";
 
 export default function AdminOverview() {
   const [stats, setStats] = useState({
@@ -18,6 +19,7 @@ export default function AdminOverview() {
   const [liveSessions, setLiveSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rejectModalData, setRejectModalData] = useState({ isOpen: false, request: null });
+  const [ragModalOpen, setRagModalOpen] = useState(false);
 
   // Teacher Invite State
   const [isInviteModalOpen, setInviteModalOpen] = useState(false);
@@ -136,12 +138,20 @@ export default function AdminOverview() {
               Monitor exams, activity, and system performance
             </p>
           </div>
-          <button 
-            onClick={() => setInviteModalOpen(true)}
-            className="w-full sm:w-auto justify-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
-          >
-            <span className="text-xl">+</span> Invite Teacher
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <button 
+              onClick={() => setRagModalOpen(true)}
+              className="w-full sm:w-auto justify-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+            >
+              <Sparkles className="w-5 h-5" /> RAG Mocks
+            </button>
+            <button 
+              onClick={() => setInviteModalOpen(true)}
+              className="w-full sm:w-auto justify-center px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-all flex items-center gap-2"
+            >
+              <span className="text-xl">+</span> Invite Teacher
+            </button>
+          </div>
         </div>
 
         {isInviteModalOpen && (
@@ -370,6 +380,11 @@ export default function AdminOverview() {
         onClose={() => setRejectModalData({ isOpen: false, request: null })}
         onSubmit={handleRejectSubmit}
         requestDetails={rejectModalData.request}
+      />
+
+      <RAGUploadModal 
+        isOpen={ragModalOpen}
+        onClose={() => setRagModalOpen(false)}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, UploadFile, File, Form
 from typing import Optional, List
 from fastapi.encoders import jsonable_encoder
 from datetime import datetime
@@ -143,6 +143,58 @@ def add_bulk_mock_questions(payload: BulkMockQuestionsPayload):
         "message": "Bulk upload to mocks completed",
         "inserted_count": len(res.inserted_ids)
     }
+
+# =========================
+# 🤖 GENERATE MOCK QUESTIONS VIA RAG (NEW)
+# =========================
+@router.post("/mock-questions/rag-generate")
+async def generate_rag_mock_questions(
+    file: UploadFile = File(...),
+    subject_code: str = Form(...),
+    subject_name: str = Form(...),
+    semester: int = Form(...),
+    unit: str = Form(...)
+):
+    from app.services.rag_service import (
+        extract_text_from_pdf, chunk_text, get_embeddings, 
+        retrieve_top_chunks, generate_rag_questions
+    )
+    from app.database import mock_question_collection
+    
+    try:
+        pdf_bytes = await file.read()
+        text = extract_text_from_pdf(pdf_bytes)
+        if not text:
+            raise HTTPException(status_code=400, detail="Could not extract text from PDF")
+            
+        chunks = chunk_text(text)
+        embeddings = get_embeddings(chunks)
+        
+        query = f"Key concepts, definitions, and code examples for {subject_name} ({subject_code}) Chapter {unit}"
+        context = retrieve_top_chunks(query, chunks, embeddings, top_k=5)
+        
+        # Generate 5 MCQs and 1 Coding question grounded in this context
+        questions = generate_rag_questions(subject_name, subject_code, unit, context, mcq_count=5, coding_count=1)
+        
+        if not questions:
+            raise HTTPException(status_code=500, detail="AI failed to generate RAG questions")
+            
+        for q in questions:
+            q["semester"] = semester
+            q["created_at"] = datetime.utcnow()
+            if "marks" not in q:
+                q["marks"] = 10 if q.get("type") == "coding" else 1
+                
+        res = mock_question_collection.insert_many(questions)
+        
+        return {
+            "message": f"Successfully generated and injected {len(res.inserted_ids)} highly contextual RAG questions.",
+            "inserted_count": len(res.inserted_ids),
+            "questions": questions
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 # =========================
