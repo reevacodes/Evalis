@@ -1,5 +1,5 @@
 from bson import ObjectId
-from app.database import exam_submission_collection, exam_collection, question_collection
+from app.database import exam_submission_collection, exam_collection, question_collection, practice_attempts_collection, past_papers_collection
 from app.services.submission_service import evaluate_code
 import os
 import json
@@ -154,7 +154,99 @@ def async_evaluate_submission(submission_id: str):
                 
             coding_score_earned += points
 
-            # 🤖 AI CODE REVIEW (Senior Dev Feedback)
+            execution_metadata[qid] = {
+                "status": status,
+                "passed": passed_cases,
+                "total_cases": total_cases,
+                "score": points,
+                "max_score": round(marks_per_coding_question, 2),
+                "details": hidden_result.get("details", [])
+            }
+
+        # 3. Securely overwrite DB Ledger
+        final_total_score = submission.get("mcq_score", 0) + coding_score_earned
+
+        exam_submission_collection.update_one(
+            {"_id": ObjectId(submission_id)},
+            {
+                "$set": {
+                    "coding_score": coding_score_earned,
+                    "total_score": round(final_total_score, 2),
+                    "pending_manual_review": False,
+                    "coding_review_data": execution_metadata 
+                }
+            }
+        )
+
+        print(f"✅ BACKGROUND WORKER: Evaluation COMPLETE. Submission ID {submission_id} scored: {final_total_score}")
+
+    except Exception as e:
+        print(f"🔥 BACKGROUND WORKER EXCEPTION on {submission_id}:", str(e))
+
+def async_evaluate_practice_submission(practice_id: str):
+    """
+    Background worker for MOCK TESTS specifically.
+    Evaluates coding answers and runs Gemini AI Code Review (Senior Dev Feedback).
+    """
+    try:
+        attempt = practice_attempts_collection.find_one({"_id": ObjectId(practice_id)})
+        if not attempt:
+            return
+
+        coding_answers = attempt.get("coding_answers", {})
+        if not coding_answers:
+            return
+
+        # Iterate against Sandbox execution
+        execution_metadata = {}
+
+        for qid, payload in coding_answers.items():
+            code = payload.get("code", "")
+            language = payload.get("language", "python")
+
+            if not code.strip():
+                execution_metadata[qid] = {
+                    "status": "No Code",
+                    "passed": 0,
+                    "score": 0
+                }
+                continue
+
+            # Need to find the mock question
+            question = None
+            paper = past_papers_collection.find_one({"_id": ObjectId(attempt.get("paper_id"))})
+            if paper:
+                for section in paper.get("sections", []) + paper.get("sets", {}).get("A", []):
+                    if section.get("type") == "coding":
+                        for q in section.get("questions", []):
+                            if str(q.get("id", q.get("_id"))) == qid:
+                                question = q
+                                break
+                    if question:
+                        break
+
+            if not question:
+                continue
+
+            test_cases = question.get("test_cases", [])
+            if not test_cases:
+                continue
+
+            # Heavy blocking Call (Invokes Native Docker Engine)
+            hidden_result = evaluate_code(code, test_cases, language)
+
+            status = hidden_result.get("status", "RE")
+            passed_cases = hidden_result.get("passed", 0)
+            total_cases = hidden_result.get("total", 0)
+            
+            # Marks are not strictly enforced in practice coding, but let's calculate based on 10
+            marks_per_coding_question = 10.0
+            if total_cases > 0:
+                points = round((passed_cases / total_cases) * marks_per_coding_question, 2)
+            else:
+                points = 0
+
+            # 🤖 AI CODE REVIEW (Senior Dev Feedback) exclusively for mocks
             ai_feedback = None
             if ai_model and code.strip():
                 try:
@@ -179,7 +271,7 @@ def async_evaluate_submission(submission_id: str):
                     resp = ai_model.generate_content(prompt)
                     ai_feedback = resp.text.strip()
                 except Exception as ex:
-                    print(f"Failed to generate AI code review for {qid}: {ex}")
+                    print(f"Failed to generate AI code review for practice {qid}: {ex}")
 
             execution_metadata[qid] = {
                 "status": status,
@@ -191,22 +283,15 @@ def async_evaluate_submission(submission_id: str):
                 "ai_feedback": ai_feedback
             }
 
-        # 3. Securely overwrite DB Ledger
-        final_total_score = submission.get("mcq_score", 0) + coding_score_earned
-
-        exam_submission_collection.update_one(
-            {"_id": ObjectId(submission_id)},
+        practice_attempts_collection.update_one(
+            {"_id": ObjectId(practice_id)},
             {
                 "$set": {
-                    "coding_score": coding_score_earned,
-                    "total_score": round(final_total_score, 2),
-                    "pending_manual_review": False,
-                    "coding_review_data": execution_metadata 
+                    "coding_results": execution_metadata 
                 }
             }
         )
-
-        print(f"✅ BACKGROUND WORKER: Evaluation COMPLETE. Submission ID {submission_id} scored: {final_total_score}")
+        print(f"✅ AI TUTOR: Generated mock exam coding review for attempt {practice_id}")
 
     except Exception as e:
-        print(f"🔥 BACKGROUND WORKER EXCEPTION on {submission_id}:", str(e))
+        print(f"🔥 BACKGROUND WORKER EXCEPTION on practice attempt {practice_id}:", str(e))

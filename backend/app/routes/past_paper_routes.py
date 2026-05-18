@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from app.database import past_papers_collection, practice_attempts_collection
 from app.utils.auth_dependency import get_current_user, require_role
 from app.schemas.exam_schema import SubmissionRequest
 from bson import ObjectId
 from datetime import datetime, timezone
+from app.services.evaluation_service import async_evaluate_practice_submission
 import random
 from app.services.email_service import send_mock_scheduled_email
 
@@ -143,6 +144,7 @@ def schedule_past_paper(
 def submit_practice_attempt(
     paper_id: str,
     payload: SubmissionRequest,
+    background_tasks: BackgroundTasks,
     user=Depends(get_current_user)
 ):
     try:
@@ -228,6 +230,12 @@ def submit_practice_attempt(
         }
         
         practice_attempts_collection.insert_one(practice_doc)
+        
+        practice_id_str = str(practice_doc.get("_id"))
+        
+        # 🔥 FIRE MOCK EXAM EVALUATOR
+        if len(payload.coding_answers) > 0:
+            background_tasks.add_task(async_evaluate_practice_submission, practice_id_str)
 
         # 📨 Send Instant Mock Analytics Email
         try:
