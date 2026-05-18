@@ -2,8 +2,9 @@ import StatCard from "../components/StatCard";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllExams } from "../services/api";
-import { PlusCircle, BookOpen, BarChart2, Calendar, Clock, ArrowRight } from "lucide-react";
+import { PlusCircle, BookOpen, BarChart2, Calendar, Clock, ArrowRight, Sparkles } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import RAGUploadModal from "../components/RAGUploadModal";
 import { formatDateTime } from "../utils/formatDate";
 
 export default function TeacherOverview() {
@@ -19,6 +20,7 @@ export default function TeacherOverview() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [ragModalOpen, setRagModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchStats = async (silent = false) => {
@@ -83,13 +85,22 @@ export default function TeacherOverview() {
               Welcome to your command center. Manage assessments, review results, and guide your students.
             </p>
           </div>
-          <button 
-             onClick={() => navigate('/create-exam')}
-             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition flex items-center gap-2 shadow-lg shadow-blue-500/25 shrink-0"
-          >
-             <PlusCircle className="w-5 h-5" />
-             Create New Exam
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0">
+            <button 
+               onClick={() => setRagModalOpen(true)}
+               className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-500/20 flex items-center gap-2 justify-center w-full sm:w-auto"
+            >
+               <Sparkles className="w-5 h-5" />
+               RAG Mocks
+            </button>
+            <button 
+               onClick={() => navigate('/create-exam')}
+               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition flex items-center gap-2 shadow-lg shadow-blue-500/25 justify-center w-full sm:w-auto"
+            >
+               <PlusCircle className="w-5 h-5" />
+               Create New Exam
+            </button>
+          </div>
         </div>
       </div>
 
@@ -189,6 +200,11 @@ export default function TeacherOverview() {
         </div>
 
       </div>
+
+      <RAGUploadModal 
+        isOpen={ragModalOpen}
+        onClose={() => setRagModalOpen(false)}
+      />
     </div>
   );
 }
