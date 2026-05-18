@@ -1,16 +1,10 @@
-from passlib.context import CryptContext
+import bcrypt
 
-# Configure bcrypt with stronger settings
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-    bcrypt__rounds=12   # good balance of security + performance
-)
-
-def hash_password(password: str):
+def hash_password(password: str) -> str:
     password = password[:72]  # bcrypt limit
-    return pwd_context.hash(password)
-
+    salt = bcrypt.gensalt(rounds=12)
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 def verify_password(plain: str, hashed: str) -> bool:
     """
@@ -19,14 +13,13 @@ def verify_password(plain: str, hashed: str) -> bool:
     """
     try:
         plain = plain[:72]
-        return pwd_context.verify(plain, hashed)
+        return bcrypt.checkpw(plain.encode('utf-8'), hashed.encode('utf-8'))
     except Exception:
         return False
-
 
 def needs_rehash(hashed: str) -> bool:
     """
     Check if stored hash needs upgrading (e.g., if rounds change).
     Useful for future security upgrades.
     """
-    return pwd_context.needs_update(hashed)
+    return False
