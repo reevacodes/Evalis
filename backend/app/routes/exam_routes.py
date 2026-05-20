@@ -721,11 +721,43 @@ def get_exam_api(
             # Modulo 4 routing
             set_keys = sorted(list(sets.keys())) # Avoid random dict order issue
             if set_keys:
-                idx = identifier % len(set_keys)
-                assigned_set = set_keys[idx]
-                exam["sections"] = sets[assigned_set]
-                print(f"🔥 STUDENT REGEX MATCH: Modulo ({identifier} % {len(set_keys)} = {idx}) -> Assigned Set {assigned_set}")
-                
+                if exam.get("is_rescheduled") and len(set_keys) > 1:
+                    import random
+                    print("🔥 RESCHEDULE EXCEPTION DETECTED: Generating Deterministic Mixed Set")
+                    mixed_sections = []
+                    base_set = sets[set_keys[0]]
+                    
+                    for s_idx, section in enumerate(base_set):
+                        pool = []
+                        for sk in set_keys:
+                            try:
+                                pool.extend(sets[sk][s_idx].get("questions", []))
+                            except Exception:
+                                pass
+                                
+                        # Remove duplicates by stringified question dictionary or ID
+                        unique_pool_dict = {str(q.get("_id", q)): q for q in pool}
+                        shuffled_pool = list(unique_pool_dict.values())
+                        
+                        # Deterministic shuffle so reloading the page gives the same mixed set
+                        rng = random.Random(f"{identifier}_{exam_id}")
+                        rng.shuffle(shuffled_pool)
+                        
+                        target_count = len(section.get("questions", []))
+                        mixed_sections.append({
+                            "type": section.get("type", "mcq"),
+                            "count": section.get("count", target_count),
+                            "questions": shuffled_pool[:target_count]
+                        })
+                        
+                    exam["sections"] = mixed_sections
+                    assigned_set = "EXCEPTION_MIX"
+                    print(f"🔥 STUDENT REGEX MATCH: Rescheduled Student -> Assigned Set {assigned_set}")
+                else:
+                    idx = identifier % len(set_keys)
+                    assigned_set = set_keys[idx]
+                    exam["sections"] = sets[assigned_set]
+                    print(f"🔥 STUDENT REGEX MATCH: Modulo ({identifier} % {len(set_keys)} = {idx}) -> Assigned Set {assigned_set}")
         # Always pop sets for students to prevent massive downloads and cheating
         exam.pop("sets", None)
 
