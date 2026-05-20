@@ -1,6 +1,6 @@
 import { Tabs, useRouter, usePathname } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, DeviceEventEmitter, View, TouchableOpacity, Modal, Text, Animated, Dimensions, Pressable } from 'react-native';
+import { StyleSheet, DeviceEventEmitter, View, TouchableOpacity, Modal, Text, Animated, Dimensions, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -102,7 +102,10 @@ export default function TabLayout() {
             <Animated.View style={[styles.drawerContainer, { backgroundColor: theme.background, transform: [{ translateX: slideAnim }] }]}>
               <SafeAreaView style={{ flex: 1 }}>
                 <View style={styles.drawerHeader}>
-                  <Text style={[styles.drawerLogo, { color: theme.primary }]}>Evalis.</Text>
+                  <Image 
+                    source={require('../../assets/images/evalis_logo_transparent.png')} 
+                    style={{ width: 40, height: 40, resizeMode: 'contain' }} 
+                  />
                   <TouchableOpacity onPress={toggleDrawer} style={{ padding: 8 }}>
                     <Ionicons name="close" size={28} color={theme.text} />
                   </TouchableOpacity>

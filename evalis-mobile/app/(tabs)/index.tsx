@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Modal, TextInput, Alert, ActivityIndicator, DeviceEventEmitter } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Modal, TextInput, Alert, ActivityIndicator, DeviceEventEmitter, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API from '../../src/api/client';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -179,9 +179,10 @@ export default function DashboardScreen() {
         <View style={styles.container}>
             <View style={[styles.header, { paddingRight: 60 }]}>
                 <View style={{ flex: 1 }}>
-                    <View style={{ width: 40, height: 40, backgroundColor: theme.primary, borderRadius: 10, justifyContent: 'center', alignItems: 'center', mb: 8, marginBottom: 10 }}>
-                       <Text style={{ fontSize: 24, fontWeight: '900', color: 'white' }}>E</Text>
-                    </View>
+                    <Image 
+                        source={require('../../assets/images/evalis_logo_transparent.png')} 
+                        style={{ width: 44, height: 44, marginBottom: 10, resizeMode: 'contain' }} 
+                    />
                     <Text style={styles.greeting}>{isNewUser ? 'Welcome,' : 'Welcome back,'}</Text>
                     <Text style={styles.name} numberOfLines={1}>{user?.name?.split(' ')[0] || 'Student'} 👋</Text>
                     <Text style={styles.subtext}>Track your performance and upcoming exams.</Text>
