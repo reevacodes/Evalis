@@ -297,9 +297,9 @@ export default function DashboardScreen() {
                                         <Text style={styles.examName}>{exam.exam_name}</Text>
                                         <Text style={styles.examSubtext}>{exam.subject_code} • Sem {exam.semester}</Text>
                                     </View>
-                                    <View style={[styles.badge, { backgroundColor: statusColors.bg }]}>
-                                        <Text style={[styles.badgeText, { color: statusColors.text }]}>
-                                            {isLive ? 'LIVE' : isUpcoming ? 'UPCOMING' : 'COMPLETED'}
+                                    <View style={[styles.badge, exam.is_suspended ? { backgroundColor: theme.dangerSoft } : { backgroundColor: statusColors.bg }]}>
+                                        <Text style={[styles.badgeText, exam.is_suspended ? { color: theme.danger } : { color: statusColors.text }]}>
+                                            {exam.is_suspended ? 'SUSPENDED' : isLive ? 'LIVE' : isUpcoming ? 'UPCOMING' : 'COMPLETED'}
                                         </Text>
                                     </View>
                                 </View>
@@ -349,12 +349,24 @@ export default function DashboardScreen() {
                                         </View>
                                     )}
 
-                                    {isCompleted && (
+                                    {isCompleted && !exam.is_suspended && (
                                         <TouchableOpacity 
                                             style={styles.analyticsBtn}
                                             onPress={() => router.push(`/exam/${exam._id}`)}
                                         >
                                             <Text style={styles.analyticsBtnText}>View Analytics</Text>
+                                        </TouchableOpacity>
+                                    )}
+
+                                    {isCompleted && exam.is_suspended && exam.reschedule_status !== 'approved' && exam.reschedule_status !== 'pending' && (
+                                        <TouchableOpacity 
+                                            style={[styles.rescheduleBtn, { backgroundColor: theme.dangerSoft, borderColor: theme.danger }]}
+                                            onPress={() => {
+                                                setActiveRescheduleId(exam._id);
+                                                setRescheduleModalVisible(true);
+                                            }}
+                                        >
+                                            <Text style={[styles.rescheduleBtnText, { color: theme.danger }]}>Request Reschedule</Text>
                                         </TouchableOpacity>
                                     )}
                                 </View>
