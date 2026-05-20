@@ -472,30 +472,68 @@ export default function PracticeResultPage() {
                                         {data.passed} / {data.total_cases} Passed ({data.status})
                                      </span>
                                   </div>
+
+                                  {result.coding_answers && result.coding_answers[qid] && result.coding_answers[qid].code && (
+                                     <div className="mb-4">
+                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Your Submitted Code</p>
+                                        <pre className="bg-[#050505] p-3 rounded-lg border border-gray-800 text-sm font-mono text-gray-300 overflow-x-auto whitespace-pre">
+                                           {result.coding_answers[qid].code}
+                                        </pre>
+                                     </div>
+                                  )}
                                   
                                   {data.ai_feedback && (
-                                     <div className="mb-4 mt-2">
-                                        <div className="flex items-center gap-2 mb-2 text-indigo-400 font-bold">
+                                     <div className="mb-4 mt-4">
+                                        <div className="flex items-center gap-2 mb-3 text-indigo-400 font-bold">
                                            <Sparkles className="w-4 h-4" /> AI Mentor Review
                                         </div>
-                                        <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-3 text-indigo-200 text-sm whitespace-pre-wrap leading-relaxed">
-                                           {data.ai_feedback}
-                                        </div>
+                                        {(() => {
+                                           try {
+                                              const fb = JSON.parse(data.ai_feedback);
+                                              return (
+                                                 <div className="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4">
+                                                    <div className="flex flex-wrap gap-3 mb-3">
+                                                       {fb.time_complexity && <span className="bg-indigo-500/20 text-indigo-300 text-xs px-2.5 py-1 rounded-md font-mono border border-indigo-500/20">Time: {fb.time_complexity}</span>}
+                                                       {fb.memory_efficiency && <span className="bg-purple-500/20 text-purple-300 text-xs px-2.5 py-1 rounded-md font-mono border border-purple-500/20">Space: {fb.memory_efficiency}</span>}
+                                                       {fb.readability && <span className="bg-blue-500/20 text-blue-300 text-xs px-2.5 py-1 rounded-md font-medium border border-blue-500/20">Readability: {fb.readability}</span>}
+                                                    </div>
+                                                    <p className="text-indigo-100 text-sm leading-relaxed">{fb.feedback || fb.message}</p>
+                                                 </div>
+                                              );
+                                           } catch (e) {
+                                              return (
+                                                 <div className="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4 text-indigo-100 text-sm whitespace-pre-wrap leading-relaxed">
+                                                    {data.ai_feedback}
+                                                 </div>
+                                              );
+                                           }
+                                        })()}
                                      </div>
                                   )}
 
                                   {data.details && data.details.length > 0 && (
-                                     <div className="mt-4">
-                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Test Case Traces</p>
-                                        <div className="space-y-2">
-                                           {data.details.map((t, i) => (
-                                              <div key={i} className="text-xs flex gap-2 items-start">
-                                                 <span className={t.passed ? 'text-emerald-400' : 'text-rose-400'}>
-                                                    {t.passed ? '✔' : '✘'}
-                                                 </span>
-                                                 <span className="text-gray-300">Input: {t.input} | Expected: {t.expected} | Output: {t.actual_output}</span>
-                                              </div>
-                                           ))}
+                                     <div className="mt-5 bg-black/40 rounded-xl p-4 border border-gray-800">
+                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-3">Test Case Traces</p>
+                                        <div className="space-y-2.5 font-mono">
+                                           {data.details.map((t, i) => {
+                                              const isPass = t.verdict === 'AC';
+                                              return (
+                                                 <div key={i} className="text-[11px] sm:text-xs flex gap-3 items-start p-2 rounded-lg bg-gray-900/50 border border-gray-800/50">
+                                                    <span className={`mt-0.5 ${isPass ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                       {isPass ? '✔' : '✘'}
+                                                    </span>
+                                                    <div className="flex-1 space-y-1">
+                                                       <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                                          <span className="text-gray-400">Input: <span className="text-blue-300">{t.input}</span></span>
+                                                          <span className="text-gray-400">Expected: <span className="text-emerald-300">{t.expected}</span></span>
+                                                       </div>
+                                                       {!isPass && (
+                                                          <div className="text-gray-400">Output: <span className="text-rose-300">{t.output || t.actual_output}</span></div>
+                                                       )}
+                                                    </div>
+                                                 </div>
+                                              );
+                                           })}
                                         </div>
                                      </div>
                                   )}
