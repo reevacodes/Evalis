@@ -912,6 +912,15 @@ export default function PracticeScreen() {
                         <Text style={styles.reviewSectionTitle}>Coding Solutions Report</Text>
                         {Object.entries(resultsData.coding_answers).map(([key, cData]: [string, any], idx: number) => {
                             const qInfo = resultsData.exam_sections?.flatMap((s: any) => s.questions).find((q: any) => q.id === key || q._id === key) || {};
+                            const cr = coding_results?.[key] || {};
+                            let aiFbText = cr.ai_feedback;
+                            let parsedFb: any = null;
+                            if (aiFbText) {
+                                try {
+                                    parsedFb = JSON.parse(aiFbText);
+                                } catch (e) {}
+                            }
+
                             return (
                                 <View key={key} style={styles.codeCard}>
                                     <View style={styles.codeCardHeader}>
@@ -924,6 +933,13 @@ export default function PracticeScreen() {
                                                 <Text style={styles.codeLangText}>{cData.language || "python"}</Text>
                                             </View>
                                         </View>
+                                        {cr.status && (
+                                            <View style={[styles.qBadge, cr.status === 'AC' ? styles.qBadgeCorrect : styles.qBadgeIncorrect, { paddingHorizontal: 8 }]}>
+                                                <Text style={[styles.qBadgeText, cr.status === 'AC' ? styles.qBadgeTextCorrect : styles.qBadgeTextIncorrect]}>
+                                                    {cr.passed} / {cr.total_cases} ({cr.status})
+                                                </Text>
+                                            </View>
+                                        )}
                                     </View>
                                     <View style={styles.codeBody}>
                                         <Text style={styles.codeLabel}>Student Submission:</Text>
@@ -931,15 +947,52 @@ export default function PracticeScreen() {
                                             <Text style={styles.codeContent}>{cData.code || "No code submitted"}</Text>
                                         </ScrollView>
                                         
-                                        {resultsData?.coding_review_data?.[key]?.ai_feedback && (
+                                        {aiFbText && (
                                             <View style={{marginTop: 15, backgroundColor: '#8b5cf615', borderWidth: 1, borderColor: '#8b5cf640', borderRadius: 8, padding: 12}}>
-                                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8}}>
+                                                <View style={{flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12}}>
                                                     <Ionicons name="hardware-chip-outline" size={16} color="#a78bfa" />
-                                                    <Text style={{color: '#a78bfa', fontWeight: 'bold', fontSize: 12, textTransform: 'uppercase'}}>AI Code Review</Text>
+                                                    <Text style={{color: '#a78bfa', fontWeight: 'bold', fontSize: 12, textTransform: 'uppercase'}}>AI Mentor Review</Text>
                                                 </View>
-                                                <Text style={{color: '#ddd6fe', fontSize: 13, lineHeight: 20}}>
-                                                    {resultsData.coding_review_data[key].ai_feedback}
-                                                </Text>
+                                                {parsedFb ? (
+                                                    <View>
+                                                        <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8}}>
+                                                            {parsedFb.time_complexity && <View style={{backgroundColor: '#6366f120', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#6366f130'}}><Text style={{color: '#818cf8', fontSize: 10, fontFamily: 'monospace'}}>Time: {parsedFb.time_complexity}</Text></View>}
+                                                            {parsedFb.memory_efficiency && <View style={{backgroundColor: '#a855f720', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, borderWidth: 1, borderColor: '#a855f730'}}><Text style={{color: '#c084fc', fontSize: 10, fontFamily: 'monospace'}}>Space: {parsedFb.memory_efficiency}</Text></View>}
+                                                        </View>
+                                                        <Text style={{color: '#ddd6fe', fontSize: 13, lineHeight: 20}}>
+                                                            {parsedFb.feedback || parsedFb.message}
+                                                        </Text>
+                                                    </View>
+                                                ) : (
+                                                    <Text style={{color: '#ddd6fe', fontSize: 13, lineHeight: 20}}>
+                                                        {aiFbText}
+                                                    </Text>
+                                                )}
+                                            </View>
+                                        )}
+
+                                        {cr.details && cr.details.length > 0 && (
+                                            <View style={{marginTop: 15, backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)'}}>
+                                                <Text style={{color: '#9ca3af', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 8}}>Test Case Traces</Text>
+                                                {cr.details.map((t: any, i: number) => {
+                                                    const isPass = t.verdict === 'AC';
+                                                    return (
+                                                        <View key={i} style={{flexDirection: 'row', gap: 8, marginBottom: 6}}>
+                                                            <Text style={{color: isPass ? '#34d399' : '#f87171', fontSize: 12, marginTop: 1}}>
+                                                                {isPass ? '✔' : '✘'}
+                                                            </Text>
+                                                            <View style={{flex: 1}}>
+                                                                <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+                                                                    <Text style={{color: '#9ca3af', fontSize: 11}}>Input: <Text style={{color: '#93c5fd'}}>{t.input}</Text></Text>
+                                                                    <Text style={{color: '#9ca3af', fontSize: 11, marginLeft: 8}}>Expected: <Text style={{color: '#6ee7b7'}}>{t.expected}</Text></Text>
+                                                                </View>
+                                                                {!isPass && (
+                                                                    <Text style={{color: '#9ca3af', fontSize: 11, marginTop: 2}}>Output: <Text style={{color: '#fca5a5'}}>{t.output || t.actual_output}</Text></Text>
+                                                                )}
+                                                            </View>
+                                                        </View>
+                                                    );
+                                                })}
                                             </View>
                                         )}
                                     </View>
