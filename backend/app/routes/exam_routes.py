@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, File, UploadFile, Form
+from fastapi import APIRouter, HTTPException, Query, File, UploadFile, Form, Request, Depends
 import shutil
 import uuid
 import os
@@ -1517,6 +1517,7 @@ def request_unlock(exam_id: str, user=Depends(require_role("teacher"))):
 
 @router.post("/{exam_id}/reschedule")
 def request_reschedule(
+    request: Request,
     exam_id: str,
     category: str = Form(...),
     reason: str = Form(...),
@@ -1580,7 +1581,8 @@ def request_reschedule(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(proof_file.file, buffer)
             
-        proof_link = f"http://localhost:8000/static/reschedule_proofs/{filename}"
+        base_url = str(request.base_url).rstrip("/")
+        proof_link = f"{base_url}/static/reschedule_proofs/{filename}"
         
     try:
         preferred_time_dt = datetime.fromisoformat(preferred_time.replace("Z", "+00:00"))

@@ -306,7 +306,11 @@ def forgot_password(req: ForgotPasswordRequest, request: Request):
         "purpose": "password_reset"
     })
     
-    frontend_url = request.headers.get("origin") or "http://localhost:5173"
+    frontend_url = request.headers.get("origin")
+    if not frontend_url:
+        import os
+        frontend_url = os.getenv("FRONTEND_URL", "https://evalis-nine.vercel.app").rstrip("/")
+    
     reset_link = f"{frontend_url}/reset-password?token={reset_token}"
     
     # Send email
