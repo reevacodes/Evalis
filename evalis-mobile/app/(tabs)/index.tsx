@@ -179,6 +179,7 @@ export default function DashboardScreen() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <View style={{ flex: 1, paddingRight: 10 }}>
+                    <Text style={[styles.greeting, { fontSize: 24, fontWeight: '900', color: theme.primary, marginBottom: 8 }]}>Evalis.</Text>
                     <Text style={styles.greeting}>{isNewUser ? 'Welcome,' : 'Welcome back,'}</Text>
                     <Text style={styles.name} numberOfLines={1}>{user?.name?.split(' ')[0] || 'Student'} 👋</Text>
                     <Text style={styles.subtext}>Track your performance and upcoming exams.</Text>
