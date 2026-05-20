@@ -69,8 +69,8 @@ export default function ExamPage({ isPractice = false }) {
     lastTick: Date.now()
   });
 
-  const warningCountRef = useRef(0);
-  const cvWarningCountRef = useRef(0);
+  const warningCountRef = useRef(parseInt(localStorage.getItem(`exam_${examId}_warnings`) || "0", 10));
+  const cvWarningCountRef = useRef(parseInt(localStorage.getItem(`exam_${examId}_cv_warnings`) || "0", 10));
   const consecutiveMissingFrames = useRef(0);
   const consecutiveMultipleFrames = useRef(0);
   const aiIntervalRef = useRef(null);
@@ -208,6 +208,7 @@ export default function ExamPage({ isPractice = false }) {
       // If the page goes out of view and the student hasn't legally submitted yet
       if (document.hidden && !submittedRef.current) {
         warningCountRef.current += 1;
+        localStorage.setItem(`exam_${examId}_warnings`, warningCountRef.current);
         const violations = warningCountRef.current;
 
         if (violations === 1) {
@@ -310,6 +311,7 @@ export default function ExamPage({ isPractice = false }) {
 
              if (violationReason) {
                  cvWarningCountRef.current += 1;
+                 localStorage.setItem(`exam_${examId}_cv_warnings`, cvWarningCountRef.current);
                  const cvViolations = cvWarningCountRef.current;
                  
                  // Reset counters after a strike
@@ -414,6 +416,8 @@ export default function ExamPage({ isPractice = false }) {
           setShowSuccessModal(true);
           localStorage.removeItem(storageKey);
           localStorage.removeItem(`exam_${examId}_end_time`);
+          localStorage.removeItem(`exam_${examId}_warnings`);
+          localStorage.removeItem(`exam_${examId}_cv_warnings`);
           
           setTimeout(() => {
               navigate(`/student/practice-result/${examId}`, { state: res.data });
@@ -435,6 +439,8 @@ export default function ExamPage({ isPractice = false }) {
           setShowSuccessModal(true);
           localStorage.removeItem(storageKey);
           localStorage.removeItem(`exam_${examId}_end_time`);
+          localStorage.removeItem(`exam_${examId}_warnings`);
+          localStorage.removeItem(`exam_${examId}_cv_warnings`);
 
           setTimeout(() => {
             navigate(`/student/results/${examId}`);
