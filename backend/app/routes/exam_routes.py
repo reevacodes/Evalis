@@ -508,7 +508,8 @@ def get_all_exams_api(user=Depends(get_current_user)):
             )
             
             my_subs = list(exam_submission_collection.find({"student_id": user.get("sub")}))
-            my_sub_exam_ids = [str(s.get("exam_id")) for s in my_subs]
+            my_subs_map = {str(s.get("exam_id")): s for s in my_subs}
+            my_sub_exam_ids = list(my_subs_map.keys())
 
             my_reschedules = list(reschedule_collection.find({"student_id": user.get("sub")}))
             my_reschedules_map = {str(r.get("exam_id")): r.get("status") for r in my_reschedules}
@@ -521,7 +522,11 @@ def get_all_exams_api(user=Depends(get_current_user)):
             
             # Apply student-specific overrides (Reschedules)
             if role == "student":
-                exam["has_submitted"] = exam["_id"] in my_sub_exam_ids
+                sub = my_subs_map.get(exam["_id"]) if 'my_subs_map' in locals() else None
+                exam["has_submitted"] = bool(sub)
+                if sub:
+                    exam["is_suspended"] = sub.get("is_suspended", False)
+                
                 exam["reschedule_status"] = my_reschedules_map.get(exam["_id"], None)
                 
                 overrides = exam.get("overrides", [])

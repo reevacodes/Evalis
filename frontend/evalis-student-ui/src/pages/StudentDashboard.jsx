@@ -538,20 +538,41 @@ export default function StudentDashboard() {
                                       <h4 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{exam.exam_name}</h4>
                                       <p className="text-blue-500 font-medium text-xs mt-1">{exam.subject_code} • Sem {exam.semester}</p>
                                     </div>
-                                    <span className="px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                                      Completed
+                                    <span className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${exam.is_suspended ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
+                                      {exam.is_suspended ? "Suspended" : "Completed"}
                                     </span>
                                   </div>
                                   <p className="text-xs text-slate-500 font-medium mb-4 flex items-center gap-2">
                                     <Calendar className="w-3 h-3" /> {exam.start_time ? formatDateOnly(exam.start_time) : "TBD"}
                                   </p>
-                                  <div className="mt-auto pt-4 border-t border-gray-200 dark:border-slate-800/50">
-                                    <button 
-                                      onClick={() => navigate(`/student/results/${exam._id}`)}
-                                      className="w-full py-2.5 rounded-xl font-bold bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:bg-blue-600/20 dark:text-blue-400 dark:hover:bg-blue-600/30 transition flex items-center justify-center gap-2 text-sm"
-                                    >
-                                      <BarChart2 className="w-4 h-4" /> View Analytics
-                                    </button>
+                                  <div className="mt-auto pt-4 border-t border-gray-200 dark:border-slate-800/50 flex flex-col gap-2">
+                                    {exam.is_suspended ? (
+                                      <>
+                                        {exam.reschedule_status === "pending" ? (
+                                            <button disabled className="w-full py-2.5 rounded-xl font-bold bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 cursor-not-allowed text-sm">
+                                              Reschedule Requested
+                                            </button>
+                                        ) : exam.reschedule_status === "approved" ? (
+                                            <button disabled className="w-full py-2.5 rounded-xl font-bold bg-green-500/10 text-green-500 border border-green-500/30 cursor-not-allowed text-sm">
+                                              Reschedule Approved
+                                            </button>
+                                        ) : (
+                                            <button 
+                                              onClick={() => openRescheduleModal(exam._id)}
+                                              className="w-full py-2.5 rounded-xl font-bold bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:bg-red-600/20 dark:text-red-400 dark:hover:bg-red-600/30 transition border border-red-500/30 flex items-center justify-center gap-2 text-sm"
+                                            >
+                                              Request Reschedule
+                                            </button>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <button 
+                                        onClick={() => navigate(`/student/results/${exam._id}`)}
+                                        className="w-full py-2.5 rounded-xl font-bold bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:bg-blue-600/20 dark:text-blue-400 dark:hover:bg-blue-600/30 transition flex items-center justify-center gap-2 text-sm"
+                                      >
+                                        <BarChart2 className="w-4 h-4" /> View Analytics
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
