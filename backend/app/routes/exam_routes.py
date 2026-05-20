@@ -1728,6 +1728,12 @@ def update_reschedule_request(
                 }
             }}
         )
+        
+        # 🔥 CRITICAL: Remove the previous suspended submission so the student isn't blocked!
+        exam_submission_collection.delete_one({
+            "exam_id": req["exam_id"],
+            "student_id": req["student_id"]
+        })
     
     # Send push notification
     if status == "rejected":
