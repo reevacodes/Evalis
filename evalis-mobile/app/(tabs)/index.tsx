@@ -177,20 +177,19 @@ export default function DashboardScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={{ flex: 1, paddingRight: 10 }}>
-                    <Text style={[styles.greeting, { fontSize: 24, fontWeight: '900', color: theme.primary, marginBottom: 8 }]}>Evalis.</Text>
+            <View style={[styles.header, { paddingRight: 60 }]}>
+                <View style={{ flex: 1 }}>
+                    <View style={{ width: 40, height: 40, backgroundColor: theme.primary, borderRadius: 10, justifyContent: 'center', alignItems: 'center', mb: 8, marginBottom: 10 }}>
+                       <Text style={{ fontSize: 24, fontWeight: '900', color: 'white' }}>E</Text>
+                    </View>
                     <Text style={styles.greeting}>{isNewUser ? 'Welcome,' : 'Welcome back,'}</Text>
                     <Text style={styles.name} numberOfLines={1}>{user?.name?.split(' ')[0] || 'Student'} 👋</Text>
                     <Text style={styles.subtext}>Track your performance and upcoming exams.</Text>
                 </View>
-                <View style={styles.headerRight}>
+                <View style={[styles.headerRight, { position: 'absolute', top: 50, right: 80 }]}>
                     <TouchableOpacity onPress={() => router.push('/notifications')} style={styles.bellBtn}>
                         <Ionicons name="notifications-outline" size={24} color={theme.icon} />
                         {unreadCount > 0 && <View style={styles.unreadBadge} />}
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-                        <Text style={styles.logoutText}>Log Out</Text>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -88,7 +88,7 @@ export default function TabLayout() {
         onPress={toggleDrawer}
         activeOpacity={0.8}
       >
-        <Ionicons name="menu" size={28} color={theme.text} />
+        <Ionicons name="menu" size={24} color={theme.text} />
       </TouchableOpacity>
 
       {/* Custom Drawer Overlay */}
@@ -141,20 +141,21 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   burgerBtn: {
     position: 'absolute',
-    bottom: 30,
+    top: 50,
     right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)'
+    borderColor: 'rgba(255,255,255,0.1)',
+    zIndex: 999
   },
   modalOverlay: {
     flex: 1,
