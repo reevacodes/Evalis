@@ -244,7 +244,8 @@ Regards,
 Evalis Assessment Platform"""
     return _send_email(to_email, subject, body)
 
-def send_exam_suspended_email(to_email: str, exam_name: str, reason: str):
+def send_exam_suspended_email(to_email: str, exam_name: str, reason: str, suspension_time: str):
+    formatted_time = format_to_ist(suspension_time)
     subject = f"URGENT: Exam Suspended - {exam_name}"
     body = f"""EXAM SUSPENDED
 
@@ -252,22 +253,31 @@ Hello,
 
 Your examination '{exam_name}' has been SUSPENDED due to strict proctoring violations.
 
-Reason for Suspension: {reason}
+Suspension Details:
+- Time of Suspension: {formatted_time}
+- Reason for Suspension: {reason}
 
-If you believe this was an error, or if you had technical difficulties, please log in to the Evalis application and submit a Reschedule Request for your instructor to review.
+If you believe this was an error, or if you had technical difficulties, please log in to the Evalis application and submit a Reschedule Request from your dashboard for your instructor to review.
 
 Regards,
 Evalis Assessment Platform"""
     return _send_email(to_email, subject, body)
 
-def send_exam_suspended_notification_to_admin(admin_emails: list, teacher_email: str, exam_name: str, student_email: str, reason: str):
+def send_exam_suspended_notification_to_admin(admin_emails: list, teacher_email: str, exam_name: str, student_email: str, student_name: str, roll_no: str, reason: str, suspension_time: str):
+    formatted_time = format_to_ist(suspension_time)
     subject = f"Alert: Exam Suspended for Student - {exam_name}"
     body = f"""Hello,
 
 This is an automated alert to notify you that the examination '{exam_name}' has been SUSPENDED for a student due to proctoring violations.
 
-Student: {student_email}
-Reason for Suspension: {reason}
+Student Details:
+- Name: {student_name or 'N/A'}
+- Email: {student_email}
+- Roll Number: {roll_no or 'N/A'}
+
+Suspension Details:
+- Reason for Suspension: {reason}
+- Time of Suspension: {formatted_time}
 
 The student has been instructed to submit a reschedule request if necessary.
 

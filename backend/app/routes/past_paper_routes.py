@@ -233,15 +233,17 @@ def submit_practice_attempt(
         
         practice_id_str = str(practice_doc.get("_id"))
         
-        # 🔥 FIRE MOCK EXAM EVALUATOR
+        # 🔥 FIRE MOCK EXAM EVALUATOR (Synchronously for instant feedback)
         if len(payload.coding_answers) > 0:
-            background_tasks.add_task(async_evaluate_practice_submission, practice_id_str)
-
-        # 📨 Send Instant Mock Analytics Email
+            from app.services.evaluation_service import async_evaluate_practice_submission
+            async_evaluate_practice_submission(practice_id_str)
+            updated_practice = practice_attempts_collection.find_one({"_id": ObjectId(practice_id_str)})
+            if updated_practice and updated_practice.get("coding_results"):
+                coding_results = updated_practice.get("coding_results")
         try:
-            from app.database import users_collection
+            from app.database import user_collection
             from app.services.email_service import send_analytics_report_email
-            student = users_collection.find_one({"email": user.get("sub")})
+            student = user_collection.find_one({"email": user.get("sub")})
             student_name = student.get("name", "Student") if student else "Student"
             send_analytics_report_email(
                 to_email=user.get("sub"),

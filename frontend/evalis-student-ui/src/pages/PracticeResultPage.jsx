@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, BarChart2, Clock, RotateCcw, Target, AlertTriangle, CheckCircle2, Zap, TrendingUp, TrendingDown, Flame, Code, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, BarChart2, Clock, RotateCcw, Target, AlertTriangle, CheckCircle2, Zap, TrendingUp, TrendingDown, Flame, Code, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { getPracticeHistory } from "../services/api";
 
@@ -352,13 +352,13 @@ export default function PracticeResultPage() {
                    )}
 
                    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-800 space-y-3">
-                      <button onClick={() => navigate(`/student/practice/${examId}`)} className="w-full py-4 bg-white hover:bg-slate-200 text-black rounded-xl font-black transition-all flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                      <button onClick={() => navigate(`/student/practice/${examId}`)} className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black transition-all flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.2)]">
                          Retry This Mock Test <RotateCcw className="w-4 h-4" />
                       </button>
-                      <button onClick={() => navigate("/student")} className="w-full py-3 bg-purple-600/10 hover:bg-purple-600/20 text-purple-400 rounded-xl font-bold transition-all flex justify-center items-center gap-2 border border-purple-500/30">
+                      <button onClick={() => navigate("/student")} className="w-full py-3 bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 dark:text-purple-400 rounded-xl font-bold transition-all flex justify-center items-center gap-2 border border-purple-500/30">
                          Create Targeted Practice (Dashboard)
                       </button>
-                      <button onClick={() => navigate("/student")} className="w-full py-3 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-xl font-bold transition-all flex justify-center items-center gap-2 border border-gray-300 dark:border-slate-700/50">
+                      <button onClick={() => navigate("/student")} className="w-full py-3 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-xl font-bold transition-all flex justify-center items-center gap-2 border border-gray-300 dark:border-slate-700/50">
                          Return to Dashboard
                       </button>
                    </div>
@@ -463,7 +463,45 @@ export default function PracticeResultPage() {
                              </div>
                           </div>
                        ) : (
-                          <pre>{JSON.stringify(coding_results, null, 2)}</pre>
+                          <div className="space-y-6">
+                            {Object.entries(coding_results).map(([qid, data], idx) => (
+                               <div key={qid} className="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+                                  <div className="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
+                                     <h3 className="font-bold text-lg text-white">Question {idx + 1}</h3>
+                                     <span className={`px-3 py-1 text-xs font-bold rounded-full ${data.status === 'AC' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
+                                        {data.passed} / {data.total_cases} Passed ({data.status})
+                                     </span>
+                                  </div>
+                                  
+                                  {data.ai_feedback && (
+                                     <div className="mb-4 mt-2">
+                                        <div className="flex items-center gap-2 mb-2 text-indigo-400 font-bold">
+                                           <Sparkles className="w-4 h-4" /> AI Mentor Review
+                                        </div>
+                                        <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-3 text-indigo-200 text-sm whitespace-pre-wrap leading-relaxed">
+                                           {data.ai_feedback}
+                                        </div>
+                                     </div>
+                                  )}
+
+                                  {data.details && data.details.length > 0 && (
+                                     <div className="mt-4">
+                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Test Case Traces</p>
+                                        <div className="space-y-2">
+                                           {data.details.map((t, i) => (
+                                              <div key={i} className="text-xs flex gap-2 items-start">
+                                                 <span className={t.passed ? 'text-emerald-400' : 'text-rose-400'}>
+                                                    {t.passed ? '✔' : '✘'}
+                                                 </span>
+                                                 <span className="text-gray-300">Input: {t.input} | Expected: {t.expected} | Output: {t.actual_output}</span>
+                                              </div>
+                                           ))}
+                                        </div>
+                                     </div>
+                                  )}
+                               </div>
+                            ))}
+                          </div>
                        )}
                     </div>
                  </div>

@@ -881,12 +881,20 @@ def submit_exam_api(
         )
 
         if payload.is_suspended:
+            suspension_time_str = datetime.now(timezone.utc).isoformat()
+            
+            # Fetch full student details
+            student_user = user_collection.find_one({"_id": ObjectId(user.get("sub"))})
+            student_name = student_user.get("name", "") if student_user else ""
+            student_roll_no = student_user.get("roll_no", "") if student_user else ""
+
             # 🚨 Notify Student
             background_tasks.add_task(
                 send_exam_suspended_email,
                 to_email=user.get("email"),
                 exam_name=exam.get("exam_name", "Assessment"),
-                reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded"
+                reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded",
+                suspension_time=suspension_time_str
             )
             
             # 🚨 Notify Admins & Teacher
@@ -900,7 +908,10 @@ def submit_exam_api(
                 teacher_email=teacher_email,
                 exam_name=exam.get("exam_name", "Assessment"),
                 student_email=user.get("email"),
-                reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded"
+                student_name=student_name,
+                roll_no=student_roll_no,
+                reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded",
+                suspension_time=suspension_time_str
             )
         
         submission_id = doc_info.upserted_id or (existing.get("_id") if existing else None)
