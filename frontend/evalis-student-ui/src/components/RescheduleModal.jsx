@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, UploadCloud, CalendarDays, Clock, FileText, AlertCircle } from "lucide-react";
 
-export default function RescheduleModal({ isOpen, onClose, onSubmit }) {
+export default function RescheduleModal({ isOpen, onClose, onSubmit, isSuspended = false }) {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [reason, setReason] = useState("");
-  const [category, setCategory] = useState("Medical Emergency");
+  const [category, setCategory] = useState(isSuspended ? "Proctoring Error" : "Medical Emergency");
   const [proofFile, setProofFile] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCategory(isSuspended ? "Proctoring Error" : "Medical Emergency");
+    }
+  }, [isOpen, isSuspended]);
 
   if (!isOpen) return null;
 
@@ -83,7 +89,10 @@ export default function RescheduleModal({ isOpen, onClose, onSubmit }) {
                     Reschedule Exam
                   </h2>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    Strict on-campus lab rescheduling policy enforced.
+                    {isSuspended 
+                      ? "Submit an appeal to review your exam suspension."
+                      : "Strict on-campus lab rescheduling policy enforced. Must be submitted at least 5 days prior."
+                    }
                   </p>
                 </div>
                 <button
@@ -108,9 +117,19 @@ export default function RescheduleModal({ isOpen, onClose, onSubmit }) {
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full bg-white dark:bg-slate-800/50 border border-gray-300 dark:border-slate-700 text-slate-900 dark:text-white p-3 rounded-xl focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 appearance-none transition-all"
                 >
-                  <option value="Medical Emergency">Medical Emergency (Requires Doctor Note)</option>
-                  <option value="University Representation">University Representation (Requires Dean Approval)</option>
-                  <option value="Bereavement">Bereavement/Family Emergency (Requires Documentation)</option>
+                  {isSuspended ? (
+                    <>
+                      <option value="Proctoring Error">Proctoring Error (False Positive)</option>
+                      <option value="Technical Glitch">Technical Glitch / System Crash</option>
+                      <option value="Appeal">Formal Appeal against Suspension</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="Medical Emergency">Medical Emergency (Requires Doctor Note)</option>
+                      <option value="University Representation">University Representation (Requires Dean Approval)</option>
+                      <option value="Bereavement">Bereavement/Family Emergency (Requires Documentation)</option>
+                    </>
+                  )}
                 </select>
               </div>
 

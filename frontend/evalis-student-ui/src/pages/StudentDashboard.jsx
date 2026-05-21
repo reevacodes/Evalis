@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Folder, FolderOpen, BookOpen, Clock, ChevronRight, ChevronDown, CheckCircle, BarChart2, Calendar, Target, PlayCircle, Trophy, Zap, Sparkles, Activity } from "lucide-react";
 import API, { getPastPapers, fetchCurriculum, getPracticeHistory } from "../services/api";
@@ -24,8 +24,9 @@ export default function StudentDashboard() {
   const toggleNode = (nodeId) => setExpandedNodes((prev) => ({ ...prev, [nodeId]: !prev[nodeId] }));
 
   const [selectedExam, setSelectedExam] = useState(null); // 🔥 for modal
-  const [rescheduleData, setRescheduleData] = useState({ isOpen: false, examId: null });
+  const [rescheduleData, setRescheduleData] = useState({ isOpen: false, examId: null, isSuspended: false });
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const stats = {
     total: exams.length,
@@ -100,6 +101,18 @@ export default function StudentDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const rqReschedule = searchParams.get('requestReschedule');
+    if (rqReschedule && exams.length > 0) {
+      const exam = exams.find(e => e._id === rqReschedule);
+      if (exam && !rescheduleData.isOpen) {
+        setRescheduleData({ isOpen: true, examId: rqReschedule, isSuspended: exam.is_suspended || false });
+        // Clean URL to prevent reopening on reload
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, exams, rescheduleData.isOpen, setSearchParams]);
+
   // =========================
   // START FLOW
   // =========================
@@ -112,8 +125,8 @@ export default function StudentDashboard() {
     navigate(`/student/exam/${selectedExam._id}`);
   };
 
-  const openRescheduleModal = (examId) => {
-    setRescheduleData({ isOpen: true, examId });
+  const openRescheduleModal = (examId, isSuspended = false) => {
+    setRescheduleData({ isOpen: true, examId, isSuspended });
   };
 
   const handleRescheduleSubmit = async ({ preferred_time, category, reason, proof_file }) => {
@@ -130,7 +143,7 @@ export default function StudentDashboard() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("Reschedule request submitted successfully and is pending admin approval.");
-      setRescheduleData({ isOpen: false, examId: null });
+      setRescheduleData({ isOpen: false, examId: null, isSuspended: false });
     } catch (err) {
       alert(err.response?.data?.detail || "Failed to submit request.");
     }
@@ -380,7 +393,7 @@ export default function StudentDashboard() {
                           )}
                           {(exam.reschedule_status === "rejected" || !exam.reschedule_status) && !exam.is_rescheduled && (
                             <button
-                              onClick={() => openRescheduleModal(exam._id)}
+                              onClick={() => openRescheduleModal(exam._id, exam.is_suspended)}
                               className="px-4 py-3 rounded-xl font-semibold bg-orange-600/20 text-orange-400 hover:bg-orange-600/40 border border-orange-500/30 transition-all"
                               title="Request Reschedule"
                             >
@@ -558,7 +571,7 @@ export default function StudentDashboard() {
                                             </button>
                                         ) : (
                                             <button 
-                                              onClick={() => openRescheduleModal(exam._id)}
+                                              onClick={() => openRescheduleModal(exam._id, exam.is_suspended)}
                                               className="w-full py-2.5 rounded-xl font-bold bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:bg-red-600/20 dark:text-red-400 dark:hover:bg-red-600/30 transition border border-red-500/30 flex items-center justify-center gap-2 text-sm"
                                             >
                                               Request Reschedule
@@ -651,8 +664,9 @@ export default function StudentDashboard() {
       {/* 🔥 RESCHEDULE MODAL */}
       <RescheduleModal 
         isOpen={rescheduleData.isOpen}
-        onClose={() => setRescheduleData({ isOpen: false, examId: null })}
+        onClose={() => setRescheduleData({ isOpen: false, examId: null, isSuspended: false })}
         onSubmit={handleRescheduleSubmit}
+        isSuspended={rescheduleData.isSuspended}
       />
 
       {selectedExam && (
