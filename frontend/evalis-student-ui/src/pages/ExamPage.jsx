@@ -579,13 +579,13 @@ export default function ExamPage({ isPractice = false }) {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <button 
-                    onClick={() => navigate('/student/dashboard')}
+                    onClick={() => navigate('/student')}
                     className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition-colors"
                 >
                     Return to Dashboard
                 </button>
                 <button 
-                    onClick={() => navigate(`/student/dashboard?requestReschedule=${examId}`)}
+                    onClick={() => navigate(`/student?requestReschedule=${examId}`)}
                     className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/20"
                 >
                     Request Reschedule
