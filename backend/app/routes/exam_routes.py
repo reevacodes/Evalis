@@ -1568,7 +1568,17 @@ def request_reschedule(
         raise HTTPException(status_code=404, detail="Exam not found")
         
     start_time = exam.get("start_time")
-    if start_time:
+    
+    # Check if student is suspended
+    is_suspended = False
+    submission = exam_submission_collection.find_one({
+        "student_id": user["sub"],
+        "exam_id": exam_id
+    })
+    if submission and submission.get("is_suspended", False):
+        is_suspended = True
+        
+    if start_time and not is_suspended:
         if isinstance(start_time, str):
             start_time = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
         # Ensure start_time is naive for comparison, assuming local time
