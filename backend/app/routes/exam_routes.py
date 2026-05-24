@@ -445,8 +445,8 @@ def validate_college_hours(dt: datetime):
     dt_ist = dt.astimezone(timezone(timedelta(hours=5, minutes=30)))
     
     # 0 = Monday, 4 = Friday, 5 = Saturday, 6 = Sunday
-    if dt_ist.weekday() > 4:
-        raise HTTPException(status_code=400, detail="Date error: Please select a date between Monday and Friday.")
+    # if dt_ist.weekday() > 4:
+    #     raise HTTPException(status_code=400, detail="Date error: Please select a date between Monday and Friday.")
         
     # Check if time is between 09:30 and 13:00 (1 PM)
     # time_minutes = dt_ist.hour * 60 + dt_ist.minute
