@@ -42,12 +42,13 @@ import AlertModal from "./components/AlertModal";
 function AppContent() {
   const location = useLocation();
   const isLanding = location.pathname === "/";
+  const isExamPage = location.pathname.includes("/student/exam/") || location.pathname.includes("/student/practice/");
   const isAdmin = location.pathname.startsWith("/admin");
   const isTeacher = location.pathname.startsWith("/teacher");
 
   return (
     <>
-      {!isLanding && <Navbar />}
+      {!isLanding && !isExamPage && <Navbar />}
       <Routes>
         {/* PUBLIC */}
         <Route path="/" element={<Landing />} />

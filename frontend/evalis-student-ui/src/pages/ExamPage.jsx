@@ -236,6 +236,32 @@ export default function ExamPage({ isPractice = false }) {
     };
   }, [timeStatus, isPractice, isProctorSetupComplete]);
 
+  // ================= PROCTORING: BLOCK BACK NAVIGATION & RELOAD =================
+  useEffect(() => {
+    if (timeStatus !== "active" || !isProctorSetupComplete) return;
+
+    window.history.pushState(null, null, window.location.href);
+
+    const handlePopState = () => {
+      window.history.pushState(null, null, window.location.href);
+      alert("⚠️ PROCTORING ALERT: Back navigation is disabled during the exam! Please complete and submit the exam to leave.");
+    };
+
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = "Are you sure you want to leave? Your exam progress is saved locally, but your timer will continue to run.";
+      return e.returnValue;
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [timeStatus, isProctorSetupComplete]);
+
   // ================= PROCTORING: AI COMPUTER VISION LOOP =================
   useEffect(() => {
     if (isPractice || timeStatus !== "active" || !isProctorSetupComplete || !mediaStream) return;
