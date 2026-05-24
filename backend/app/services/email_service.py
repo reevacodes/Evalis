@@ -244,9 +244,12 @@ Regards,
 Evalis Assessment Platform"""
     return _send_email(to_email, subject, body)
 
-def send_exam_suspended_email(to_email: str, exam_name: str, reason: str, suspension_time: str):
+def send_exam_suspended_email(to_email: str, exam_name: str, reason: str, suspension_time: str, exam_id: str):
     formatted_time = format_to_ist(suspension_time)
     subject = f"URGENT: Exam Suspended - {exam_name}"
+    frontend_url = os.getenv("FRONTEND_URL", "https://evalis-nine.vercel.app/").rstrip("/")
+    reschedule_link = f"{frontend_url}/student?requestReschedule={exam_id}"
+    
     body = f"""EXAM SUSPENDED
 
 Hello,
@@ -257,15 +260,21 @@ Suspension Details:
 - Time of Suspension: {formatted_time}
 - Reason for Suspension: {reason}
 
-If you believe this was an error, or if you had technical difficulties, please log in to the Evalis application and submit a Reschedule Request from your dashboard for your instructor to review.
+If you believe this was an error, or if you had technical difficulties, please click the link below to submit a Reschedule Request directly from your dashboard for your instructor to review:
+
+{reschedule_link}
 
 Regards,
 Evalis Assessment Platform"""
     return _send_email(to_email, subject, body)
 
-def send_exam_suspended_notification_to_admin(admin_emails: list, teacher_email: str, exam_name: str, student_email: str, student_name: str, roll_no: str, reason: str, suspension_time: str):
+def send_exam_suspended_notification_to_admin(admin_emails: list, teacher_email: str, exam_name: str, student_email: str, student_name: str, roll_no: str, reason: str, suspension_time: str, exam_id: str, submission_id: str):
     formatted_time = format_to_ist(suspension_time)
     subject = f"Alert: Exam Suspended for Student - {exam_name}"
+    frontend_url = os.getenv("FRONTEND_URL", "https://evalis-nine.vercel.app/").rstrip("/")
+    admin_review_link = f"{frontend_url}/admin/exam/{exam_id}/submissions/{submission_id}"
+    teacher_review_link = f"{frontend_url}/teacher/exam/{exam_id}/submissions/{submission_id}"
+    
     body = f"""Hello,
 
 This is an automated alert to notify you that the examination '{exam_name}' has been SUSPENDED for a student due to proctoring violations.
@@ -279,7 +288,13 @@ Suspension Details:
 - Reason for Suspension: {reason}
 - Time of Suspension: {formatted_time}
 
-The student has been instructed to submit a reschedule request if necessary.
+To review the student's submission, proctoring logs, and violation flags, please click the appropriate link below:
+
+For Admins:
+{admin_review_link}
+
+For Instructors:
+{teacher_review_link}
 
 Regards,
 Evalis Assessment Platform"""
@@ -293,6 +308,31 @@ Evalis Assessment Platform"""
         _send_email(teacher_email, subject, body)
     
     return True
+
+def send_exam_submitted_email(to_email: str, student_name: str, exam_name: str, submission_time: str):
+    formatted_time = format_to_ist(submission_time)
+    subject = f"Evalis - Exam Submitted Successfully: {exam_name}"
+    frontend_url = os.getenv("FRONTEND_URL", "https://evalis-nine.vercel.app/").rstrip("/")
+    
+    body = f"""Hello {student_name},
+
+Congratulations! Your examination '{exam_name}' has been successfully submitted and secured.
+
+Submission Details:
+- Exam Name: {exam_name}
+- Submission Time: {formatted_time}
+
+What happens next?
+Your coding solutions are currently being processed in our secure sandbox and reviewed. Once the instructor has finished grading and publishes the results, you will receive an email and notification with your final score and detailed performance analytics.
+
+In the meantime, you can relax and check your student dashboard for updates:
+{frontend_url}/student
+
+Thank you for using Evalis!
+
+Regards,
+Evalis Assessment Platform"""
+    return _send_email(to_email, subject, body)
 
 def send_mock_scheduled_email(to_email: str, exam_name: str, scheduled_time: str, is_reminder: bool = False):
     formatted_time = format_to_ist(scheduled_time)

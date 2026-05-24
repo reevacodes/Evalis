@@ -26,7 +26,7 @@ from app.services.evaluation_service import async_evaluate_submission, async_gen
 from fastapi import Depends, BackgroundTasks
 from app.utils.auth_dependency import get_current_user, require_role
 from app.routes.notification_routes import send_expo_push
-from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email, send_exam_timing_updated_email, send_analytics_report_email, send_exam_suspended_email, send_exam_suspended_notification_to_admin
+from app.services.email_service import send_exam_publish_email, send_reschedule_status_email, send_results_published_email, send_mock_scheduled_email, send_exam_timing_updated_email, send_analytics_report_email, send_exam_suspended_email, send_exam_suspended_notification_to_admin, send_exam_submitted_email
 from app.services.activity_service import log_activity
 
 router = APIRouter()
@@ -917,6 +917,15 @@ def submit_exam_api(
             upsert=True
         )
 
+        submission_id = doc_info.upserted_id or (existing.get("_id") if existing else None)
+        
+        # If there's an insert instead of upsert fallback:
+        if not submission_id:
+             new_doc = exam_submission_collection.find_one({"exam_id": exam_id, "student_id": user.get("sub")})
+             submission_id = new_doc["_id"]
+        
+        submission_id_str = str(submission_id)
+
         if payload.is_suspended:
             suspension_time_str = datetime.now(timezone.utc).isoformat()
             
@@ -925,16 +934,17 @@ def submit_exam_api(
             student_name = student_user.get("name", "") if student_user else ""
             student_roll_no = student_user.get("roll_no", "") if student_user else ""
 
-            # 🚨 Notify Student
+            # 🚨 Notify Student (includes reschedule link)
             background_tasks.add_task(
                 send_exam_suspended_email,
                 to_email=user.get("email"),
                 exam_name=exam.get("exam_name", "Assessment"),
                 reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded",
-                suspension_time=suspension_time_str
+                suspension_time=suspension_time_str,
+                exam_id=exam_id
             )
             
-            # 🚨 Notify Admins & Teacher
+            # 🚨 Notify Admins & Teacher (includes direct review links)
             admin_cursor = user_collection.find({"role": "admin"})
             admin_emails = [admin.get("email") for admin in admin_cursor if admin.get("email")]
             teacher_email = exam.get("instructor_email")
@@ -948,25 +958,30 @@ def submit_exam_api(
                 student_name=student_name,
                 roll_no=student_roll_no,
                 reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded",
-                suspension_time=suspension_time_str
+                suspension_time=suspension_time_str,
+                exam_id=exam_id,
+                submission_id=submission_id_str
             )
-        
-        submission_id = doc_info.upserted_id or (existing.get("_id") if existing else None)
-        
-        # If there's an insert instead of upsert fallback:
-        if not submission_id:
-             new_doc = exam_submission_collection.find_one({"exam_id": exam_id, "student_id": user.get("sub")})
-             submission_id = new_doc["_id"]
-        
-        submission_id_str = str(submission_id)
-
-        # 🚀 FIRE BACKGROUND WORKERS
-        if not payload.is_suspended:
+        else:
+            # 🚀 FIRE BACKGROUND WORKERS (Normal Submission)
             if len(payload.coding_answers) > 0:
                 background_tasks.add_task(async_evaluate_submission, submission_id_str)
             
             # Fire AI Study Plan Generator
             background_tasks.add_task(async_generate_ai_study_plan, submission_id_str)
+            
+            # Fetch student name
+            student_user = user_collection.find_one({"_id": ObjectId(user.get("sub"))})
+            student_name = student_user.get("name", "") if student_user else "Student"
+            
+            # Fire Exam Submitted Confirmation Email
+            background_tasks.add_task(
+                send_exam_submitted_email,
+                to_email=user.get("email"),
+                student_name=student_name,
+                exam_name=exam.get("exam_name", "Assessment"),
+                submission_time=datetime.now(timezone.utc).isoformat()
+            )
 
         return {"message": "Exam submitted successfully", "mcq_score": mcq_score}
 
