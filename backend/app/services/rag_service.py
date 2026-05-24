@@ -37,7 +37,7 @@ def get_embeddings(texts: list) -> list:
     try:
         for t in texts:
             result = genai.embed_content(
-                model="models/embedding-001",
+                model="models/gemini-embedding-001",
                 content=t,
                 task_type="retrieval_document"
             )
@@ -49,7 +49,7 @@ def get_embeddings(texts: list) -> list:
 def get_query_embedding(query: str) -> list:
     try:
         result = genai.embed_content(
-            model="models/embedding-001",
+            model="models/gemini-embedding-001",
             content=query,
             task_type="retrieval_query"
         )
