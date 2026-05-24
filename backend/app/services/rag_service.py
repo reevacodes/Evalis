@@ -93,7 +93,7 @@ def generate_rag_questions(subject_name: str, subject_code: str, unit: str, cont
     
     prompt = f"""
     You are an expert Computer Science professor. Generate practice questions for a university exam based EXCLUSIVELY on the provided lecture context.
-    Do NOT use outside knowledge. If the context doesn't contain enough info, generate the best questions you can from the available text.
+    Do NOT use outside knowledge. Focus EXCLUSIVELY on the concepts, terms, and code examples present in the provided LECTURE CONTEXT, even if they do not match the typical syllabus of the specified Subject or Chapter/Unit Number. The provided context takes absolute precedence.
 
     Subject: {subject_name} ({subject_code})
     Chapter/Unit Number: {unit}
