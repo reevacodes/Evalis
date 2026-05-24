@@ -28,7 +28,14 @@ export default function DashboardScreen() {
     const [rescheduleTime, setRescheduleTime] = useState('');
     const [rescheduleCategory, setRescheduleCategory] = useState('Medical Emergency');
     const [rescheduleProofFile, setRescheduleProofFile] = useState<any>(null);
+    const [rescheduleIsSuspended, setRescheduleIsSuspended] = useState(false);
     const [submittingReschedule, setSubmittingReschedule] = useState(false);
+
+    useEffect(() => {
+        if (rescheduleModalVisible) {
+            setRescheduleCategory(rescheduleIsSuspended ? 'Proctoring Error' : 'Medical Emergency');
+        }
+    }, [rescheduleModalVisible, rescheduleIsSuspended]);
 
     const pickDocument = async () => {
         let result = await DocumentPicker.getDocumentAsync({
@@ -148,6 +155,7 @@ export default function DashboardScreen() {
             
             Alert.alert("Request Sent", "Your instructor will review your reschedule request.");
             setRescheduleModalVisible(false);
+            setRescheduleIsSuspended(false);
             setRescheduleReason('');
             setRescheduleDate('');
             setRescheduleTime('');
@@ -157,7 +165,7 @@ export default function DashboardScreen() {
             console.error("Reschedule Failed", error);
             let errorMsg = error?.response?.data?.detail || error?.message || "Failed to submit reschedule request.";
             
-            if (errorMsg.includes("5 days") || errorMsg.includes("Date error")) {
+            if (!rescheduleIsSuspended && (errorMsg.includes("5 days") || errorMsg.includes("Date error"))) {
                 errorMsg = "Date out of bound! Reschedule requests must be made at least 5 days prior to the original exam start time, and your requested date must be a weekday (Monday-Friday).";
             }
             Alert.alert("Request Denied", errorMsg);
@@ -330,6 +338,7 @@ export default function DashboardScreen() {
                                             style={styles.rescheduleBtn}
                                             onPress={() => {
                                                 setActiveRescheduleId(exam._id);
+                                                setRescheduleIsSuspended(exam.is_suspended || false);
                                                 setRescheduleModalVisible(true);
                                             }}
                                         >
@@ -363,6 +372,7 @@ export default function DashboardScreen() {
                                             style={[styles.rescheduleBtn, { backgroundColor: theme.dangerSoft, borderColor: theme.danger }]}
                                             onPress={() => {
                                                 setActiveRescheduleId(exam._id);
+                                                setRescheduleIsSuspended(exam.is_suspended || false);
                                                 setRescheduleModalVisible(true);
                                             }}
                                         >
@@ -380,12 +390,19 @@ export default function DashboardScreen() {
                 animationType="slide"
                 transparent={true}
                 visible={rescheduleModalVisible}
-                onRequestClose={() => setRescheduleModalVisible(false)}
+                onRequestClose={() => {
+                    setRescheduleModalVisible(false);
+                    setRescheduleIsSuspended(false);
+                }}
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContainer}>
                         <Text style={styles.modalTitle}>Request Reschedule</Text>
-                        <Text style={styles.modalSubtitle}>Please provide a valid reason for missing the scheduled examination slot. Your instructor will review this.</Text>
+                        <Text style={styles.modalSubtitle}>
+                            {rescheduleIsSuspended
+                                ? "Submit an appeal to review your exam suspension."
+                                : "Strict on-campus lab rescheduling policy enforced. Must be submitted at least 5 days prior."}
+                        </Text>
                         
                         <View style={styles.modalGrid}>
                             <View style={{ flex: 1 }}>
@@ -393,12 +410,21 @@ export default function DashboardScreen() {
                                 <TouchableOpacity 
                                     style={[styles.modalInput, styles.modalCompactInput, {justifyContent: 'center'}]}
                                     onPress={() => {
-                                        Alert.alert("Select Category", "", [
-                                            {text: "Medical Emergency", onPress: () => setRescheduleCategory("Medical Emergency")},
-                                            {text: "University Rep.", onPress: () => setRescheduleCategory("University Representation")},
-                                            {text: "Bereavement", onPress: () => setRescheduleCategory("Bereavement")},
-                                            {text: "Cancel", style: "cancel"}
-                                        ])
+                                        if (rescheduleIsSuspended) {
+                                            Alert.alert("Select Category", "", [
+                                                {text: "Proctoring Error", onPress: () => setRescheduleCategory("Proctoring Error")},
+                                                {text: "Technical Glitch", onPress: () => setRescheduleCategory("Technical Glitch")},
+                                                {text: "Appeal", onPress: () => setRescheduleCategory("Appeal")},
+                                                {text: "Cancel", style: "cancel"}
+                                            ]);
+                                        } else {
+                                            Alert.alert("Select Category", "", [
+                                                {text: "Medical Emergency", onPress: () => setRescheduleCategory("Medical Emergency")},
+                                                {text: "University Rep.", onPress: () => setRescheduleCategory("University Representation")},
+                                                {text: "Bereavement", onPress: () => setRescheduleCategory("Bereavement")},
+                                                {text: "Cancel", style: "cancel"}
+                                            ]);
+                                        }
                                     }}
                                 >
                                     <Text style={{color: theme.text}}>{rescheduleCategory}</Text>
@@ -450,7 +476,10 @@ export default function DashboardScreen() {
                         />
 
                         <View style={styles.modalActionRow}>
-                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setRescheduleModalVisible(false)}>
+                            <TouchableOpacity style={styles.modalCancelBtn} onPress={() => {
+                                setRescheduleModalVisible(false);
+                                setRescheduleIsSuspended(false);
+                            }}>
                                 <Text style={styles.modalCancelText}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.modalSubmitBtn} onPress={submitRescheduleRequest} disabled={submittingReschedule}>
