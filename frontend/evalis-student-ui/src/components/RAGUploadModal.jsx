@@ -34,7 +34,7 @@ export default function RAGUploadModal({ isOpen, onClose }) {
       data.append("unit", formData.unit);
 
       // Using raw axios via API instance since it handles auth
-      const res = await API.post("/mock-questions/rag-generate", data, {
+      const res = await API.post("/questions/mock-questions/rag-generate", data, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       
