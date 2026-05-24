@@ -163,9 +163,9 @@ async def generate_rag_mock_questions(
     
     try:
         pdf_bytes = await file.read()
-        text = extract_text_from_pdf(pdf_bytes)
+        text = extract_text_from_pdf(pdf_bytes).strip()
         if not text:
-            raise HTTPException(status_code=400, detail="Could not extract text from PDF")
+            raise HTTPException(status_code=400, detail="Could not extract text from PDF. The file may be empty or contain only scanned images/screenshots without selectable text.")
             
         chunks = chunk_text(text)
         embeddings = get_embeddings(chunks)
