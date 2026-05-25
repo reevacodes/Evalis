@@ -5,7 +5,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell
 } from "recharts";
-import { LayoutDashboard, BookOpen, Layers, Users, Database, Settings, HelpCircle, Bell, Search, GraduationCap } from "lucide-react";
+import { LayoutDashboard, BookOpen, Layers, Users, Database, Settings, HelpCircle, Bell, Search, GraduationCap, Sparkles } from "lucide-react";
 
 export default function StudentResults() {
   const { examId } = useParams();
@@ -230,6 +230,26 @@ export default function StudentResults() {
             </div>
 
           </div>
+
+          {/* AI STUDY PLAN SECTION */}
+          {sub.ai_study_plan && sub.ai_study_plan.length > 0 && (
+            <div className="bg-[#151c2c] border border-indigo-500/30 rounded-2xl p-6 shadow-xl mb-8 bg-gradient-to-r from-indigo-950/20 via-[#151c2c] to-[#151c2c] relative overflow-hidden group">
+              <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full bg-indigo-500/5 blur-2xl pointer-events-none"></div>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 text-indigo-400">
+                <Sparkles className="w-5 h-5 animate-pulse" /> AI Tutor Study Plan
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {sub.ai_study_plan.map((item, idx) => (
+                  <div key={idx} className="bg-indigo-950/20 border border-indigo-500/10 rounded-xl p-4 flex gap-3 items-start">
+                    <div className="w-6 h-6 rounded-full bg-indigo-500/15 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                      {idx + 1}
+                    </div>
+                    <p className="text-sm text-slate-300 leading-relaxed font-light">{item}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* MCQ REVIEW SECTION */}
           {data.exam_sections && data.exam_sections.length > 0 && (

@@ -268,9 +268,11 @@ def async_evaluate_practice_submission(practice_id: str):
                     The code passed {passed_cases} out of {total_cases} test cases.
                     
                     Analyze their code for Time Complexity (Big O), Memory Efficiency, and Readability.
-                    Provide a short, constructive paragraph (max 3 sentences) of feedback. 
-                    If they got 100%, praise them but suggest how they could optimize it if possible (e.g., using a Hash Map for O(n) instead of an O(n^2) nested loop).
-                    Return ONLY the text paragraph, no markdown blocks.
+                    Return a JSON object with the following keys:
+                    - "time_complexity": Time complexity of the submitted code, e.g., "O(N)" or "O(N^2)"
+                    - "memory_efficiency": Space complexity of the submitted code, e.g., "O(1)" or "O(N)"
+                    - "readability": Readability rating, e.g., "Good", "Needs Improvement", "Excellent"
+                    - "feedback": a short, constructive paragraph (max 3 sentences) of review feedback. If they got 100%, praise them but suggest how they could optimize it if possible (e.g., using a Hash Map for O(n) instead of an O(n^2) nested loop).
                     """
                     resp = ai_model.generate_content(prompt)
                     ai_feedback = resp.text.strip()
