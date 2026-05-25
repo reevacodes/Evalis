@@ -52,6 +52,60 @@ def test_email():
     except Exception as e:
         return {"status": "ERROR", "error_message": str(e)}
 
+@app.get("/email-diagnostics")
+def email_diagnostics():
+    import os
+    import json
+    
+    result = {
+        "gmail_token_env_present": False,
+        "gmail_token_env_valid_json": False,
+        "gmail_token_env_keys": [],
+        "gmail_token_env_has_refresh_token": False,
+        "local_token_file_exists": False,
+        "local_token_file_keys": [],
+        "local_token_file_has_refresh_token": False,
+        "sender_email": os.getenv("SENDER_EMAIL"),
+        "gmail_service_status": "UNKNOWN",
+        "gmail_service_error": None
+    }
+    
+    token_env = os.getenv('GMAIL_TOKEN_JSON')
+    if token_env:
+        result["gmail_token_env_present"] = True
+        try:
+            token_info = json.loads(token_env)
+            result["gmail_token_env_valid_json"] = True
+            result["gmail_token_env_keys"] = list(token_info.keys())
+            result["gmail_token_env_has_refresh_token"] = "refresh_token" in token_info and bool(token_info["refresh_token"])
+        except Exception as e:
+            result["gmail_token_env_valid_json"] = False
+            result["gmail_token_env_error"] = str(e)
+            
+    token_path = os.path.join(os.getcwd(), 'token.json')
+    if os.path.exists(token_path):
+        result["local_token_file_exists"] = True
+        try:
+            with open(token_path, 'r') as f:
+                token_info = json.load(f)
+                result["local_token_file_keys"] = list(token_info.keys())
+                result["local_token_file_has_refresh_token"] = "refresh_token" in token_info and bool(token_info["refresh_token"])
+        except Exception as e:
+            result["local_token_file_error"] = str(e)
+            
+    try:
+        from app.services.email_service import get_gmail_service
+        service = get_gmail_service()
+        if service:
+            result["gmail_service_status"] = "SUCCESS"
+        else:
+            result["gmail_service_status"] = "FAILED (Returned None)"
+    except Exception as e:
+        result["gmail_service_status"] = "ERROR"
+        result["gmail_service_error"] = str(e)
+        
+    return result
+
 os.makedirs("uploads/reschedule_proofs", exist_ok=True)
 app.mount("/static/reschedule_proofs", StaticFiles(directory="uploads/reschedule_proofs"), name="reschedule_proofs")
 
