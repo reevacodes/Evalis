@@ -896,7 +896,7 @@ def submit_exam_api(
 
         doc = {
             "student_id": user.get("sub"),
-            "student_email": user.get("email"),
+            "student_email": user.get("sub"),
             "exam_id": exam_id,
             "assigned_set": assigned_set,
             "mcq_answers": payload.mcq_answers,
@@ -929,15 +929,15 @@ def submit_exam_api(
         if payload.is_suspended:
             suspension_time_str = datetime.now(timezone.utc).isoformat()
             
-            # Fetch full student details
-            student_user = user_collection.find_one({"_id": ObjectId(user.get("sub"))})
+            # Fetch full student details (querying by email since sub stores email string)
+            student_user = user_collection.find_one({"email": user.get("sub")})
             student_name = student_user.get("name", "") if student_user else ""
             student_roll_no = student_user.get("roll_no", "") if student_user else ""
 
             # 🚨 Notify Student (includes reschedule link)
             background_tasks.add_task(
                 send_exam_suspended_email,
-                to_email=user.get("email"),
+                to_email=user.get("sub"),
                 exam_name=exam.get("exam_name", "Assessment"),
                 reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded",
                 suspension_time=suspension_time_str,
@@ -954,7 +954,7 @@ def submit_exam_api(
                 admin_emails=admin_emails,
                 teacher_email=teacher_email,
                 exam_name=exam.get("exam_name", "Assessment"),
-                student_email=user.get("email"),
+                student_email=user.get("sub"),
                 student_name=student_name,
                 roll_no=student_roll_no,
                 reason=payload.suspension_reason or "Proctoring Violation Limit Exceeded",
@@ -971,13 +971,13 @@ def submit_exam_api(
             background_tasks.add_task(async_generate_ai_study_plan, submission_id_str)
             
             # Fetch student name
-            student_user = user_collection.find_one({"_id": ObjectId(user.get("sub"))})
+            student_user = user_collection.find_one({"email": user.get("sub")})
             student_name = student_user.get("name", "") if student_user else "Student"
             
             # Fire Exam Submitted Confirmation Email
             background_tasks.add_task(
                 send_exam_submitted_email,
-                to_email=user.get("email"),
+                to_email=user.get("sub"),
                 student_name=student_name,
                 exam_name=exam.get("exam_name", "Assessment"),
                 submission_time=datetime.now(timezone.utc).isoformat()
