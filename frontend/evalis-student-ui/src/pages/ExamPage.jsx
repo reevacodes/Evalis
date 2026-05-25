@@ -7,7 +7,7 @@ import '@mediapipe/face_mesh';
 import MCQSection from "../components/MCQSection";
 import CodingSection from "../components/CodingSection";
 import ExamHeader from "../components/ExamHeader";
-import { fetchExam, fetchPastPaper, submitExam, submitPractice } from "../services/api";
+import { fetchExam, fetchPastPaper, submitExam, submitPractice, startExam, updateLiveStatus } from "../services/api";
 import { useParams, useNavigate } from "react-router-dom";
 import SuccessModal from "../components/SuccessModal";
 import Loader from "../components/Loader";
@@ -213,6 +213,10 @@ export default function ExamPage({ isPractice = false }) {
         localStorage.setItem(`exam_${examId}_warnings`, warningCountRef.current);
         const violations = warningCountRef.current;
 
+        updateLiveStatus(examId, warningCountRef.current + cvWarningCountRef.current).catch(err => {
+          console.error("Failed to sync live status warnings:", err);
+        });
+
         if (violations === 1) {
           alert("⚠️ WARNING 1: Tab switching is strictly prohibited! Return to the exam immediately.");
         } else if (violations === 2) {
@@ -342,6 +346,10 @@ export default function ExamPage({ isPractice = false }) {
                  localStorage.setItem(`exam_${examId}_cv_warnings`, cvWarningCountRef.current);
                  const cvViolations = cvWarningCountRef.current;
                  
+                 updateLiveStatus(examId, warningCountRef.current + cvWarningCountRef.current).catch(err => {
+                    console.error("Failed to sync live status warnings:", err);
+                 });
+
                  // Reset counters after a strike
                  consecutiveMissingFrames.current = 0;
                  consecutiveMultipleFrames.current = 0;
@@ -579,6 +587,19 @@ export default function ExamPage({ isPractice = false }) {
     } catch (err) {
       console.error("Failed to sync suspension state to backend", err);
     }
+  };
+
+  const handleBeginAssessment = async () => {
+    if (!isPractice) {
+      try {
+        await startExam(examId);
+      } catch (err) {
+        const errMsg = err.response?.data?.detail || err.message || "Failed to initialize exam session.";
+        alert(`Failed to start exam: ${errMsg}`);
+        return;
+      }
+    }
+    setIsProctorSetupComplete(true);
   };
 
   // ================= UI STATES =================
@@ -877,7 +898,7 @@ export default function ExamPage({ isPractice = false }) {
                 <div className="mt-4">
                     <button 
                         disabled={!mediaGranted || !isFullScreen}
-                        onClick={() => setIsProctorSetupComplete(true)}
+                        onClick={handleBeginAssessment}
                         className={`w-full py-4 rounded-xl font-extrabold text-[15px] transition-all duration-500 flex justify-center items-center gap-2 ${mediaGranted && isFullScreen ? "bg-white text-black hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(255,255,255,0.5)]" : "bg-[#18181b] text-slate-600 cursor-not-allowed border border-white/5"}`}
                     >
                         {mediaGranted && isFullScreen ? "Begin Assessment" : "Awaiting Requirements..."}

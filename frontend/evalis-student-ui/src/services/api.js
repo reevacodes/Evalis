@@ -140,6 +140,12 @@ export const applyGraceMarks = (examId, payload) =>
 export const submitExam = ({ examId, ...payload }) =>
   API.post(`/exam/${examId}/submit`, payload);
 
+export const startExam = (examId) =>
+  API.post(`/exam/${examId}/start`);
+
+export const updateLiveStatus = (examId, warnings) =>
+  API.put(`/exam/${examId}/live-status`, { warnings });
+
 export const fetchUserExamResults = (examId) =>
   API.get(`/exam/submissions/${examId}/me`);
 

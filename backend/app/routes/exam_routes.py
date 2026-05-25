@@ -906,10 +906,12 @@ def submit_exam_api(
             "analytics": analytics,
             "tab_switches": payload.tab_switches,
             "cv_violations": payload.cv_violations,
+            "warnings": payload.tab_switches + payload.cv_violations,
             "pending_manual_review": len(payload.coding_answers) > 0,
             "submitted_at": datetime.now(timezone.utc),
             "is_suspended": payload.is_suspended,
-            "suspension_reason": payload.suspension_reason
+            "suspension_reason": payload.suspension_reason,
+            "has_submitted": True
         }
         doc_info = exam_submission_collection.update_one(
             {"exam_id": exam_id, "student_id": user.get("sub")},
@@ -1374,16 +1376,59 @@ def start_exam(
 
     if state == "expired":
         raise HTTPException(
-
             status_code=400,
             detail="Exam has expired"
         )
+
+    # Check if student already has a submission record
+    existing_sub = exam_submission_collection.find_one({
+        "exam_id": exam_id,
+        "student_id": user.get("sub")
+    })
+
+    if existing_sub:
+        if existing_sub.get("has_submitted", False) or "submitted_at" in existing_sub:
+            raise HTTPException(
+                status_code=400,
+                detail="You have already submitted this exam."
+            )
+    else:
+        # Create active live monitoring session
+        student_user = user_collection.find_one({"email": user.get("sub")})
+        student_name = student_user.get("name", "Student") if student_user else "Student"
+        
+        session_doc = {
+            "student_id": user.get("sub"),
+            "student_email": user.get("sub"),
+            "student_name": student_name,
+            "exam_id": exam_id,
+            "exam_name": exam.get("exam_name", "Assessment"),
+            "start_time": datetime.now(timezone.utc).isoformat(),
+            "warnings": 0,
+            "has_submitted": False
+        }
+        exam_submission_collection.insert_one(session_doc)
 
     return {
         "message": "Exam started",
         "start_time": exam["start_time"],
         "started_by": user["sub"]
     }
+
+class LiveStatusRequest(BaseModel):
+    warnings: int
+
+@router.put("/{exam_id}/live-status")
+def update_live_status(
+    exam_id: str,
+    payload: LiveStatusRequest,
+    user=Depends(require_role("student"))
+):
+    exam_submission_collection.update_one(
+        {"exam_id": exam_id, "student_id": user.get("sub")},
+        {"$set": {"warnings": payload.warnings}}
+    )
+    return {"message": "Live status updated"}
 
 # ==========================
 # 🔥 ADD QUESTIONS TO EXAM (BATCH)

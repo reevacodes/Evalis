@@ -70,7 +70,6 @@ def get_activity_logs(user=Depends(require_role("admin")), limit: int = 50):
 @router.get("/live-sessions")
 def get_live_sessions(user=Depends(require_role("admin"))):
     # This will find any student who has an active session in exam_submissions
-    # For now, let's just return active exams and how many people took them
     from app.database import exam_submission_collection
     
     # Students who have start_time but not has_submitted
@@ -78,18 +77,39 @@ def get_live_sessions(user=Depends(require_role("admin"))):
     
     result = []
     for session in active_sessions:
-        student = user_collection.find_one({"_id": ObjectId(session["student_id"])})
-        exam = exam_collection.find_one({"_id": ObjectId(session["exam_id"])})
+        # Fallbacks: try finding student in DB
+        student = None
+        student_id_str = session.get("student_id")
+        if student_id_str:
+            student = user_collection.find_one({"email": student_id_str})
+            if not student:
+                try:
+                    student = user_collection.find_one({"_id": ObjectId(student_id_str)})
+                except Exception:
+                    pass
         
-        if student and exam:
-            result.append({
-                "session_id": str(session["_id"]),
-                "student_name": student.get("name", "Unknown"),
-                "student_email": student.get("email", ""),
-                "exam_name": exam.get("exam_name", "Unknown"),
-                "start_time": session.get("start_time"),
-                "warnings": session.get("warnings", 0)
-            })
+        # Try finding exam in DB
+        exam = None
+        exam_id_str = session.get("exam_id")
+        if exam_id_str:
+            try:
+                exam = exam_collection.find_one({"_id": ObjectId(exam_id_str)})
+            except Exception:
+                pass
+                
+        # Resolve fields with database lookup as primary, session document as fallback
+        s_name = (student.get("name") if student else None) or session.get("student_name", "Unknown")
+        s_email = (student.get("email") if student else None) or session.get("student_email", "")
+        e_name = (exam.get("exam_name") if exam else None) or session.get("exam_name", "Unknown")
+        
+        result.append({
+            "session_id": str(session["_id"]),
+            "student_name": s_name,
+            "student_email": s_email,
+            "exam_name": e_name,
+            "start_time": session.get("start_time"),
+            "warnings": session.get("warnings", 0)
+        })
             
     return result
 
