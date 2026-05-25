@@ -1,7 +1,7 @@
 from datetime import datetime
 from bson import ObjectId 
 
-def create_user(db, email: str, hashed_password: str, role: str, name: str, semester: int = None, college_email: str = None, college_name: str = None, student_id: str = None):
+def create_user(db, email: str, hashed_password: str, role: str, name: str, semester: int = None, college_email: str = None, college_name: str = None, student_id: str = None, roll_no: str = None, department: str = None):
     """
     Create a new user in the database.
     """
@@ -14,6 +14,8 @@ def create_user(db, email: str, hashed_password: str, role: str, name: str, seme
         "college_email": college_email,
         "college_name": college_name,
         "student_id": student_id,
+        "roll_no": roll_no,
+        "department": department,
         "created_at": datetime.utcnow()
     }
     return db.users.insert_one(user)

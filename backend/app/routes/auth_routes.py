@@ -91,7 +91,9 @@ def signup(user: UserSignup):
             semester=user.semester,
             college_email=user.college_email.strip().lower() if user.college_email else None,
             college_name=user.college_name,
-            student_id=user.student_id
+            student_id=user.student_id,
+            roll_no=user.roll_no,
+            department=user.department
         )
     except DuplicateKeyError:
         raise HTTPException(
@@ -253,12 +255,17 @@ def get_me(user = Depends(get_current_user)):
         "student_id": db_user.get("student_id", ""),
         "semester": db_user.get("semester", None),
         "college_name": db_user.get("college_name", ""),
-        "profile_picture": db_user.get("profile_picture", None)
+        "profile_picture": db_user.get("profile_picture", None),
+        "roll_no": db_user.get("roll_no", ""),
+        "department": db_user.get("department", "")
     }
 
 class ProfileUpdateRequest(BaseModel):
     name: str = None
     profile_picture: str = None
+    semester: int = None
+    roll_no: str = None
+    department: str = None
 
 @router.put("/me")
 def update_me(req: ProfileUpdateRequest, user = Depends(get_current_user)):
@@ -271,6 +278,12 @@ def update_me(req: ProfileUpdateRequest, user = Depends(get_current_user)):
         update_data["name"] = req.name
     if req.profile_picture is not None:
         update_data["profile_picture"] = req.profile_picture
+    if req.semester is not None:
+        update_data["semester"] = req.semester
+    if req.roll_no is not None:
+        update_data["roll_no"] = req.roll_no
+    if req.department is not None:
+        update_data["department"] = req.department
         
     if update_data:
         update_user_profile(db, db_user["email"], update_data)

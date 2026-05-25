@@ -60,8 +60,26 @@ export default function AdminUsers() {
 
   const teachers = filteredUsers.filter(u => u.role === "teacher");
   const students = filteredUsers.filter(u => u.role === "student");
-  // Also keep track of admins just in case you want to show them
   const admins = filteredUsers.filter(u => u.role === "admin");
+
+  // Group students by semester
+  const studentsBySemester = students.reduce((acc, student) => {
+    const sem = student.semester ? `Semester ${student.semester}` : "Semester Unspecified";
+    if (!acc[sem]) {
+      acc[sem] = [];
+    }
+    acc[sem].push(student);
+    return acc;
+  }, {});
+
+  // Sort semesters
+  const sortedSemesters = Object.keys(studentsBySemester).sort((a, b) => {
+    if (a === "Semester Unspecified") return 1;
+    if (b === "Semester Unspecified") return -1;
+    const numA = parseInt(a.replace(/\D/g, ""), 10);
+    const numB = parseInt(b.replace(/\D/g, ""), 10);
+    return numA - numB;
+  });
 
   if (loading) return <div className="p-8"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /></div>;
 
@@ -95,6 +113,13 @@ export default function AdminUsers() {
                       <div>
                         <div className="font-semibold text-slate-900 dark:text-white capitalize">{user.name || "Pending Invite"}</div>
                         <div className="text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
+                        {user.role === "student" && (user.roll_no || user.department || user.student_id) && (
+                          <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 flex flex-wrap gap-x-2 gap-y-0.5">
+                            {user.roll_no && <span>Roll No: <span className="text-slate-500 dark:text-slate-400 font-medium">{user.roll_no}</span></span>}
+                            {user.department && <span>Dept: <span className="text-slate-500 dark:text-slate-400 font-medium">{user.department}</span></span>}
+                            {user.student_id && <span>Student ID: <span className="text-slate-500 dark:text-slate-400 font-medium">{user.student_id}</span></span>}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -174,11 +199,22 @@ export default function AdminUsers() {
         {renderUserTable(teachers, "No teachers found.")}
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200 border-b border-gray-100 dark:border-slate-800 pb-2">
           <GraduationCap className="w-5 h-5 text-green-500" /> Students
         </h2>
-        {renderUserTable(students, "No students found.")}
+        {students.length === 0 ? (
+          renderUserTable([], "No students found.")
+        ) : (
+          sortedSemesters.map(semName => (
+            <div key={semName} className="space-y-3 pl-3 border-l-2 border-slate-200 dark:border-slate-800">
+              <h3 className="text-md font-semibold text-slate-700 dark:text-slate-300">
+                {semName} ({studentsBySemester[semName].length} student{studentsBySemester[semName].length !== 1 ? 's' : ''})
+              </h3>
+              {renderUserTable(studentsBySemester[semName], `No students in ${semName}.`)}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

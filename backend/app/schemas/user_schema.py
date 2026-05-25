@@ -15,6 +15,8 @@ class UserSignup(BaseModel):
     college_email: EmailStr | None = None
     college_name: str | None = None
     student_id: str | None = None
+    roll_no: str | None = None
+    department: str | None = None
     otp: str
 
     @field_validator('password')

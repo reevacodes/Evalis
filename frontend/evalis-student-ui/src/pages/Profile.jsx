@@ -8,6 +8,9 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState(user?.name || "");
   const [profilePicture, setProfilePicture] = useState(user?.profile_picture || "");
+  const [semester, setSemester] = useState(user?.semester || "");
+  const [rollNo, setRollNo] = useState(user?.roll_no || "");
+  const [department, setDepartment] = useState(user?.department || "");
   const [message, setMessage] = useState("");
   
   const fileInputRef = useRef(null);
@@ -16,6 +19,9 @@ export default function Profile() {
     // Sync if context updates
     if (user) {
       setName(user.name || "");
+      setSemester(user.semester !== undefined && user.semester !== null ? user.semester : "");
+      setRollNo(user.roll_no || "");
+      setDepartment(user.department || "");
       if (user.profile_picture) {
         setProfilePicture(user.profile_picture);
       }
@@ -42,24 +48,27 @@ export default function Profile() {
     setLoading(true);
     setMessage("");
     try {
-      await API.put("/auth/me", {
+      const payload = {
         name,
-        profile_picture: profilePicture || null
-      });
+        profile_picture: profilePicture || null,
+        semester: semester ? parseInt(semester, 10) : null,
+        roll_no: rollNo || null,
+        department: department || null
+      };
+
+      await API.put("/auth/me", payload);
       
       // Update local context manually
       setUser(prev => ({
         ...prev,
-        name,
-        profile_picture: profilePicture || null
+        ...payload
       }));
       
       // Also update local storage if it's there
       const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
       localStorage.setItem("user", JSON.stringify({
         ...storedUser,
-        name,
-        profile_picture: profilePicture || null
+        ...payload
       }));
 
       setMessage("Profile updated successfully!");
@@ -163,6 +172,61 @@ export default function Profile() {
                     />
                   </div>
                 </div>
+              )}
+
+              {user.role === "student" && (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Roll Number</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <GraduationCap size={18} className="text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        value={rollNo}
+                        onChange={(e) => setRollNo(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white"
+                        placeholder="e.g. 2022A1R161"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Semester</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <GraduationCap size={18} className="text-gray-400" />
+                      </div>
+                      <select
+                        value={semester}
+                        onChange={(e) => setSemester(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white"
+                      >
+                        <option value="">Select Semester</option>
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                          <option key={num} value={num}>Semester {num}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Department</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <GraduationCap size={18} className="text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white"
+                        placeholder="e.g. Computer Science"
+                      />
+                    </div>
+                  </div>
+                </>
               )}
             </div>
 
