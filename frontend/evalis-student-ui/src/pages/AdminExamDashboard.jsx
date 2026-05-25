@@ -210,6 +210,28 @@ export default function AdminExamDashboard() {
       alert(err.response?.data?.detail || "Failed to archive exam");
     }
   };
+
+  const handleArchiveToPastPapers = async (examId, examName) => {
+    const defaultYear = new Date().getFullYear();
+    const yearStr = window.prompt(`Enter the academic year to file "${examName}" under (e.g. 2024):`, defaultYear);
+    
+    if (yearStr === null) return;
+    
+    const year = parseInt(yearStr, 10);
+    if (isNaN(year) || year < 2000 || year > 2100) {
+      alert("Please enter a valid 4-digit academic year.");
+      return;
+    }
+    
+    try {
+      const res = await API.post(`/past-papers/archive-exam/${examId}`, { year });
+      alert(res.data.message || "Exam successfully added to Past Year Papers!");
+      fetchExams(true);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.detail || "Failed to add exam to past papers");
+    }
+  };
   // =========================
   // STATUS BADGE
   // =========================
@@ -496,6 +518,16 @@ export default function AdminExamDashboard() {
                       className="ml-auto bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-slate-900 dark:text-white border border-red-500/30 px-4 py-2 rounded text-sm transition-colors flex items-center gap-2"
                     >
                       Archive Exam
+                    </button>
+                  )}
+
+                  {/* ✅ ARCHIVE TO PAST PAPERS BUTTON */}
+                  {(exam.status === "finalized" || exam.status === "published") && (
+                    <button
+                      onClick={() => handleArchiveToPastPapers(exam._id, exam.exam_name)}
+                      className="bg-blue-500/10 text-blue-500 hover:bg-blue-600 hover:text-white border border-blue-500/30 px-4 py-2 rounded text-sm transition-colors flex items-center gap-2"
+                    >
+                      📁 Add to Past Papers
                     </button>
                   )}
                 </div>

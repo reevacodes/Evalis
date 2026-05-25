@@ -101,6 +101,8 @@ export default function ExamPage({ isPractice = false }) {
           exam_name: data.exam_name || data.title || "Exam",
           course_name: data.course_name || "Course",
           course_code: data.course_code || "",
+          available_sets: data.available_sets || [],
+          selected_set: data.selected_set || "A",
         });
 
         const userStr = localStorage.getItem("user");
@@ -933,6 +935,44 @@ export default function ExamPage({ isPractice = false }) {
             >
               Coding Section
             </button>
+          )}
+          {isPractice && examDetails?.available_sets?.length > 1 && (
+            <div className="flex items-center gap-2 ml-4 pl-4 border-l border-gray-300 dark:border-slate-700">
+              <span className="text-xs font-bold text-slate-500 uppercase">Set:</span>
+              <select
+                value={examDetails.selected_set || "A"}
+                onChange={async (e) => {
+                  const newSet = e.target.value;
+                  setLoading(true);
+                  try {
+                    const res = await fetchPastPaper(examId, newSet);
+                    
+                    let all = [];
+                    res.sections.forEach((s) =>
+                      s.questions?.forEach((q) => all.push({ ...q, type: s.type })),
+                    );
+
+                    setMcqQuestions(all.filter((q) => q.type === "mcq"));
+                    setCodingQuestions(all.filter((q) => q.type === "coding"));
+                    
+                    setExamDetails(prev => ({
+                      ...prev,
+                      selected_set: res.selected_set
+                    }));
+                  } catch (err) {
+                    console.error("Failed to load set", err);
+                    alert("Failed to load the selected set questions.");
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="bg-white dark:bg-slate-800 px-2 py-1 text-sm rounded border border-gray-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-blue-500 font-bold"
+              >
+                {examDetails.available_sets.map((setName) => (
+                  <option key={setName} value={setName}>Set {setName}</option>
+                ))}
+              </select>
+            </div>
           )}
         </div>
         <div className="hidden md:flex text-xs font-medium text-slate-500 dark:text-slate-400 gap-6">

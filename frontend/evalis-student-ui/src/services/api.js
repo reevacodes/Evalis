@@ -159,8 +159,8 @@ export const fetchSubmissionDetail = (submissionId) =>
 export const getPastPapers = () =>
   API.get("/past-papers");
 
-export const fetchPastPaper = async (paperId) => {
-  const res = await API.get(`/past-papers/${paperId}`);
+export const fetchPastPaper = async (paperId, selectedSet = "A") => {
+  const res = await API.get(`/past-papers/${paperId}?selected_set=${selectedSet}`);
   return res.data;
 };
 
@@ -281,6 +281,11 @@ export const resetPasswordToken = (data) =>
 
 export const uploadPastPaperJSON = async (payload) => {
   const res = await API.post("/past-papers/upload/json", payload);
+  return res.data;
+};
+
+export const archiveExamToPastPapers = async (examId, year) => {
+  const res = await API.post(`/past-papers/archive-exam/${examId}`, { year });
   return res.data;
 };
 

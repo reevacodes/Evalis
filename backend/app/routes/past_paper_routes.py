@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from app.database import past_papers_collection, practice_attempts_collection
 from app.utils.auth_dependency import get_current_user, require_role
 from app.schemas.exam_schema import SubmissionRequest
@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from app.services.evaluation_service import async_evaluate_practice_submission
 import random
 from app.services.email_service import send_mock_scheduled_email
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -65,7 +66,11 @@ def get_practice_history(user=Depends(get_current_user)):
 # 🔥 GET SINGLE PAST PAPER
 # ==========================
 @router.get("/{paper_id}")
-def get_single_past_paper(paper_id: str, user=Depends(get_current_user)):
+def get_single_past_paper(
+    paper_id: str,
+    selected_set: str = Query("A", description="Which set to practice: A, B, C, or D"),
+    user=Depends(get_current_user)
+):
     try:
         paper = past_papers_collection.find_one({"_id": ObjectId(paper_id)})
         
@@ -79,8 +84,10 @@ def get_single_past_paper(paper_id: str, user=Depends(get_current_user)):
         
         # Extract sections cleanly if it's stored in sets format
         if "sets" in paper and paper["sets"]:
-            # Pick set A by default for practice mode
-            paper["sections"] = paper["sets"].get("A", [])
+            set_choice = selected_set.upper() if selected_set.upper() in paper["sets"] else "A"
+            paper["sections"] = paper["sets"].get(set_choice, [])
+            paper["selected_set"] = set_choice
+            paper["available_sets"] = list(paper["sets"].keys())
             paper.pop("sets", None)
 
         return paper
@@ -305,3 +312,77 @@ def upload_past_paper_json(
     except Exception as e:
         print(f"🔥 PAST PAPER UPLOAD ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to upload past paper structure.")
+
+# ==========================
+# 🔥 ARCHIVE OFFICIAL EXAM TO PAST PAPERS
+# ==========================
+class ArchiveExamRequest(BaseModel):
+    year: int
+
+@router.post("/archive-exam/{exam_id}")
+def archive_exam_to_past_papers(
+    exam_id: str,
+    payload: ArchiveExamRequest,
+    user=Depends(require_role("admin"))
+):
+    try:
+        from app.database import exam_collection
+        from app.services.activity_service import log_activity
+        
+        exam = exam_collection.find_one({"_id": ObjectId(exam_id)})
+        if not exam:
+            raise HTTPException(status_code=404, detail="Exam not found")
+            
+        sets = exam.get("sets")
+        if not sets:
+            # JIT generate sets using generate_exam
+            from app.services.exam_service import generate_exam
+            generated = generate_exam(
+                subject_code=exam.get("subject_code"),
+                semester=exam.get("semester"),
+                exam_type=exam.get("exam_type", "mst"),
+                pattern=exam.get("pattern"),
+                units=exam.get("units", []),
+                seed_sections=exam.get("sections", []),
+            )
+            sets = generated["exam"]["sets"]
+
+        # Check if already exists in past papers
+        existing = past_papers_collection.find_one({"original_exam_id": exam_id})
+        if existing:
+            raise HTTPException(status_code=400, detail="This exam has already been added to past papers.")
+
+        past_paper_doc = {
+            "exam_name": f"{exam.get('exam_name')} [{exam.get('exam_type').upper()}]",
+            "subject_code": exam.get("subject_code"),
+            "semester": exam.get("semester"),
+            "year": payload.year,
+            "exam_type": exam.get("exam_type"),
+            "pattern": exam.get("pattern"),
+            "duration_minutes": exam.get("duration_minutes", 60),
+            "sets": sets,
+            "original_exam_id": exam_id,
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        result = past_papers_collection.insert_one(past_paper_doc)
+        
+        # Log activity
+        log_activity(
+            actor_id=user["sub"],
+            actor_name=user.get("name", "Admin"),
+            role="admin",
+            action="Exam Archived to Past Papers",
+            details=f"Admin archived exam '{exam.get('exam_name')}' to past papers for year {payload.year}."
+        )
+        
+        return {
+            "message": "Exam archived to past papers successfully",
+            "paper_id": str(result.inserted_id)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print("🔥 ARCHIVE EXAM ERROR:", str(e))
+        raise HTTPException(status_code=500, detail="Failed to archive exam to past papers")
