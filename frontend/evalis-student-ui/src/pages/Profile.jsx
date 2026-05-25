@@ -136,7 +136,8 @@ export default function Profile() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white"
+                    disabled={user.role === "student"}
+                    className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white ${user.role === "student" ? "bg-gray-100 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700/50 text-slate-500 cursor-not-allowed" : ""}`}
                     placeholder="Enter your name"
                   />
                 </div>
@@ -186,7 +187,8 @@ export default function Profile() {
                         type="text"
                         value={rollNo}
                         onChange={(e) => setRollNo(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white"
+                        disabled={user.role === "student"}
+                        className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white ${user.role === "student" ? "bg-gray-100 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700/50 text-slate-500 cursor-not-allowed" : ""}`}
                         placeholder="e.g. 2022A1R161"
                       />
                     </div>
@@ -201,7 +203,8 @@ export default function Profile() {
                       <select
                         value={semester}
                         onChange={(e) => setSemester(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white"
+                        disabled={user.role === "student"}
+                        className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white ${user.role === "student" ? "bg-gray-100 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700/50 text-slate-500 cursor-not-allowed appearance-none" : ""}`}
                       >
                         <option value="">Select Semester</option>
                         {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
@@ -221,7 +224,8 @@ export default function Profile() {
                         type="text"
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white"
+                        disabled={user.role === "student"}
+                        className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-900 dark:text-white ${user.role === "student" ? "bg-gray-100 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700/50 text-slate-500 cursor-not-allowed" : ""}`}
                         placeholder="e.g. Computer Science"
                       />
                     </div>
