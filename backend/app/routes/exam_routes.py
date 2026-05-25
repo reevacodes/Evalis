@@ -1008,8 +1008,13 @@ def get_my_submission_results(
 
         is_published = exam.get("is_results_published", False)
 
+        query_conditions = [{"exam_id": exam_id}]
+        try:
+            query_conditions.append({"exam_id": ObjectId(exam_id)})
+        except Exception:
+            pass
         submission = exam_submission_collection.find_one({
-            "exam_id": exam_id,
+            "$or": query_conditions,
             "student_id": user.get("sub")
         })
 
@@ -1090,7 +1095,12 @@ def get_all_submissions_for_exam(
         if not exam:
             raise HTTPException(404, "Exam not found")
 
-        submissions = list(exam_submission_collection.find({"exam_id": exam_id}))
+        query_conditions = [{"exam_id": exam_id}]
+        try:
+            query_conditions.append({"exam_id": ObjectId(exam_id)})
+        except Exception:
+            pass
+        submissions = list(exam_submission_collection.find({"$or": query_conditions}))
         
         # Grab all student emails to fetch their actual names
         student_emails = list(set(sub.get("student_id") for sub in submissions if sub.get("student_id")))

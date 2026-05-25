@@ -135,7 +135,9 @@ def async_evaluate_submission(submission_id: str):
             if not question:
                 continue
 
-            test_cases = question.get("test_cases", [])
+            test_cases = question.get("test_cases")
+            if not test_cases:
+                test_cases = (question.get("sample_test_cases") or []) + (question.get("hidden_test_cases") or [])
             if not test_cases:
                 continue
 
@@ -228,7 +230,9 @@ def async_evaluate_practice_submission(practice_id: str):
             if not question:
                 continue
 
-            test_cases = question.get("test_cases", [])
+            test_cases = question.get("test_cases")
+            if not test_cases:
+                test_cases = (question.get("sample_test_cases") or []) + (question.get("hidden_test_cases") or [])
             if not test_cases:
                 continue
 
