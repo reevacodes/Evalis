@@ -2,6 +2,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
+import logging
+
+# Add file handler to root logger to capture all application logs
+root_logger = logging.getLogger()
+file_handler = logging.FileHandler("app.log")
+file_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+file_handler.setFormatter(file_formatter)
+root_logger.addHandler(file_handler)
+root_logger.setLevel(logging.INFO)
 
 from app.routes.question_routes import router as question_router
 from app.routes.curriculum_routes import router as curriculum_router
@@ -105,6 +114,19 @@ def email_diagnostics():
         result["gmail_service_error"] = str(e)
         
     return result
+
+@app.get("/email-logs")
+def email_logs():
+    import os
+    log_path = "app.log"
+    if not os.path.exists(log_path):
+        return {"status": "NO_LOG_FILE", "logs": []}
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+            return {"status": "SUCCESS", "logs": lines[-150:]}
+    except Exception as e:
+        return {"status": "ERROR", "error_message": str(e)}
 
 os.makedirs("uploads/reschedule_proofs", exist_ok=True)
 app.mount("/static/reschedule_proofs", StaticFiles(directory="uploads/reschedule_proofs"), name="reschedule_proofs")
