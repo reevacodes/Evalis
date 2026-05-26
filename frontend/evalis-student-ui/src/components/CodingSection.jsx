@@ -62,6 +62,8 @@ export default function CodingSection({
       p?.problem ||
       p?.question ||
       p?.question_text ||
+      p?.statement ||
+      p?.problem_statement ||
       "No description available",
 
     input_format: p?.input_format || "Not specified",

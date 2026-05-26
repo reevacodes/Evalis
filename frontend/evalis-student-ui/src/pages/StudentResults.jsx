@@ -345,7 +345,7 @@ export default function StudentResults() {
                                 </div>
                                 <div className="flex flex-col">
                                   <span>{qInfo.question || qInfo.question_text || `Question Vector ${idx + 1}`}</span>
-                                  <span className="text-[10px] text-slate-500 font-normal truncate max-w-[200px]">{qInfo.description}</span>
+                                  <span className="text-[10px] text-slate-500 font-normal truncate max-w-[200px]">{qInfo.description || qInfo.statement || qInfo.problem_statement}</span>
                                 </div>
                               </div>
                             </td>
