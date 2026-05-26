@@ -218,29 +218,33 @@ def generate_exam(subject_code, semester, exam_type, pattern, units, seed_sectio
         current_coding = [q for q in current_seed_questions if q.get("question_type") == "coding" or q.get("type") == "coding"]
         coding_questions.extend([question_helper(q) for q in current_coding])
 
+        # Determine the target total coding questions
+        total_target = 0
         if "coding_distribution" in rules:
             total_target = sum(rules["coding_distribution"].values())
-            for difficulty, count in rules["coding_distribution"].items():
-                current_diff = [q for q in current_coding if q.get("difficulty") == difficulty]
-                deficiency = count - len(current_diff)
-                
-                if deficiency > 0:
-                    coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding", "difficulty": difficulty}, subject_code)
-                    new_qs_raw = get_questions_smart(coding_filter, deficiency, global_used_ids)
-                    coding_questions.extend([question_helper(q) for q in new_qs_raw])
-            
-            # 🔥 FALLBACK PADDING
-            if len(coding_questions) < total_target:
-                fallback_deficiency = total_target - len(coding_questions)
-                coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding"}, subject_code)
-                new_qs_raw = get_questions_smart(coding_filter, fallback_deficiency, global_used_ids)
-                coding_questions.extend([question_helper(q) for q in new_qs_raw])
-                    
         elif "coding_total" in rules:
-            deficiency = rules["coding_total"] - len(current_coding)
-            if deficiency > 0:
+            total_target = rules["coding_total"]
+
+        # If the teacher manually selected coding questions, prioritize them and only pad up to the total target.
+        if len(current_coding) > 0:
+            if len(coding_questions) < total_target:
+                deficiency = total_target - len(coding_questions)
                 coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding"}, subject_code)
                 new_qs_raw = get_questions_smart(coding_filter, deficiency, global_used_ids)
+                coding_questions.extend([question_helper(q) for q in new_qs_raw])
+            elif len(coding_questions) > total_target:
+                # If they chose more than the target (e.g. for custom formats), keep them, but let's truncate to total_target for standard MST
+                coding_questions = coding_questions[:total_target]
+        else:
+            # Standard automated generation (no seeds)
+            if "coding_distribution" in rules:
+                for difficulty, count in rules["coding_distribution"].items():
+                    coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding", "difficulty": difficulty}, subject_code)
+                    new_qs_raw = get_questions_smart(coding_filter, count, global_used_ids)
+                    coding_questions.extend([question_helper(q) for q in new_qs_raw])
+            elif "coding_total" in rules:
+                coding_filter = build_filter({"unit": {"$in": units}, "question_type": "coding"}, subject_code)
+                new_qs_raw = get_questions_smart(coding_filter, rules["coding_total"], global_used_ids)
                 coding_questions.extend([question_helper(q) for q in new_qs_raw])
 
         seen = set()
