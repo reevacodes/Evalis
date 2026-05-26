@@ -12,8 +12,6 @@ export default function Sidebar() {
     { name: "Exams", path: "/admin/exams", icon: FileText },
     { name: "Curriculum", path: "/admin/curriculum", icon: BookOpen },
     { name: "Question Bank", path: "/question-bank", icon: Boxes },
-    { name: "Practice Archive", path: "/admin/practice-archive", icon: Archive },
-    { name: "Mock Upload", path: "/admin/mock-upload", icon: FileText },
   ];
 
   return (

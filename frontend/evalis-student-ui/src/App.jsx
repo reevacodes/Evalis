@@ -30,10 +30,8 @@ import RoleRoute from "./components/RoleRoute";
 import AdminLayout from "./components/AdminLayout";
 import AdminOverview from "./pages/AdminOverview";
 import AdminUsers from "./pages/AdminUsers";
-import AdminPracticeUpload from "./pages/AdminPracticeUpload";
 import InstructorSubmissions from "./pages/InstructorSubmissions";
 import InstructorStudentResult from "./pages/InstructorStudentResult";
-import MockBulkUpload from "./pages/MockBulkUpload";
 import TeacherLayout from "./components/TeacherLayout";
 import TeacherOverview from "./pages/TeacherOverview";
 import TeacherExamDashboard from "./pages/TeacherExamDashboard";
@@ -165,27 +163,7 @@ function AppContent() {
           }
         />
 
-        <Route
-          path="/admin/practice-archive"
-          element={
-            <RoleRoute role="admin">
-              <AdminLayout>
-                <AdminPracticeUpload />
-              </AdminLayout>
-            </RoleRoute>
-          }
-        />
 
-        <Route
-          path="/admin/mock-upload"
-          element={
-            <RoleRoute role="admin">
-              <AdminLayout>
-                <MockBulkUpload />
-              </AdminLayout>
-            </RoleRoute>
-          }
-        />
 
         <Route
           path="/admin/curriculum"
