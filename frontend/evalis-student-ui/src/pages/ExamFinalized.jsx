@@ -84,10 +84,6 @@ export default function ExamFinalized() {
           <p className="text-slate-500 dark:text-slate-400 max-w-lg mb-6">
             For maximum security, this exam operates on a strict Zero-Trust policy. The generated questions cannot be viewed until the students actively begin the test.
           </p>
-          <div className="bg-white dark:bg-slate-800 p-4 rounded-lg inline-block text-sm border border-gray-300 dark:border-slate-700">
-            <p><strong>Configured Sections:</strong> {exam.sections?.length || 0}</p>
-            <p className="mt-1"><strong>Seed Questions Curated:</strong> {exam.sections?.reduce((acc, sec) => acc + (sec.questions?.length || 0), 0) || 0}</p>
-          </div>
         </div>
 
         {/* ACTION BUTTONS */}
