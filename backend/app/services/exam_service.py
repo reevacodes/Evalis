@@ -3,6 +3,8 @@ from typing import Dict
 from app.database import question_collection
 from app.models.question_model import question_helper
 
+DEMO_MODE = True # Demo mode flag (ON by default)
+
 
 # ==============================
 # RULES
@@ -147,14 +149,32 @@ def generate_exam(subject_code, semester, exam_type, pattern, units, seed_sectio
     set_keys = ["A", "B", "C", "D"]
     
     if flattened_seed:
-        share = len(flattened_seed) // num_sets
-        for i, key in enumerate(set_keys):
-            st = i * share
-            en = st + share
-            if i == num_sets - 1:
-                sets_result[key].extend(flattened_seed[st:])
-            else:
-                sets_result[key].extend(flattened_seed[st:en])
+        if DEMO_MODE:
+            # Separate coding and MCQ questions from seed pool
+            seed_coding = [q for q in flattened_seed if q.get("question_type") == "coding" or q.get("type") == "coding"]
+            seed_mcq = [q for q in flattened_seed if q.get("question_type") == "mcq" or q.get("type") == "mcq"]
+            
+            # Slice MCQ questions across sets
+            share = len(seed_mcq) // num_sets
+            for i, key in enumerate(set_keys):
+                st = i * share
+                en = st + share
+                if i == num_sets - 1:
+                    sets_result[key].extend(seed_mcq[st:])
+                else:
+                    sets_result[key].extend(seed_mcq[st:en])
+                
+                # Assign the exact same coding questions to all sets
+                sets_result[key].extend(seed_coding)
+        else:
+            share = len(flattened_seed) // num_sets
+            for i, key in enumerate(set_keys):
+                st = i * share
+                en = st + share
+                if i == num_sets - 1:
+                    sets_result[key].extend(flattened_seed[st:])
+                else:
+                    sets_result[key].extend(flattened_seed[st:en])
                 
     # Keep track of globally used IDs to avoid cross-contamination from DB padding
     global_used_ids = set([str(q["_id"]) for q in flattened_seed])
