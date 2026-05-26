@@ -709,7 +709,7 @@ export default function StudentDashboard() {
 const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
     // Standard Scale Variables
     const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
-    const years = [2025, 2024, 2023, 2022, 2021, 2020];
+    const years = [2026, 2025, 2024, 2023, 2022, 2021, 2020];
 
     // Local Tree State
     const [expandedSemesters, setExpandedSemesters] = useState({});
@@ -842,7 +842,7 @@ const PracticeHierarchy = ({ pastPapers, loadingPractice, navigate }) => {
                                                 </span>
                                             </button>
 
-                                            {/* 🔹 LEVEL 3: YEARS (2020 - 2025) */}
+                                            {/* 🔹 LEVEL 3: YEARS (2020 - 2026) */}
                                             <AnimatePresence initial={false}>
                                             {subjOpen && (
                                                 <motion.div 
