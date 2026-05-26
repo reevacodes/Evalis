@@ -199,6 +199,9 @@ def async_evaluate_practice_submission(practice_id: str):
         if not coding_answers:
             return
 
+        # Fetch the paper
+        paper = past_papers_collection.find_one({"_id": ObjectId(attempt.get("paper_id"))})
+
         # Iterate against Sandbox execution
         execution_metadata = {}
 
@@ -216,7 +219,6 @@ def async_evaluate_practice_submission(practice_id: str):
 
             # Need to find the mock question
             question = None
-            paper = past_papers_collection.find_one({"_id": ObjectId(attempt.get("paper_id"))})
             if paper:
                 for section in paper.get("sections", []) + paper.get("sets", {}).get("A", []):
                     if section.get("type") == "coding":
@@ -289,15 +291,44 @@ def async_evaluate_practice_submission(practice_id: str):
                 "ai_feedback": ai_feedback
             }
 
+        # Aggregate scoring information
+        total_coding_score = sum(c.get("score", 0) for c in execution_metadata.values())
+        mcq_score = attempt.get("score", 0)
+        final_score = round(mcq_score + total_coding_score, 2)
+
+        # Calculate max possible score to compute combined accuracy
+        max_possible_score = 0
+        if paper:
+            sections = paper.get("sections", [])
+            if not sections and "sets" in paper:
+                sections = paper.get("sets", {}).get("A", [])
+            for section in sections:
+                if section.get("type") == "mcq":
+                    total_mcqs = len(section.get("questions", []))
+                    marks_per_mcq = section.get("marks_per_question", 1)
+                    max_possible_score += total_mcqs * marks_per_mcq
+                elif section.get("type") == "coding":
+                    total_coding_questions = len(section.get("questions", []))
+                    max_possible_score += total_coding_questions * 10.0
+
+        analytics = attempt.get("analytics", {})
+        if max_possible_score > 0:
+            analytics["accuracy"] = round((final_score / max_possible_score) * 100, 2)
+        else:
+            analytics["accuracy"] = 0.0
+
         practice_attempts_collection.update_one(
             {"_id": ObjectId(practice_id)},
             {
                 "$set": {
-                    "coding_results": execution_metadata 
+                    "coding_results": execution_metadata,
+                    "coding_score": total_coding_score,
+                    "score": final_score,
+                    "analytics": analytics
                 }
             }
         )
-        print(f"✅ AI TUTOR: Generated mock exam coding review for attempt {practice_id}")
+        print(f"✅ AI TUTOR: Generated mock exam coding review for attempt {practice_id}. Score: {final_score}, Accuracy: {analytics['accuracy']}%")
 
     except Exception as e:
         print(f"🔥 BACKGROUND WORKER EXCEPTION on practice attempt {practice_id}:", str(e))

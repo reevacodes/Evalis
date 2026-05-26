@@ -241,12 +241,18 @@ def submit_practice_attempt(
         practice_id_str = str(practice_doc.get("_id"))
         
         # 🔥 FIRE MOCK EXAM EVALUATOR (Synchronously for instant feedback)
+        final_score = mcq_score
+        final_analytics = analytics
         if len(payload.coding_answers) > 0:
             from app.services.evaluation_service import async_evaluate_practice_submission
             async_evaluate_practice_submission(practice_id_str)
             updated_practice = practice_attempts_collection.find_one({"_id": ObjectId(practice_id_str)})
-            if updated_practice and updated_practice.get("coding_results"):
-                coding_results = updated_practice.get("coding_results")
+            if updated_practice:
+                if updated_practice.get("coding_results"):
+                    coding_results = updated_practice.get("coding_results")
+                final_score = updated_practice.get("score", mcq_score)
+                final_analytics = updated_practice.get("analytics", analytics)
+
         try:
             from app.database import user_collection
             from app.services.email_service import send_analytics_report_email
@@ -256,8 +262,8 @@ def submit_practice_attempt(
                 to_email=user.get("sub"),
                 name=student_name,
                 exam_name=paper.get("exam_name", "Mock Test"),
-                score=mcq_score,
-                analytics=analytics,
+                score=final_score,
+                analytics=final_analytics,
                 is_mock=True
             )
         except Exception as email_err:
@@ -265,8 +271,8 @@ def submit_practice_attempt(
 
         # Return instantly to the Client Result Page wrapper
         return {
-            "score": mcq_score,
-            "analytics": analytics,
+            "score": final_score,
+            "analytics": final_analytics,
             "coding_results": coding_results,
             "exam_sections": assigned_sections,
             "mcq_answers": payload.mcq_answers,
