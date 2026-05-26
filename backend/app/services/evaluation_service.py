@@ -202,39 +202,63 @@ def async_evaluate_practice_submission(practice_id: str):
         # Fetch the paper
         paper = past_papers_collection.find_one({"_id": ObjectId(attempt.get("paper_id"))})
 
+        # Collect all coding questions in the paper to ensure unattempted ones are preserved in analytics
+        paper_questions = []
+        seen_qids = set()
+        if paper:
+            sections = paper.get("sections", [])
+            if not sections and "sets" in paper:
+                sections = paper.get("sets", {}).get("A", [])
+            for section in sections:
+                if section.get("type") == "coding":
+                    for q in section.get("questions", []):
+                        qid = str(q.get("id") or q.get("_id"))
+                        if qid not in seen_qids:
+                            seen_qids.add(qid)
+                            paper_questions.append(q)
+
+        # Fallback: add any submitted coding answer not explicitly found in active sections
+        for qid in coding_answers.keys():
+            if qid not in seen_qids:
+                question = None
+                if paper:
+                    for section in paper.get("sections", []) + paper.get("sets", {}).get("A", []):
+                        if section.get("type") == "coding":
+                            for q in section.get("questions", []):
+                                if str(q.get("id", q.get("_id"))) == qid:
+                                    question = q
+                                    break
+                        if question:
+                            break
+                if question:
+                    seen_qids.add(qid)
+                    paper_questions.append(question)
+
         # Iterate against Sandbox execution
         execution_metadata = {}
 
-        for qid, payload in coding_answers.items():
+        for question in paper_questions:
+            qid = str(question.get("id") or question.get("_id"))
+            payload = coding_answers.get(qid, {})
             code = payload.get("code", "")
             language = payload.get("language", "python")
-
-            if not code.strip():
-                execution_metadata[qid] = {
-                    "status": "No Code",
-                    "passed": 0,
-                    "score": 0
-                }
-                continue
-
-            # Need to find the mock question
-            question = None
-            if paper:
-                for section in paper.get("sections", []) + paper.get("sets", {}).get("A", []):
-                    if section.get("type") == "coding":
-                        for q in section.get("questions", []):
-                            if str(q.get("id", q.get("_id"))) == qid:
-                                question = q
-                                break
-                    if question:
-                        break
-
-            if not question:
-                continue
 
             test_cases = question.get("test_cases")
             if not test_cases:
                 test_cases = (question.get("sample_test_cases") or []) + (question.get("hidden_test_cases") or [])
+
+            if not code.strip():
+                execution_metadata[qid] = {
+                    "status": "Not Attempted",
+                    "passed": 0,
+                    "total_cases": len(test_cases) if test_cases else 0,
+                    "score": 0.0,
+                    "max_score": 10.0,
+                    "details": [],
+                    "ai_feedback": None
+                }
+                continue
+
             if not test_cases:
                 continue
 
