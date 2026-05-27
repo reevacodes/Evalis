@@ -246,7 +246,8 @@ def get_questions(
         })
 
     if question_type:
-        conditions.append({"question_type": question_type})
+        type_field = "type" if is_mock else "question_type"
+        conditions.append({type_field: question_type})
 
     if difficulty:
         conditions.append({
