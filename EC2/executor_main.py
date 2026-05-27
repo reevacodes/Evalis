@@ -4,6 +4,7 @@ import base64
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
+from typing import Optional
 import os
 
 app = FastAPI()
@@ -14,9 +15,9 @@ API_KEY = "your_super_secret_execution_key_here"
 api_key_header = APIKeyHeader(name="X-API-Key")
 
 class ExecutionRequest(BaseModel):
-    code: str
-    language: str = "python"
-    input_data: str = ""
+    code: Optional[str] = ""
+    language: Optional[str] = "python"
+    input_data: Optional[str] = ""
 
 def get_api_key(api_key: str = Security(api_key_header)):
     if api_key != API_KEY:
@@ -25,13 +26,18 @@ def get_api_key(api_key: str = Security(api_key_header)):
 
 @app.post("/execute")
 def execute_code(payload: ExecutionRequest, api_key: str = Security(get_api_key)):
-    lang = payload.language.strip().lower()
+    # Safely normalize language parameter
+    lang = str(payload.language or "python").strip().lower()
     if lang not in ["python", "cpp", "c"]:
         raise HTTPException(status_code=400, detail="Unsupported language")
     
+    # Safely handle null strings
+    code_str = str(payload.code or "")
+    input_str = str(payload.input_data or "")
+    
     # Base64 encode code and input to avoid shell escaping issues
-    code_b64 = base64.b64encode(payload.code.encode("utf-8")).decode("utf-8")
-    input_b64 = base64.b64encode(payload.input_data.encode("utf-8")).decode("utf-8")
+    code_b64 = base64.b64encode(code_str.encode("utf-8")).decode("utf-8")
+    input_b64 = base64.b64encode(input_str.encode("utf-8")).decode("utf-8")
     
     if lang == "python":
         image = "python:3.9-slim"
