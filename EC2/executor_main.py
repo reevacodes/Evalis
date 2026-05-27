@@ -46,16 +46,16 @@ def execute_code(payload: ExecutionRequest, api_key: str = Security(get_api_key)
             f"echo '{code_b64}' | base64 -d > script.py && echo '{input_b64}' | base64 -d | python script.py"
         ]
     elif lang == "cpp":
-        image = "alpine:3.19"
+        image = "evalis-sandbox:latest"
         cmd = [
             "sh", "-c",
-            f"apk add --no-cache g++ musl-dev > /dev/null 2>&1 && echo '{code_b64}' | base64 -d > source.cpp && g++ -O2 source.cpp -o program && echo '{input_b64}' | base64 -d | ./program"
+            f"echo '{code_b64}' | base64 -d > source.cpp && g++ source.cpp -o program && echo '{input_b64}' | base64 -d | ./program"
         ]
     elif lang == "c":
-        image = "alpine:3.19"
+        image = "evalis-sandbox:latest"
         cmd = [
             "sh", "-c",
-            f"apk add --no-cache gcc musl-dev > /dev/null 2>&1 && echo '{code_b64}' | base64 -d > source.c && gcc -O2 source.c -o program && echo '{input_b64}' | base64 -d | ./program"
+            f"echo '{code_b64}' | base64 -d > source.c && gcc source.c -o program && echo '{input_b64}' | base64 -d | ./program"
         ]
     
     start_time = time.time()
@@ -66,7 +66,7 @@ def execute_code(payload: ExecutionRequest, api_key: str = Security(get_api_key)
             command=cmd,
             detach=False,
             # Security Boundaries
-            mem_limit="128m",       # Prevent Out of Memory attacks
+            mem_limit="512m",       # Prevent Out of Memory attacks
             cpu_period=100000,
             cpu_quota=50000,        # Max 50% of CPU
             network_disabled=True,  # No internet access for student code
