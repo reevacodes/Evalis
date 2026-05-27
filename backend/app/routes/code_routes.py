@@ -52,16 +52,19 @@ def run_sample_code(
     req: RunSampleRequest,
     user=Depends(require_role("student"))
 ):
+    # Build query filter supporting both ObjectId and string matches
+    query_filter = {"_id": req.question_id}
     try:
-        question = question_collection.find_one({
-            "_id": ObjectId(req.question_id)
-        })
+        query_filter = {"_id": {"$in": [ObjectId(req.question_id), req.question_id]}}
+    except Exception:
+        pass
+
+    try:
+        question = question_collection.find_one(query_filter)
         if not question:
-            question = mock_question_collection.find_one({
-                "_id": ObjectId(req.question_id)
-            })
-    except:
-        raise HTTPException(status_code=400, detail="Invalid question id")
+            question = mock_question_collection.find_one(query_filter)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database query error: {str(e)}")
 
     if not question:
        raise HTTPException(status_code=404, detail="Question not found")
@@ -99,16 +102,19 @@ def submit_code(
 ):
     user_id = user["sub"]  # 🔐 FIX
 
+    # Build query filter supporting both ObjectId and string matches
+    query_filter = {"_id": req.question_id}
     try:
-        question = question_collection.find_one({
-            "_id": ObjectId(req.question_id)
-        })
+        query_filter = {"_id": {"$in": [ObjectId(req.question_id), req.question_id]}}
+    except Exception:
+        pass
+
+    try:
+        question = question_collection.find_one(query_filter)
         if not question:
-            question = mock_question_collection.find_one({
-                "_id": ObjectId(req.question_id)
-            })
-    except:
-        raise HTTPException(status_code=400, detail="Invalid question id")
+            question = mock_question_collection.find_one(query_filter)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database query error: {str(e)}")
 
     if not question:
        raise HTTPException(status_code=404, detail="Question not found")
