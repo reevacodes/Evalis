@@ -1,5 +1,6 @@
 import docker
 import time
+import base64
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
@@ -24,24 +25,39 @@ def get_api_key(api_key: str = Security(api_key_header)):
 
 @app.post("/execute")
 def execute_code(payload: ExecutionRequest, api_key: str = Security(get_api_key)):
-    if payload.language != "python":
+    lang = payload.language.strip().lower()
+    if lang not in ["python", "cpp", "c"]:
         raise HTTPException(status_code=400, detail="Unsupported language")
     
-    # 1. Prepare the execution script
-    code_script = f"""
-import sys
-input_data = '''{payload.input_data}'''
-# Simulate stdin
-sys.stdin = open('/dev/tty', 'r') if not input_data else type('StringReader', (), {{'read': lambda: input_data}})()
-{payload.code}
-"""
+    # Base64 encode code and input to avoid shell escaping issues
+    code_b64 = base64.b64encode(payload.code.encode("utf-8")).decode("utf-8")
+    input_b64 = base64.b64encode(payload.input_data.encode("utf-8")).decode("utf-8")
+    
+    if lang == "python":
+        image = "python:3.9-slim"
+        cmd = [
+            "sh", "-c",
+            f"echo '{code_b64}' | base64 -d > script.py && echo '{input_b64}' | base64 -d | python script.py"
+        ]
+    elif lang == "cpp":
+        image = "gcc:latest"
+        cmd = [
+            "sh", "-c",
+            f"echo '{code_b64}' | base64 -d > source.cpp && g++ -O3 source.cpp -o program && echo '{input_b64}' | base64 -d | ./program"
+        ]
+    elif lang == "c":
+        image = "gcc:latest"
+        cmd = [
+            "sh", "-c",
+            f"echo '{code_b64}' | base64 -d > source.c && gcc -O3 source.c -o program && echo '{input_b64}' | base64 -d | ./program"
+        ]
     
     start_time = time.time()
     try:
-        # 2. Spin up the Sandbox
+        # Spin up the Sandbox container
         container = client.containers.run(
-            "python:3.9-slim",
-            command=["python", "-c", code_script],
+            image,
+            command=cmd,
             detach=False,
             # Security Boundaries
             mem_limit="128m",       # Prevent Out of Memory attacks
@@ -58,6 +74,9 @@ sys.stdin = open('/dev/tty', 'r') if not input_data else type('StringReader', ()
     except docker.errors.ContainerError as e:
         output = ""
         error = e.stderr.decode("utf-8")
+    except Exception as e:
+        output = ""
+        error = str(e)
     
     exec_time = round(time.time() - start_time, 3)
 
