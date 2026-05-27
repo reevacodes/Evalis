@@ -13,6 +13,7 @@ export default function QuestionBank() {
   const [questions, setQuestions] = useState([]);
   const [curriculum, setCurriculum] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isMockBank, setIsMockBank] = useState(false); // 🔥 RAG Mock Question Bank selector
 
   const [selectedIds, setSelectedIds] = useState([]);
   const availableSlots = fromPreview ? fromPreview.max_count - (fromPreview.existing_ids?.length || 0) : 0;
@@ -106,6 +107,7 @@ export default function QuestionBank() {
         tags: selection.tags || undefined,
         page: pagination.page,
         limit: 5,
+        is_mock: isMockBank,
       });
 
       const data = res.data;
@@ -135,7 +137,7 @@ export default function QuestionBank() {
     ) {
       loadQuestions();
     }
-  }, [selection, pagination.page]);
+  }, [selection, pagination.page, isMockBank]);
 
   // =========================
   // SEARCH
@@ -157,6 +159,7 @@ export default function QuestionBank() {
         question_type: selection.type,
         page: 1,
         limit: 10,
+        is_mock: isMockBank,
       });
 
       setSearchResults(res.data.data || []);
@@ -233,6 +236,48 @@ export default function QuestionBank() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* BANK TYPE TABS */}
+      <div className="flex gap-6 border-b border-gray-200 dark:border-slate-800 mb-8">
+        <button
+          onClick={() => {
+            setIsMockBank(false);
+            setPagination((prev) => ({ ...prev, page: 1 }));
+          }}
+          className={`pb-3 text-sm font-semibold transition-all relative ${
+            !isMockBank
+              ? "text-blue-500 font-bold"
+              : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-350"
+          }`}
+        >
+          Official Question Bank
+          {!isMockBank && (
+            <motion.div
+              layoutId="activeBankTab"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
+            />
+          )}
+        </button>
+        <button
+          onClick={() => {
+            setIsMockBank(true);
+            setPagination((prev) => ({ ...prev, page: 1 }));
+          }}
+          className={`pb-3 text-sm font-semibold transition-all relative ${
+            isMockBank
+              ? "text-blue-500 font-bold"
+              : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-350"
+          }`}
+        >
+          RAG Mock Question Bank
+          {isMockBank && (
+            <motion.div
+              layoutId="activeBankTab"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
+            />
+          )}
+        </button>
       </div>
 
       {/* FILTERS */}

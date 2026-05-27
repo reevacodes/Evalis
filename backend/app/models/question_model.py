@@ -1,22 +1,22 @@
 def question_helper(question) -> dict:
     return {
         "id": str(question["_id"]),
-        "semester": question["semester"],
+        "semester": question.get("semester"),
 
         "subject_code": question.get("subject_code"),
         "subject_name": question.get("subject_name"),
 
-        "unit": question["unit"],
-        "topic": question["topic"],
+        "unit": question.get("unit"),
+        "topic": question.get("topic"),
 
-        "question_text": question["question_text"],
-        "question_type": question["question_type"],
+        "question_text": question.get("question_text") or question.get("question_text"),
+        "question_type": question.get("question_type") or question.get("type"),
 
         "options": question.get("options"),
         "correct_answer": question.get("correct_answer"),
 
-        "difficulty": question["difficulty"],
-        "marks": question["marks"],
+        "difficulty": question.get("difficulty"),
+        "marks": question.get("marks"),
 
         "tags": question.get("tags", []),
         "created_at": question.get("created_at"),

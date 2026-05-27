@@ -211,7 +211,8 @@ def get_questions(
     tags: Optional[str] = Query(None),
     search: Optional[str] = None,
     page: int = 1,
-    limit: int = 10
+    limit: int = 10,
+    is_mock: bool = False
 ):
     conditions = []
 
@@ -290,11 +291,12 @@ def get_questions(
     limit = min(max(limit, 1), 50)
     skip = (page - 1) * limit
 
-    total = question_collection.count_documents(query)
+    target_collection = mock_question_collection if is_mock else question_collection
+    total = target_collection.count_documents(query)
     total_pages = (total + limit - 1) // limit
 
     cursor = (
-        question_collection
+        target_collection
         .find(query)
         .sort("created_at", -1)
         .skip(skip)
@@ -316,20 +318,34 @@ def get_questions(
 @router.delete("/questions/{question_id}")
 def delete_question(question_id: str):
     try:
-        result = question_collection.delete_one({
-            "_id": ObjectId(question_id)
-        })
+        deleted_count = 0
+        try:
+            result = question_collection.delete_one({"_id": ObjectId(question_id)})
+            deleted_count = result.deleted_count
+        except Exception:
+            pass
 
-        if result.deleted_count == 0:
+        if deleted_count == 0:
+            query_filter = {"_id": question_id}
+            try:
+                query_filter = {"_id": {"$in": [ObjectId(question_id), question_id]}}
+            except Exception:
+                pass
+            result_mock = mock_question_collection.delete_one(query_filter)
+            deleted_count = result_mock.deleted_count
+
+        if deleted_count == 0:
             raise HTTPException(status_code=404, detail="Question not found")
 
         return {
             "message": "Question deleted successfully",
-            "deleted_count": result.deleted_count
+            "deleted_count": deleted_count
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Invalid ID format")
+        raise HTTPException(status_code=400, detail=str(e))
     
 @router.put("/auto-assign-marks")
 def auto_assign_marks():
@@ -377,34 +393,52 @@ def update_question(question_id: str, payload: dict):
     try:
         update_data = payload
 
-        # 🔥 CLEAN (same as add)
-        if "subject_code" in update_data:
+        if "subject_code" in update_data and isinstance(update_data["subject_code"], str):
             update_data["subject_code"] = update_data["subject_code"].strip()
 
-        if "subject_name" in update_data:
+        if "subject_name" in update_data and isinstance(update_data["subject_name"], str):
             update_data["subject_name"] = update_data["subject_name"].strip()
 
-        if "topic" in update_data:
+        if "topic" in update_data and isinstance(update_data["topic"], str):
             update_data["topic"] = update_data["topic"].strip()
 
-        if "difficulty" in update_data:
+        if "difficulty" in update_data and isinstance(update_data["difficulty"], str):
             update_data["difficulty"] = update_data["difficulty"].strip()
 
-        if "tags" in update_data:
-            update_data["tags"] = [tag.strip() for tag in update_data.get("tags", [])]
+        if "tags" in update_data and isinstance(update_data["tags"], list):
+            update_data["tags"] = [tag.strip() for tag in update_data["tags"]]
 
-        result = question_collection.update_one(
-            {"_id": ObjectId(question_id)},
-            {"$set": update_data}
-        )
+        matched_count = 0
+        try:
+            result = question_collection.update_one(
+                {"_id": ObjectId(question_id)},
+                {"$set": update_data}
+            )
+            matched_count = result.matched_count
+        except Exception:
+            pass
 
-        if result.matched_count == 0:
+        if matched_count == 0:
+            query_filter = {"_id": question_id}
+            try:
+                query_filter = {"_id": {"$in": [ObjectId(question_id), question_id]}}
+            except Exception:
+                pass
+            result_mock = mock_question_collection.update_one(
+                query_filter,
+                {"$set": update_data}
+            )
+            matched_count = result_mock.matched_count
+
+        if matched_count == 0:
             raise HTTPException(status_code=404, detail="Question not found")
 
         return {
             "message": "Question updated successfully"
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
