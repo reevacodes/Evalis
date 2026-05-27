@@ -485,12 +485,15 @@ def get_all_exams_api(user=Depends(get_current_user)):
     try:
         role = user.get("role")
 
+        # Exclude massive sections and sets fields using projection for high transfer speed
+        projection = {"sections": 0, "sets": 0}
+
         if role == "admin":
-            exams = list(exam_collection.find({"is_deleted": {"$ne": True}, "exam_type": {"$ne": "Practice"}}).sort("created_at", -1))
+            exams = list(exam_collection.find({"is_deleted": {"$ne": True}, "exam_type": {"$ne": "Practice"}}, projection).sort("created_at", -1))
 
         elif role == "teacher":
             exams = list(
-                exam_collection.find({"teacher_name": user["sub"], "is_deleted": {"$ne": True}, "exam_type": {"$ne": "Practice"}})
+                exam_collection.find({"teacher_name": user["sub"], "is_deleted": {"$ne": True}, "exam_type": {"$ne": "Practice"}}, projection)
                 .sort("created_at", -1)
             )
 
@@ -503,7 +506,7 @@ def get_all_exams_api(user=Depends(get_current_user)):
                 query["semester"] = student_semester
 
             exams = list(
-                exam_collection.find(query)
+                exam_collection.find(query, projection)
                 .sort("created_at", -1)
             )
             

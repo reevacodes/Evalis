@@ -30,7 +30,8 @@ def get_all_past_papers(user=Depends(get_current_user)):
                 ]}
             ]
         }
-        papers = list(past_papers_collection.find(query).sort("year", -1))
+        # Use projection to avoid fetching massive sections and sets fields
+        papers = list(past_papers_collection.find(query, {"sections": 0, "sets": 0}).sort("year", -1))
         
         # Strip massive payloads (sections) for the listing
         for p in papers:
@@ -54,7 +55,16 @@ def get_practice_history(user=Depends(get_current_user)):
         # Enrich with exam names
         for a in attempts:
             a["_id"] = str(a["_id"])
-            paper = past_papers_collection.find_one({"_id": ObjectId(a["paper_id"])}, {"exam_name": 1})
+            
+            # Support both ObjectId and raw string UUIDs
+            paper_id_val = a.get("paper_id")
+            query_filter = {"_id": paper_id_val}
+            try:
+                query_filter = {"_id": {"$in": [ObjectId(paper_id_val), paper_id_val]}}
+            except Exception:
+                pass
+                
+            paper = past_papers_collection.find_one(query_filter, {"exam_name": 1})
             a["exam_name"] = paper.get("exam_name", "Unknown Practice Paper") if paper else "Unknown Practice Paper"
             
         return attempts
