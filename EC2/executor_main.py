@@ -46,16 +46,16 @@ def execute_code(payload: ExecutionRequest, api_key: str = Security(get_api_key)
             f"echo '{code_b64}' | base64 -d > script.py && echo '{input_b64}' | base64 -d | python script.py"
         ]
     elif lang == "cpp":
-        image = "gcc:latest"
+        image = "alpine:3.19"
         cmd = [
             "sh", "-c",
-            f"echo '{code_b64}' | base64 -d > source.cpp && g++ -O3 source.cpp -o program && echo '{input_b64}' | base64 -d | ./program"
+            f"apk add --no-cache g++ musl-dev > /dev/null 2>&1 && echo '{code_b64}' | base64 -d > source.cpp && g++ -O2 source.cpp -o program && echo '{input_b64}' | base64 -d | ./program"
         ]
     elif lang == "c":
-        image = "gcc:latest"
+        image = "alpine:3.19"
         cmd = [
             "sh", "-c",
-            f"echo '{code_b64}' | base64 -d > source.c && gcc -O3 source.c -o program && echo '{input_b64}' | base64 -d | ./program"
+            f"apk add --no-cache gcc musl-dev > /dev/null 2>&1 && echo '{code_b64}' | base64 -d > source.c && gcc -O2 source.c -o program && echo '{input_b64}' | base64 -d | ./program"
         ]
     
     start_time = time.time()
