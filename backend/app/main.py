@@ -195,15 +195,6 @@ app.include_router(
 
 app.include_router(auth_routes.router, prefix="/auth", tags=["Auth"])
 
-# EXECUTOR DEBUG
-@app.get("/executor-debug")
-def executor_debug():
-    import os
-    return {
-        "EXECUTOR_URL": os.getenv("EXECUTOR_URL"),
-        "EXECUTOR_API_KEY_LENGTH": len(os.getenv("EXECUTOR_API_KEY") or "")
-    }
-
 # ROOT
 @app.get("/")
 def root():
