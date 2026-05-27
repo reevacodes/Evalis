@@ -81,10 +81,10 @@ def get_live_sessions(user=Depends(require_role("admin"))):
         student = None
         student_id_str = session.get("student_id")
         if student_id_str:
-            student = user_collection.find_one({"email": student_id_str})
+            student = user_collection.find_one({"email": student_id_str}, {"name": 1, "email": 1})
             if not student:
                 try:
-                    student = user_collection.find_one({"_id": ObjectId(student_id_str)})
+                    student = user_collection.find_one({"_id": ObjectId(student_id_str)}, {"name": 1, "email": 1})
                 except Exception:
                     pass
         
@@ -93,7 +93,7 @@ def get_live_sessions(user=Depends(require_role("admin"))):
         exam_id_str = session.get("exam_id")
         if exam_id_str:
             try:
-                exam = exam_collection.find_one({"_id": ObjectId(exam_id_str)})
+                exam = exam_collection.find_one({"_id": ObjectId(exam_id_str)}, {"exam_name": 1})
             except Exception:
                 pass
                 

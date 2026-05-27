@@ -83,14 +83,16 @@ export default function AdminOverview() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await fetchReschedules();
-        
-        const [logsRes, sessionsRes, res] = await Promise.all([
+        const [reqRes, logsRes, sessionsRes, res] = await Promise.all([
+          getRescheduleRequests("all").catch(() => ({ data: { requests: [] } })),
           getActivityLogs().catch(() => ({ data: [] })),
           getLiveSessions().catch(() => ({ data: [] })),
           getAllExams().catch(() => ({ data: { exams: [] } }))
         ]);
         
+        if(reqRes.data?.requests) {
+           setRescheduleRequests(reqRes.data.requests);
+        }
         setActivityLogs(logsRes.data || []);
         setLiveSessions(sessionsRes.data || []);
 

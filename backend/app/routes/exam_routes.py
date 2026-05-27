@@ -1753,7 +1753,7 @@ def get_reschedule_requests(
         req["_id"] = str(req["_id"])
         
         # Hydrate exam info
-        exam = exam_collection.find_one({"_id": ObjectId(req["exam_id"])})
+        exam = exam_collection.find_one({"_id": ObjectId(req["exam_id"])}, {"exam_name": 1, "start_time": 1})
         if exam:
             req["exam_name"] = exam.get("exam_name", "Unknown Exam")
             req["original_time"] = exam.get("start_time")
