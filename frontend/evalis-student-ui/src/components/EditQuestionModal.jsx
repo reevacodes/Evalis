@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { updateQuestion } from "../services/api";
 
-export default function EditQuestionModal({ question, onClose, onSuccess }) {
+export default function EditQuestionModal({ question, isMockBank, onClose, onSuccess }) {
   const [form, setForm] = useState({
-    topic: question.topic,
+    topic: question.topic || "",
     difficulty: question.difficulty || "medium", 
     tags_string: (question.tags || []).join(", "), // 🔥 Support tags editing
     question_text: question.question_text || question.question || "",
@@ -69,16 +69,18 @@ export default function EditQuestionModal({ question, onClose, onSuccess }) {
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Metadata</h3>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Topic</label>
-                <input
-                  value={form.topic}
-                  placeholder="e.g. Recursion"
-                  className="w-full p-2.5 bg-white dark:bg-slate-950/50 border border-gray-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition text-sm"
-                  onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                />
-              </div>
+            <div className={isMockBank ? "grid grid-cols-1" : "grid grid-cols-2 gap-4"}>
+              {!isMockBank && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Topic</label>
+                  <input
+                    value={form.topic}
+                    placeholder="e.g. Recursion"
+                    className="w-full p-2.5 bg-white dark:bg-slate-950/50 border border-gray-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition text-sm"
+                    onChange={(e) => setForm({ ...form, topic: e.target.value })}
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Difficulty</label>

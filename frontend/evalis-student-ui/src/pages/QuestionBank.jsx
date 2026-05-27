@@ -63,6 +63,7 @@ export default function QuestionBank() {
     if (!selection.semester) return "semester";
     if (!selection.subject) return "subjects";
     if (!selection.unit) return "units";
+    if (isMockBank) return "questions"; // 🔥 Bypass topic folder selection for RAG Mock bank
     if (!selection.topic) return "topics";
     return "questions";
   };
@@ -72,8 +73,10 @@ export default function QuestionBank() {
     if (getView() === "subjects") return `Semester ${selection.semester}`;
     if (getView() === "units") return selection.subject;
     if (getView() === "topics") return `Unit ${selection.unit}`;
-    if (getView() === "questions")
+    if (getView() === "questions") {
+      if (isMockBank) return `${selection.subject} • Unit ${selection.unit} Mocks • ${selection.type || "All"}`;
       return `${selection.topic} • ${selection.type || "All"}`;
+    }
   };
 
   // =========================
@@ -95,13 +98,11 @@ export default function QuestionBank() {
     setLoading(true);
 
     try {
-
-
       const res = await getQuestions({
         semester: Number(selection.semester),
         subject: selection.subject,
         unit: Number(selection.unit),
-        topic: selection.topic,
+        topic: isMockBank ? undefined : selection.topic,
         question_type: selection.type,
         difficulty: selection.difficulty || undefined,
         tags: selection.tags || undefined,
@@ -111,8 +112,6 @@ export default function QuestionBank() {
       });
 
       const data = res.data;
-
-
 
       setQuestions(data.data || []);
       setPagination({
@@ -129,12 +128,11 @@ export default function QuestionBank() {
   };
 
   useEffect(() => {
-    if (
-      selection.semester &&
-      selection.subject &&
-      selection.unit &&
-      selection.topic
-    ) {
+    const hasRequiredFields = isMockBank
+      ? (selection.semester && selection.subject && selection.unit)
+      : (selection.semester && selection.subject && selection.unit && selection.topic);
+
+    if (hasRequiredFields) {
       loadQuestions();
     }
   }, [selection, pagination.page, isMockBank]);
@@ -195,6 +193,9 @@ export default function QuestionBank() {
   // BACK NAV
   // =========================
   const goBack = () => {
+    if (isMockBank && selection.unit && getView() === "questions") {
+      return updateSelection({ unit: "", topic: "", type: "" });
+    }
     if (selection.topic) return updateSelection({ topic: "", type: "" });
     if (selection.unit) return updateSelection({ unit: "" });
     if (selection.subject) return updateSelection({ subject: "" });
@@ -305,26 +306,27 @@ export default function QuestionBank() {
             </select>
           </div>
 
-          {/* TYPE SWITCH */}
-          <button
-            onClick={() => {
-              const order = ["", "mcq", "coding"];
-              const currentIndex = order.indexOf(selection.type);
-              const nextType = order[(currentIndex + 1) % order.length];
-              updateSelection({ type: nextType });
-            }}
-            className="flex items-center gap-2 bg-white dark:bg-slate-950 border border-gray-300 dark:border-slate-700 
-            px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition"
-          >
-            <ArrowUpDown size={16} className="text-gray-400" />
-            <span className="text-sm font-medium">
-              {selection.type === ""
-                ? "All Types"
-                : selection.type === "mcq"
-                  ? "MCQ"
-                  : "Coding"}
-            </span>
-          </button>
+          {/* TYPE SWITCH (All, MCQ, Coding toggle) */}
+          <div className="flex bg-gray-100 dark:bg-slate-950 p-1 rounded-lg border border-gray-300 dark:border-slate-700">
+            {[
+              { label: "All", value: "" },
+              { label: "MCQ", value: "mcq" },
+              { label: "Coding", value: "coding" },
+            ].map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => updateSelection({ type: t.value })}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  selection.type === t.value
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-500 hover:text-slate-850 dark:hover:text-slate-200"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -418,6 +420,7 @@ export default function QuestionBank() {
                     pickerMode={!!fromPreview}
                     existingIds={fromPreview?.existing_ids || []}
                     selectedIds={selectedIds}
+                    isMockBank={isMockBank}
                     onSelect={
                       fromPreview
                         ? (q) => {

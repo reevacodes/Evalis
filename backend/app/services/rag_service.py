@@ -202,6 +202,8 @@ def generate_rag_questions(subject_name: str, subject_code: str, unit: str, cont
             q["subject_code"] = subject_code
             q["subject_name"] = subject_name
             q["unit"] = str(unit)
+            # Remove topic key if present to satisfy: "Dont add topics in rag question bank"
+            q.pop("topic", None)
             
             # Align test cases format with database expectations
             if q.get("type") == "coding":

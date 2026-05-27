@@ -3,7 +3,7 @@ import { deleteQuestion } from "../services/api";
 import EditQuestionModal from "./EditQuestionModal";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function QuestionList({ questions, reload, onSelect, pickerMode, existingIds = [], selectedIds = [] }) {
+export default function QuestionList({ questions, reload, onSelect, pickerMode, existingIds = [], selectedIds = [], isMockBank }) {
   const [localQuestions, setLocalQuestions] = useState([]); // 🔥 NEW
   const [showEdit, setShowEdit] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -125,7 +125,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
                     </p>
 
                     <p className="text-sm text-slate-600 dark:text-gray-400 mb-3">
-                      {q.subject_name || "No Subject"} • {q.topic} •{" "}
+                      {q.subject_name || "No Subject"}{!isMockBank && q.topic ? ` • ${q.topic}` : ""} •{" "}
                       <span className="capitalize">{q.difficulty}</span> •{" "}
                       <span className="uppercase text-indigo-600 dark:text-indigo-400 font-semibold">
                         {q.question_type}
@@ -277,6 +277,7 @@ export default function QuestionList({ questions, reload, onSelect, pickerMode, 
       {showEdit && selected && (
         <EditQuestionModal
           question={selected}
+          isMockBank={isMockBank}
           onClose={() => setShowEdit(false)}
           onSuccess={(updatedQ) => {
             updateQuestionLocally(updatedQ); // 🔥 instant UI update

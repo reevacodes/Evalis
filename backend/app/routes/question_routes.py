@@ -131,6 +131,8 @@ def add_bulk_mock_questions(payload: BulkMockQuestionsPayload):
         doc["semester"] = payload.semester
         doc["unit"] = payload.unit
         doc["created_at"] = datetime.utcnow()
+        # Remove topic for mock question
+        doc.pop("topic", None)
         if "marks" not in doc:
             doc["marks"] = 10 if doc.get("type") == "coding" else 1
         docs.append(doc)
@@ -226,10 +228,14 @@ def get_questions(
         conditions.append({"subject_code": subject.strip()})
 
     if unit is not None:
-        try:
-            conditions.append({"unit": int(unit)})  # 🔥 FIX
-        except:
-            pass
+        unit_str = str(unit).strip()
+        conditions.append({
+            "$or": [
+                {"unit": int(unit) if unit_str.isdigit() else unit},
+                {"unit": unit_str},
+                {"unit": {"$regex": f".*\\b{unit_str}\\b.*", "$options": "i"}}
+            ]
+        })
 
     if topic:
         conditions.append({
