@@ -217,7 +217,7 @@ export default function PracticeResultPage() {
                       <div className="flex justify-between items-start mb-4">
                          <span className="font-bold text-lg text-slate-900 dark:text-white">Multiple Choice</span>
                          <span className="text-xs uppercase tracking-widest font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                            {analytics.accuracy}% Acc
+                            {analytics.total_mcqs > 0 ? Math.round((analytics.correct_mcqs / analytics.total_mcqs) * 100) : 0}% Acc
                          </span>
                       </div>
                       <div className="space-y-3">
