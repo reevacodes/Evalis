@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Folder, FolderOpen, BookOpen, Clock, ChevronRight, ChevronDown, CheckCircle, BarChart2, Calendar, Target, PlayCircle, Trophy, Zap, Sparkles, Activity } from "lucide-react";
+import { Folder, FolderOpen, BookOpen, Clock, ChevronRight, ChevronDown, CheckCircle, BarChart2, Calendar, Target, PlayCircle, Trophy, Zap, Sparkles, Activity, Loader2, AlertCircle } from "lucide-react";
 import API, { getPastPapers, fetchCurriculum, getPracticeHistory } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
@@ -551,9 +551,34 @@ export default function StudentDashboard() {
                                       <h4 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{exam.exam_name}</h4>
                                       <p className="text-blue-500 font-medium text-xs mt-1">{exam.subject_code} • Sem {exam.semester}</p>
                                     </div>
-                                    <span className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${exam.is_suspended ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
-                                      {exam.is_suspended ? "Suspended" : "Completed"}
-                                    </span>
+                                    {(() => {
+                                      if (exam.is_suspended) {
+                                        return (
+                                          <span className="px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider bg-red-500/20 text-red-500 border border-red-500/30">
+                                            Suspended
+                                          </span>
+                                        );
+                                      }
+                                      if (!exam.has_submitted) {
+                                        return (
+                                          <span className="px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
+                                            Not Attempted
+                                          </span>
+                                        );
+                                      }
+                                      if (!exam.is_results_published) {
+                                        return (
+                                          <span className="px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
+                                            Evaluating
+                                          </span>
+                                        );
+                                      }
+                                      return (
+                                        <span className="px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                          Released
+                                        </span>
+                                      );
+                                    })()}
                                   </div>
                                   <p className="text-xs text-slate-500 font-medium mb-4 flex items-center gap-2">
                                     <Calendar className="w-3 h-3" /> {exam.start_time ? formatDateOnly(exam.start_time) : "TBD"}
@@ -579,12 +604,38 @@ export default function StudentDashboard() {
                                         )}
                                       </>
                                     ) : (
-                                      <button 
-                                        onClick={() => navigate(`/student/results/${exam._id}`)}
-                                        className="w-full py-2.5 rounded-xl font-bold bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:bg-blue-600/20 dark:text-blue-400 dark:hover:bg-blue-600/30 transition flex items-center justify-center gap-2 text-sm"
-                                      >
-                                        <BarChart2 className="w-4 h-4" /> View Analytics
-                                      </button>
+                                      <>
+                                        {(() => {
+                                          if (!exam.has_submitted) {
+                                            return (
+                                              <button 
+                                                disabled
+                                                className="w-full py-2.5 rounded-xl font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20 cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                                              >
+                                                <AlertCircle className="w-4 h-4" /> Analytics Unavailable
+                                              </button>
+                                            );
+                                          }
+                                          if (!exam.is_results_published) {
+                                            return (
+                                              <button 
+                                                disabled
+                                                className="w-full py-2.5 rounded-xl font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 cursor-not-allowed flex items-center justify-center gap-2 text-sm animate-pulse"
+                                              >
+                                                <Loader2 className="w-4 h-4 animate-spin" /> Results Pending
+                                              </button>
+                                            );
+                                          }
+                                          return (
+                                            <button 
+                                              onClick={() => navigate(`/student/results/${exam._id}`)}
+                                              className="w-full py-2.5 rounded-xl font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/35 transition flex items-center justify-center gap-2 text-sm border border-emerald-500/20"
+                                            >
+                                              <BarChart2 className="w-4 h-4" /> View Analytics
+                                            </button>
+                                          );
+                                        })()}
+                                      </>
                                     )}
                                   </div>
                                 </div>
