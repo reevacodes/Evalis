@@ -2,7 +2,7 @@ import pandas as pd
 
 coding = [
     {
-        "question_text": "Find the largest of three numbers.\n\nProblem Description:\nFind the largest of three numbers.",
+        "question_text": "Find the largest of three numbers.",
         "topic": "Decision Making and Branching",
         "marks": 5,
         "difficulty": "medium",
@@ -20,7 +20,7 @@ coding = [
         "starter_code": "#include <stdio.h>\n\nint main() {\n    // Write your code here\n    return 0;\n}"
     },
     {
-        "question_text": "Write a function to check whether a number is prime.\n\nProblem Description:\nWrite a function to check whether a number is prime.",
+        "question_text": "Write a function to check whether a number is prime.",
         "topic": "User Defined Functions",
         "marks": 5,
         "difficulty": "medium",
@@ -38,7 +38,7 @@ coding = [
         "starter_code": "#include <stdio.h>\n\nint main() {\n    // Write your code here\n    return 0;\n}"
     },
     {
-        "question_text": "Write a program to write data into a file and read it back.\n\nProblem Description:\nWrite a program to write data into a file and read it back.",
+        "question_text": "Write a program to write data into a file and read it back.",
         "topic": "File Handling in C",
         "marks": 5,
         "difficulty": "medium",
