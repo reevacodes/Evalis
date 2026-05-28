@@ -104,11 +104,19 @@ export default function StudentResults() {
     data.exam_sections.forEach(sec => {
       if (sec.questions) {
         sec.questions.forEach(q => {
-          if (q.type === "coding" || q.category === "coding") {
+          const isCoding = q.question_type === "coding" || q.type === "coding" || q.category === "coding" || !q.options || q.options.length === 0;
+          if (isCoding) {
             const qid = String(q.id || q._id);
             if (!seenQids.has(qid)) {
               seenQids.add(qid);
-              examCodingQuestions.push(q);
+              examCodingQuestions.push({
+                ...q,
+                id: qid,
+                _id: qid,
+                question: q.question_text || q.question || "Coding Question",
+                question_text: q.question_text || q.question || "Coding Question",
+                description: q.description || q.statement || q.problem_statement || ""
+              });
             }
           }
         });
@@ -125,7 +133,10 @@ export default function StudentResults() {
           id: qid,
           _id: qid,
           question: `Coding Question (${qid.substring(0, 6)})`,
-          type: "coding"
+          question_text: `Coding Question (${qid.substring(0, 6)})`,
+          type: "coding",
+          question_type: "coding",
+          description: ""
         });
       }
     });
@@ -426,7 +437,7 @@ export default function StudentResults() {
             </div>
             <div className="p-6 space-y-6">
               {data.exam_sections.map((sec, secIdx) => {
-                const mcqQuestions = sec.questions ? sec.questions.filter(q => q.type !== 'coding' && q.category !== 'coding') : [];
+                const mcqQuestions = sec.questions ? sec.questions.filter(q => q.question_type === "mcq" || q.type === "mcq" || (q.options && q.options.length > 0)) : [];
                 if (mcqQuestions.length === 0) return null;
                 return (
                   <div key={secIdx} className="space-y-4">
