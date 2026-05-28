@@ -226,7 +226,7 @@ export default function StudentResults() {
         </div>
 
         {/* UNIFIED ACADEMIC PERFORMANCE SUMMARY */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Circular Score Meter */}
           <div className="bg-[#0f1524] border border-slate-800/80 rounded-3xl p-6 flex flex-col justify-between shadow-lg relative overflow-hidden group">
@@ -271,29 +271,6 @@ export default function StudentResults() {
               <p className="text-xs text-slate-400 leading-relaxed font-medium">
                 Dynamic grading transcript evaluated against total exam accuracy metrics, verified using sandbox output indicators.
               </p>
-            </div>
-          </div>
-
-          {/* Time Analytics */}
-          <div className="bg-[#0f1524] border border-slate-800/80 rounded-3xl p-6 flex flex-col justify-between shadow-lg">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-400" /> Duration & Pace Registry
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center bg-[#070a13] p-3 rounded-xl border border-slate-800/50">
-                <span className="text-xs font-semibold text-slate-400">Total Exam Duration</span>
-                <span className="text-sm font-bold text-white">{formatTime(analytics.time_spent_total)}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-[#070a13] p-2.5 rounded-xl border border-slate-800/50 text-center">
-                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">MCQ Time</p>
-                  <p className="text-xs font-bold text-slate-300">{formatTime(analytics.time_spent_mcq)}</p>
-                </div>
-                <div className="bg-[#070a13] p-2.5 rounded-xl border border-slate-800/50 text-center">
-                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Coding Time</p>
-                  <p className="text-xs font-bold text-slate-300">{formatTime(analytics.time_spent_coding)}</p>
-                </div>
-              </div>
             </div>
           </div>
 
