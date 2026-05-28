@@ -70,13 +70,34 @@ def get_activity_logs(user=Depends(require_role("admin")), limit: int = 50):
 @router.get("/live-sessions")
 def get_live_sessions(user=Depends(require_role("admin"))):
     # This will find any student who has an active session in exam_submissions
-    from app.database import exam_submission_collection
+    from app.database import exam_submission_collection, exam_collection, user_collection
+    from bson.objectid import ObjectId
     
     # Students who have start_time but not has_submitted
     active_sessions = list(exam_submission_collection.find({"has_submitted": False}))
     
-    result = []
+    # De-duplicate by keeping only the latest unique session per student per exam
+    unique_sessions = {}
+    
     for session in active_sessions:
+        exam_id_str = session.get("exam_id")
+        if not exam_id_str:
+            continue
+            
+        # Try finding exam in DB
+        exam = None
+        try:
+            exam = exam_collection.find_one({"_id": ObjectId(exam_id_str)})
+        except Exception:
+            pass
+            
+        if not exam:
+            continue
+            
+        # Filter out deleted, archived, or ended exams from the live active monitor
+        if exam.get("is_deleted") or exam.get("is_archived") or exam.get("time_status") == "ended":
+            continue
+            
         # Fallbacks: try finding student in DB
         student = None
         student_id_str = session.get("student_id")
@@ -88,30 +109,32 @@ def get_live_sessions(user=Depends(require_role("admin"))):
                 except Exception:
                     pass
         
-        # Try finding exam in DB
-        exam = None
-        exam_id_str = session.get("exam_id")
-        if exam_id_str:
-            try:
-                exam = exam_collection.find_one({"_id": ObjectId(exam_id_str)}, {"exam_name": 1})
-            except Exception:
-                pass
-                
         # Resolve fields with database lookup as primary, session document as fallback
         s_name = (student.get("name") if student else None) or session.get("student_name", "Unknown")
         s_email = (student.get("email") if student else None) or session.get("student_email", "")
         e_name = (exam.get("exam_name") if exam else None) or session.get("exam_name", "Unknown")
         
-        result.append({
+        start_time = session.get("start_time")
+        key = (s_email, exam_id_str)
+        
+        session_data = {
             "session_id": str(session["_id"]),
             "student_name": s_name,
             "student_email": s_email,
             "exam_name": e_name,
-            "start_time": session.get("start_time"),
+            "start_time": start_time,
             "warnings": session.get("warnings", 0)
-        })
-            
-    return result
+        }
+        
+        if key not in unique_sessions:
+            unique_sessions[key] = session_data
+        else:
+            # Keep the one with the latest start_time
+            existing_start = unique_sessions[key]["start_time"]
+            if start_time and (not existing_start or start_time > existing_start):
+                unique_sessions[key] = session_data
+                
+    return list(unique_sessions.values())
 
 @router.get("/users")
 def get_all_users(user=Depends(require_role("admin"))):
