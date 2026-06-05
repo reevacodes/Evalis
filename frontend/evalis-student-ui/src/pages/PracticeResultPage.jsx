@@ -31,7 +31,7 @@ export default function PracticeResultPage() {
 
   if (!result) {
     return (
-      <div className="min-h-screen bg-[#050505] text-slate-900 dark:text-white flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#050505] text-slate-900 dark:text-white flex flex-col items-center justify-center p-6">
         <h2 className="text-2xl font-bold mb-4">No Practice Results Found</h2>
         <button 
             onClick={() => navigate("/student")} 
@@ -116,7 +116,7 @@ export default function PracticeResultPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0E] text-slate-800 dark:text-slate-200 p-4 md:p-8 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-gray-100 dark:bg-[#0A0A0E] text-slate-800 dark:text-slate-200 p-4 md:p-8 font-sans selection:bg-indigo-500/30">
       <div className="max-w-[1400px] mx-auto space-y-6">
         
         {/* TOP UNIFIED PERFORMANCE STRIP */}
@@ -126,7 +126,7 @@ export default function PracticeResultPage() {
           <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-6 z-10 w-full lg:w-auto">
             <div className="relative shrink-0">
                <svg className="w-24 h-24 transform -rotate-90">
-                  <circle cx="48" cy="48" r="40" className="stroke-slate-800" strokeWidth="8" fill="none" />
+                  <circle cx="48" cy="48" r="40" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="8" fill="none" />
                   <circle cx="48" cy="48" r="40" className="stroke-indigo-500" strokeWidth="8" fill="none" strokeDasharray="251" strokeDashoffset={251 - (251 * Math.min(score, 100)) / 100} strokeLinecap="round" />
                </svg>
                <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -315,7 +315,7 @@ export default function PracticeResultPage() {
 
           {/* RIGHT CONTENT (4 Cols) - ACTION PLAN CENTERPIECE */}
           <div className="lg:col-span-4 space-y-6">
-             <div className="bg-gradient-to-b from-slate-900 to-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 h-full shadow-2xl relative overflow-hidden flex flex-col">
+             <div className="bg-gradient-to-b from-gray-50 to-white dark:from-slate-900 dark:to-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 h-full shadow-2xl relative overflow-hidden flex flex-col">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 blur-[80px] pointer-events-none rounded-full"></div>
                 
                 <div className="relative z-10">
@@ -422,6 +422,95 @@ export default function PracticeResultPage() {
           </div>
         )}
 
+        {/* AI CODE OPTIMIZATION RECOMMENDATIONS */}
+        {coding_results && typeof coding_results === 'object' && coding_results.status !== 'pending_manual_review_or_execution' && Object.entries(coding_results).some(([, d]) => d?.ai_feedback) && (
+          <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/5 via-purple-600/5 to-pink-600/5 pointer-events-none"></div>
+            <div className="px-6 py-5 border-b border-gray-200 dark:border-slate-800 flex items-center gap-3 relative z-10">
+              <div className="p-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl border border-indigo-500/20">
+                <Sparkles className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">AI Code Optimization</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Intelligent analysis of your coding solutions</p>
+              </div>
+            </div>
+            <div className="p-6 md:p-8 space-y-5 relative z-10">
+              {Object.entries(coding_results).map(([qid, data], idx) => {
+                if (!data?.ai_feedback) return null;
+                let fb = null;
+                let rawFeedback = data.ai_feedback;
+                try {
+                  let cleaned = rawFeedback;
+                  if (cleaned.startsWith('```json')) cleaned = cleaned.replace(/^```json\s*/, '').replace(/```\s*$/, '');
+                  else if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```\s*/, '').replace(/```\s*$/, '');
+                  fb = JSON.parse(cleaned);
+                } catch (e) {
+                  fb = null;
+                }
+
+                const statusColor = data.status === 'AC' 
+                  ? 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20' 
+                  : 'from-rose-500/10 to-rose-500/5 border-rose-500/20';
+                const statusBadge = data.status === 'AC'
+                  ? 'bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 border-emerald-500/25'
+                  : 'bg-rose-500/15 text-rose-500 dark:text-rose-400 border-rose-500/25';
+
+                return (
+                  <div key={qid} className={`bg-gradient-to-br ${statusColor} rounded-2xl border p-5 transition-all hover:shadow-lg`}>
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm border border-indigo-500/20">
+                          {idx + 1}
+                        </div>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">Coding Problem {idx + 1}</span>
+                      </div>
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${statusBadge}`}>
+                        {data.passed}/{data.total_cases} Passed
+                      </span>
+                    </div>
+
+                    {fb ? (
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-2.5">
+                          {fb.time_complexity && (
+                            <div className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-lg px-3 py-2">
+                              <Zap className="w-3.5 h-3.5 text-indigo-400" />
+                              <span className="text-xs font-bold text-indigo-300">Time</span>
+                              <span className="text-xs font-mono font-bold text-indigo-200 bg-indigo-500/20 px-1.5 py-0.5 rounded">{fb.time_complexity}</span>
+                            </div>
+                          )}
+                          {fb.memory_efficiency && (
+                            <div className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 rounded-lg px-3 py-2">
+                              <BarChart2 className="w-3.5 h-3.5 text-purple-400" />
+                              <span className="text-xs font-bold text-purple-300">Space</span>
+                              <span className="text-xs font-mono font-bold text-purple-200 bg-purple-500/20 px-1.5 py-0.5 rounded">{fb.memory_efficiency}</span>
+                            </div>
+                          )}
+                          {fb.readability && (
+                            <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2">
+                              <Code className="w-3.5 h-3.5 text-blue-400" />
+                              <span className="text-xs font-bold text-blue-300">Readability</span>
+                              <span className="text-xs font-bold text-blue-200 bg-blue-500/20 px-1.5 py-0.5 rounded">{fb.readability}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="bg-white/50 dark:bg-slate-950/50 border border-gray-200 dark:border-slate-800/50 rounded-xl p-4">
+                          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">{fb.feedback || fb.message}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-white/50 dark:bg-slate-950/50 border border-gray-200 dark:border-slate-800/50 rounded-xl p-4">
+                        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{rawFeedback}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* CODING LOG ACCORDION */}
         {coding_results && Object.keys(coding_results).length > 0 && (
            <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl overflow-hidden transition-all duration-300 shadow-lg">
@@ -449,13 +538,13 @@ export default function PracticeResultPage() {
               
               {codingExpanded && (
                  <div className="p-6 md:p-8 pt-0 border-t border-gray-200 dark:border-slate-800 mt-4 mx-4 mb-4">
-                    <div className="bg-[#050505] p-6 rounded-2xl border border-gray-200 dark:border-slate-800 text-sm font-mono text-slate-500 dark:text-slate-400 overflow-x-auto shadow-inner">
+                    <div className="bg-gray-50 dark:bg-[#050505] p-6 rounded-2xl border border-gray-200 dark:border-slate-800 text-sm font-mono text-slate-600 dark:text-slate-400 overflow-x-auto shadow-inner">
                        {coding_results.status === 'pending_manual_review_or_execution' ? (
                           <div className="flex flex-col gap-3">
-                             <div className="flex items-center gap-2 text-emerald-400">
+                             <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
                                 <CheckCircle2 className="w-4 h-4"/> <span>[SYSTEM] Submissions successfully captured.</span>
                              </div>
-                             <div className="flex items-center gap-2 text-blue-400">
+                             <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                                 <span className="font-bold text-lg leading-none mr-1">ℹ</span> <span>[INFO] Placed in background queue for practice environment evaluation.</span>
                              </div>
                              <div className="flex items-center gap-2 text-slate-500 animate-pulse">
@@ -465,18 +554,18 @@ export default function PracticeResultPage() {
                        ) : (
                           <div className="space-y-6">
                             {Object.entries(coding_results).map(([qid, data], idx) => (
-                               <div key={qid} className="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
-                                  <div className="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
-                                     <h3 className="font-bold text-lg text-white">Question {idx + 1}</h3>
-                                     <span className={`px-3 py-1 text-xs font-bold rounded-full ${data.status === 'AC' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
+                               <div key={qid} className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50">
+                                  <div className="flex justify-between items-center mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">
+                                     <h3 className="font-bold text-lg text-slate-900 dark:text-white">Question {idx + 1}</h3>
+                                     <span className={`px-3 py-1 text-xs font-bold rounded-full ${data.status === 'AC' ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30'}`}>
                                         {data.passed} / {data.total_cases} Passed ({data.status})
                                      </span>
                                   </div>
 
                                   {result.coding_answers && result.coding_answers[qid] && result.coding_answers[qid].code && (
                                      <div className="mb-4">
-                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Your Submitted Code</p>
-                                        <pre className="bg-[#050505] p-3 rounded-lg border border-gray-800 text-sm font-mono text-gray-300 overflow-x-auto whitespace-pre">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-2">Your Submitted Code</p>
+                                        <pre className="bg-gray-100 dark:bg-[#050505] p-3 rounded-lg border border-gray-200 dark:border-gray-800 text-sm font-mono text-gray-700 dark:text-gray-300 overflow-x-auto whitespace-pre">
                                            {result.coding_answers[qid].code}
                                         </pre>
                                      </div>
@@ -491,18 +580,18 @@ export default function PracticeResultPage() {
                                            try {
                                               const fb = JSON.parse(data.ai_feedback);
                                               return (
-                                                 <div className="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4">
+                                                 <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4">
                                                     <div className="flex flex-wrap gap-3 mb-3">
-                                                       {fb.time_complexity && <span className="bg-indigo-500/20 text-indigo-300 text-xs px-2.5 py-1 rounded-md font-mono border border-indigo-500/20">Time: {fb.time_complexity}</span>}
-                                                       {fb.memory_efficiency && <span className="bg-purple-500/20 text-purple-300 text-xs px-2.5 py-1 rounded-md font-mono border border-purple-500/20">Space: {fb.memory_efficiency}</span>}
-                                                       {fb.readability && <span className="bg-blue-500/20 text-blue-300 text-xs px-2.5 py-1 rounded-md font-medium border border-blue-500/20">Readability: {fb.readability}</span>}
+                                                       {fb.time_complexity && <span className="bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 text-xs px-2.5 py-1 rounded-md font-mono border border-indigo-500/20">Time: {fb.time_complexity}</span>}
+                                                       {fb.memory_efficiency && <span className="bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-300 text-xs px-2.5 py-1 rounded-md font-mono border border-purple-500/20">Space: {fb.memory_efficiency}</span>}
+                                                       {fb.readability && <span className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 text-xs px-2.5 py-1 rounded-md font-medium border border-blue-500/20">Readability: {fb.readability}</span>}
                                                     </div>
-                                                    <p className="text-indigo-100 text-sm leading-relaxed">{fb.feedback || fb.message}</p>
+                                                    <p className="text-indigo-800 dark:text-indigo-100 text-sm leading-relaxed">{fb.feedback || fb.message}</p>
                                                  </div>
                                               );
                                            } catch (e) {
                                               return (
-                                                 <div className="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4 text-indigo-100 text-sm whitespace-pre-wrap leading-relaxed">
+                                                 <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4 text-indigo-800 dark:text-indigo-100 text-sm whitespace-pre-wrap leading-relaxed">
                                                     {data.ai_feedback}
                                                  </div>
                                               );
@@ -512,23 +601,23 @@ export default function PracticeResultPage() {
                                   )}
 
                                   {data.details && data.details.length > 0 && (
-                                     <div className="mt-5 bg-black/40 rounded-xl p-4 border border-gray-800">
-                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-3">Test Case Traces</p>
+                                     <div className="mt-5 bg-gray-100 dark:bg-black/40 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-3">Test Case Traces</p>
                                         <div className="space-y-2.5 font-mono">
                                            {data.details.map((t, i) => {
                                               const isPass = t.verdict === 'AC';
                                               return (
-                                                 <div key={i} className="text-[11px] sm:text-xs flex gap-3 items-start p-2 rounded-lg bg-gray-900/50 border border-gray-800/50">
-                                                    <span className={`mt-0.5 ${isPass ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                 <div key={i} className="text-[11px] sm:text-xs flex gap-3 items-start p-2 rounded-lg bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800/50">
+                                                    <span className={`mt-0.5 ${isPass ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                                        {isPass ? '✔' : '✘'}
                                                     </span>
                                                     <div className="flex-1 space-y-1">
                                                        <div className="flex flex-wrap gap-x-4 gap-y-1">
-                                                          <span className="text-gray-400">Input: <span className="text-blue-300">{t.input}</span></span>
-                                                          <span className="text-gray-400">Expected: <span className="text-emerald-300">{t.expected}</span></span>
+                                                          <span className="text-gray-500 dark:text-gray-400">Input: <span className="text-blue-600 dark:text-blue-300">{t.input}</span></span>
+                                                          <span className="text-gray-500 dark:text-gray-400">Expected: <span className="text-emerald-600 dark:text-emerald-300">{t.expected}</span></span>
                                                        </div>
                                                        {!isPass && (
-                                                          <div className="text-gray-400">Output: <span className="text-rose-300">{t.output || t.actual_output}</span></div>
+                                                          <div className="text-gray-500 dark:text-gray-400">Output: <span className="text-rose-600 dark:text-rose-300">{t.output || t.actual_output}</span></div>
                                                        )}
                                                     </div>
                                                  </div>

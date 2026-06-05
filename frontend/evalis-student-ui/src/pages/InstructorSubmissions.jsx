@@ -147,14 +147,7 @@ export default function InstructorSubmissions() {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white flex font-sans min-h-screen w-full">
-      {/* 🚀 MAIN CONTENT */}
-      <main className="flex-1 flex flex-col overflow-y-auto w-full">
-
-        {/* HEADER MOVED TO GLOBAL NAVBAR */}
-
-        {/* DASHBOARD BODY */}
-        <div className="p-8 pb-20">
+    <div className="space-y-8">
 
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
             <div>
@@ -452,10 +445,6 @@ export default function InstructorSubmissions() {
               </table>
             </div>
           </div>
-
-        </div>
-      </main>
-
     </div>
   );
 }
