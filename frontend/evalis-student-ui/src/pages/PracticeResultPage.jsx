@@ -573,12 +573,15 @@ export default function PracticeResultPage() {
                                   
                                   {data.ai_feedback && (
                                      <div className="mb-4 mt-4">
-                                        <div className="flex items-center gap-2 mb-3 text-indigo-400 font-bold">
+                                        <div className="flex items-center gap-2 mb-3 text-indigo-600 dark:text-indigo-400 font-bold">
                                            <Sparkles className="w-4 h-4" /> AI Mentor Review
                                         </div>
                                         {(() => {
                                            try {
-                                              const fb = JSON.parse(data.ai_feedback);
+                                              let cleaned = data.ai_feedback;
+                                              if (cleaned.startsWith('```json')) cleaned = cleaned.replace(/^```json\s*/, '').replace(/```\s*$/, '');
+                                              else if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```\s*/, '').replace(/```\s*$/, '');
+                                              const fb = JSON.parse(cleaned);
                                               return (
                                                  <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4">
                                                     <div className="flex flex-wrap gap-3 mb-3">
