@@ -7,11 +7,14 @@ import {
 } from "recharts";
 import { LayoutDashboard, BookOpen, Layers, Users, Database, Settings, HelpCircle, Bell, Search, GraduationCap } from "lucide-react";
 import { formatTimeOnly } from "../utils/formatDate";
+import { useTheme } from "../context/ThemeContext";
 
 
 export default function InstructorSubmissions() {
   const { examId } = useParams();
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   const [loading, setLoading] = useState(true);
   const [examTitle, setExamTitle] = useState("");
@@ -144,9 +147,9 @@ export default function InstructorSubmissions() {
   }
 
   return (
-    <div className="bg-[#0b0f19] text-slate-900 dark:text-white flex font-sans">
+    <div className="bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white flex font-sans min-h-screen w-full">
       {/* 🚀 MAIN CONTENT */}
-      <main className="flex-1 flex flex-col min-h-screen overflow-y-auto w-full">
+      <main className="flex-1 flex flex-col overflow-y-auto w-full">
 
         {/* HEADER MOVED TO GLOBAL NAVBAR */}
 
@@ -156,7 +159,7 @@ export default function InstructorSubmissions() {
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Instructor Report Dashboard</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Tracking aggregate cohort analytics for <span className="text-blue-400 font-medium">{examTitle}</span>.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Tracking aggregate cohort analytics for <span className="text-blue-650 dark:text-blue-400 font-medium">{examTitle}</span>.</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <button
@@ -167,11 +170,11 @@ export default function InstructorSubmissions() {
                   if (!points) return;
                   handleGraceMark(qid, parseFloat(points));
                 }}
-                className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-full bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-sm font-bold hover:bg-indigo-600/30 transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-full bg-indigo-50 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:bg-indigo-100 dark:hover:bg-indigo-600/30 transition-colors flex items-center gap-2"
               >
                 ⚡ Issue Grace Override
               </button>
-              <button onClick={() => navigate(-1)} className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-full bg-[#151c2c] border border-gray-200 dark:border-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white dark:bg-slate-800 transition-colors">
+              <button onClick={() => navigate(-1)} className="w-full sm:w-auto justify-center px-5 py-2.5 rounded-full bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors shadow-sm">
                 ← Back to Exams
               </button>
             </div>
@@ -179,7 +182,7 @@ export default function InstructorSubmissions() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* KPI 1: Needs Grading */}
-            <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col relative overflow-hidden group">
+            <div className="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col relative overflow-hidden group shadow-sm">
               <div className="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-blue-500"></div> Need to Grade
@@ -187,48 +190,48 @@ export default function InstructorSubmissions() {
               <div className="flex items-center gap-6 mt-auto">
                 <div className="relative w-20 h-20">
                   <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="40" cy="40" r={radius} stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-800" />
+                    <circle cx="40" cy="40" r={radius} stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100 dark:text-slate-800" />
                     <circle cx="40" cy="40" r={radius} stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className={`${gradingCompletePercentage === 100 ? 'text-emerald-500' : 'text-blue-500'} stroke-current drop-shadow-[0_0_8px_rgba(59,130,246,0.5)] transition-all duration-1000`} strokeLinecap="round" />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center flex-col">
-                    <span className="text-lg font-bold">{gradingCompletePercentage}%</span>
+                    <span className="text-lg font-bold text-slate-900 dark:text-white">{gradingCompletePercentage}%</span>
                   </div>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Graded</p>
-                  <p className="text-3xl font-black text-slate-100">{totalSubmissions - pendingReviewCount}</p>
+                  <p className="text-3xl font-black text-slate-900 dark:text-white">{totalSubmissions - pendingReviewCount}</p>
                 </div>
               </div>
             </div>
 
             {/* KPI 2: Active Students */}
-            <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+            <div className="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col justify-between shadow-sm">
               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500"></div> Active Students
               </h3>
               <div className="space-y-4 mt-6">
                 {timeStatus === "active" && (
-                  <div className="flex justify-between items-center bg-white dark:bg-slate-950 p-3 rounded-xl border border-gray-200 dark:border-slate-800">
+                  <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
                     <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Attempting (Live)</span>
-                    <span className="text-xl font-bold text-red-400">{Math.max(0, enrolledCount - totalSubmissions)}</span>
+                    <span className="text-xl font-bold text-red-655 dark:text-red-400">{Math.max(0, enrolledCount - totalSubmissions)}</span>
                   </div>
                 )}
-                <div className="flex justify-between items-center bg-white dark:bg-slate-950 p-3 rounded-xl border border-gray-200 dark:border-slate-800">
+                <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Submitted</span>
-                  <span className="text-xl font-bold text-emerald-400">{totalSubmissions}</span>
+                  <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{totalSubmissions}</span>
                 </div>
               </div>
             </div>
 
             {/* KPI 3: Max Payload */}
-            <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+            <div className="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col justify-between shadow-sm">
               <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-purple-500"></div> Max Exam Payload
               </h3>
               <div className="flex items-end gap-5 mt-6">
                 <div>
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Points</p>
-                  <p className="text-5xl font-black text-slate-100">{totalMarks}</p>
+                  <p className="text-5xl font-black text-slate-900 dark:text-white">{totalMarks}</p>
                 </div>
                 <div className="flex-1 h-12 flex items-end gap-1 pb-1">
                   {[40, 60, 30, 80, 50, 90, 100].map((h, i) => (
@@ -245,7 +248,7 @@ export default function InstructorSubmissions() {
           {timeStatus === "expired" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
-              <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
+              <div className="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
                 <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-6 font-sans">Exam Taken Times</h3>
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -256,12 +259,18 @@ export default function InstructorSubmissions() {
                           <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                      <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#1e293b" : "#e2e8f0"} vertical={false} />
+                      <XAxis dataKey="name" stroke={isDark ? "#64748b" : "#94a3b8"} fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke={isDark ? "#64748b" : "#94a3b8"} fontSize={12} tickLine={false} axisLine={false} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b', borderRadius: '8px' }}
-                        itemStyle={{ color: '#60a5fa', fontWeight: 'bold' }}
+                        contentStyle={{
+                          backgroundColor: isDark ? '#020617' : '#ffffff',
+                          borderColor: isDark ? '#1e293b' : '#e2e8f0',
+                          borderRadius: '8px',
+                          color: isDark ? '#f8fafc' : '#0f172a',
+                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                        }}
+                        itemStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
                       />
                       <Area type="monotone" dataKey="val" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVal)" />
                     </AreaChart>
@@ -269,17 +278,23 @@ export default function InstructorSubmissions() {
                 </div>
               </div>
 
-              <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
+              <div className="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
                 <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-6">Average Results Distribution</h3>
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={scoreDistribution} layout="vertical" margin={{ top: 0, right: 10, left: 20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-                      <XAxis type="number" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} width={80} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#1e293b" : "#e2e8f0"} horizontal={false} />
+                      <XAxis type="number" stroke={isDark ? "#64748b" : "#94a3b8"} fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={12} tickLine={false} axisLine={false} width={80} />
                       <Tooltip
-                        cursor={{ fill: '#1e293b', opacity: 0.4 }}
-                        contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b', borderRadius: '8px' }}
+                        cursor={{ fill: isDark ? '#1e293b' : '#f8fafc', opacity: 0.4 }}
+                        contentStyle={{
+                          backgroundColor: isDark ? '#020617' : '#ffffff',
+                          borderColor: isDark ? '#1e293b' : '#e2e8f0',
+                          borderRadius: '8px',
+                          color: isDark ? '#f8fafc' : '#0f172a',
+                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                        }}
                       />
                       <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={20}>
                         {scoreDistribution.map((entry, index) => (
@@ -295,8 +310,8 @@ export default function InstructorSubmissions() {
 
 
           {/* TABLE */}
-          <div className="bg-[#151c2c] border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-            <div className="px-6 py-5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="bg-white dark:bg-[#151c2c] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
                 {timeStatus === "active" ? (
                   <span className="flex items-center gap-2">Live Submissions Feed <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span></span>
@@ -310,7 +325,7 @@ export default function InstructorSubmissions() {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-slate-700 rounded-lg leading-5 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                  className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                   placeholder="Search name or ID..."
                 />
               </div>
@@ -319,7 +334,7 @@ export default function InstructorSubmissions() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-white dark:bg-slate-950 border-b border-gray-200 dark:border-slate-800 text-[10px] uppercase font-bold tracking-widest text-slate-500">
+                  <tr className="bg-slate-50/80 dark:bg-slate-950/40 border-b border-slate-100 dark:border-slate-800 text-[10px] uppercase font-bold tracking-widest text-slate-500">
                     <th className="px-6 py-4">Student Identity</th>
                     <th className="px-6 py-4">Total Score</th>
                     <th className="px-6 py-4">Score Analytics</th>
@@ -328,15 +343,15 @@ export default function InstructorSubmissions() {
                     <th className="px-6 py-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                   {filteredSubmissions.length > 0 ? (
                     filteredSubmissions.map((sub, idx) => {
                       const acc = sub.analytics?.accuracy || 0;
                       return (
-                        <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer border-b border-gray-100 dark:border-slate-800/40 last:border-0">
+                        <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer border-b border-slate-100 dark:border-slate-800/40 last:border-0">
                           <td className="px-6 py-4">
                             <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20 uppercase">
+                              <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-100 dark:border-blue-500/20 uppercase">
                                 {sub.student_name && sub.student_name !== "Anonymous" ? sub.student_name[0] : sub.student_email ? sub.student_email[0] : "S"}
                               </div>
                               <div>
@@ -351,7 +366,7 @@ export default function InstructorSubmissions() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="w-32 bg-white dark:bg-slate-950 rounded-full h-2 overflow-hidden border border-gray-200 dark:border-slate-800">
+                            <div className="w-32 bg-slate-100 dark:bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-200/60 dark:border-slate-800">
                               <div
                                 className={`h-full ${acc > 70 ? 'bg-emerald-500' : acc > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
                                 style={{ width: `${acc}%` }}
@@ -368,28 +383,28 @@ export default function InstructorSubmissions() {
                               if (sub.is_suspended) {
                                 return (
                                   <div className="flex flex-col">
-                                    <span className="text-red-500 font-bold text-[10px] bg-red-500/20 px-2 py-1 rounded border border-red-500/40 w-max uppercase tracking-wider">🚨 SUSPENDED</span>
-                                    <span className="text-[10px] text-red-400 mt-1 font-semibold max-w-[150px] leading-tight">{sub.suspension_reason || "Proctoring Violation"}</span>
+                                    <span className="text-red-650 dark:text-red-400 font-bold text-[10px] bg-red-50 dark:bg-red-500/20 px-2 py-1 rounded border border-red-100 dark:border-red-500/40 w-max uppercase tracking-wider">🚨 SUSPENDED</span>
+                                    <span className="text-[10px] text-red-650 dark:text-red-400 mt-1 font-semibold max-w-[150px] leading-tight">{sub.suspension_reason || "Proctoring Violation"}</span>
                                   </div>
                                 );
                               } else if (totalInfractions === 0) {
                                 return (
                                   <div className="flex flex-col">
-                                    <span className="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 w-max">🟢 Validated</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded border border-emerald-100 dark:border-emerald-500/20 w-max">🟢 Validated</span>
                                     <span className="text-[10px] text-slate-500 mt-1 font-semibold">High Trust</span>
                                   </div>
                                 );
                               } else if (totalInfractions >= 3) {
                                 return (
                                   <div className="flex flex-col">
-                                    <span className="text-red-400 font-bold text-xs bg-red-500/10 px-2 py-1 rounded border border-red-500/20 w-max">🔴 Terminated</span>
+                                    <span className="text-red-600 dark:text-red-400 font-bold text-xs bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded border border-red-100 dark:border-red-500/20 w-max">🔴 Terminated</span>
                                     <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">{cvViolations} CV, {tabSwitches} Tabs</span>
                                   </div>
                                 );
                               } else {
                                 return (
                                   <div className="flex flex-col">
-                                    <span className="text-orange-400 font-bold text-xs bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 w-max">🟠 Suspicious</span>
+                                    <span className="text-orange-600 dark:text-orange-400 font-bold text-xs bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded border border-orange-100 dark:border-orange-500/20 w-max">🟠 Suspicious</span>
                                     <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">{cvViolations} CV, {tabSwitches} Tabs</span>
                                   </div>
                                 );
@@ -399,10 +414,10 @@ export default function InstructorSubmissions() {
                           <td className="px-6 py-4">
                             <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
                               {sub.is_suspended 
-                                ? <span className="text-red-500 font-bold text-xs bg-red-500/20 px-2 py-1 rounded">Suspended</span>
+                                ? <span className="text-red-655 dark:text-red-400 font-bold text-xs bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded">Suspended</span>
                                 : sub.pending_manual_review
-                                ? <span className="text-orange-400 font-bold text-xs bg-orange-500/10 px-2 py-1 rounded">Needs Review</span>
-                                : <span className="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-1 rounded">Validated</span>
+                                ? <span className="text-orange-600 dark:text-orange-400 font-bold text-xs bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded">Needs Review</span>
+                                : <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded">Validated</span>
                               }
                             </div>
                             <div className="text-xs text-slate-500 mt-1">
@@ -415,7 +430,7 @@ export default function InstructorSubmissions() {
                                 const basePath = window.location.pathname.startsWith('/admin') ? '/admin' : '/teacher';
                                 navigate(`${basePath}/exam/${examId}/submissions/${sub._id}`);
                               }}
-                              className="text-blue-600 dark:text-blue-400 text-sm font-bold hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1.5 w-full border border-blue-500/20 bg-blue-500/10 px-3 py-2 rounded-xl shadow-sm"
+                              className="text-blue-600 dark:text-blue-400 text-sm font-bold hover:bg-blue-500/25 transition-all flex items-center justify-center gap-1.5 w-full border border-blue-100 dark:border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 px-3 py-2 rounded-xl shadow-sm"
                             >
                               Open Report <span className="text-xs">↗</span>
                             </button>
