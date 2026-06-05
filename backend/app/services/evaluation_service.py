@@ -278,6 +278,7 @@ def async_evaluate_practice_submission(practice_id: str):
 
             # 🤖 AI CODE REVIEW (Senior Dev Feedback) exclusively for mocks
             ai_feedback = None
+            print(f"🤖 AI REVIEW: ai_model={'SET' if ai_model else 'NONE'}, code_present={bool(code.strip())}, qid={qid}", flush=True)
             if ai_model and code.strip():
                 try:
                     q_text = question.get("question", question.get("question_text", "A coding problem"))
@@ -302,8 +303,9 @@ def async_evaluate_practice_submission(practice_id: str):
                     """
                     resp = ai_model.generate_content(prompt)
                     ai_feedback = resp.text.strip()
+                    print(f"✅ AI REVIEW: Generated feedback for {qid}: {ai_feedback[:100]}...", flush=True)
                 except Exception as ex:
-                    print(f"Failed to generate AI code review for practice {qid}: {ex}")
+                    print(f"❌ AI REVIEW: Failed to generate AI code review for practice {qid}: {ex}", flush=True)
 
             execution_metadata[qid] = {
                 "status": status,
