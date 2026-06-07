@@ -168,6 +168,7 @@ MONGODB_URI=your_mongodb_uri
 JWT_SECRET=your_secret
 GEMINI_API_KEY=your_api_key
 AWS_SANDBOX_URL=your_ec2_endpoint
+BREVO_API_KEY
 ```
 
 ---
