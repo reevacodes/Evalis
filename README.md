@@ -186,6 +186,30 @@ AWS_SANDBOX_URL=your_ec2_endpoint
 ### Database
 - MongoDB Atlas
 
+## Live Demo
+
+### Frontend Application
+https://evalis-nine.vercel.app/
+
+### Backend API
+Hosted on Render
+
+> Note: Backend service is deployed on Render and connected to the frontend application.
+
+## Deployment Architecture
+
+Frontend (React.js)
+      │
+      ▼
+Backend (FastAPI on Render)
+      │
+      ▼
+MongoDB Atlas
+      │
+      ├── Google Gemini API
+      ├── Docker Sandbox Engine (AWS EC2)
+      └── AI Proctoring Services
+
 ---
 
 ## Major Modules
