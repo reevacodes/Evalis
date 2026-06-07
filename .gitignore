@@ -1,35 +1,70 @@
-# Frontend / Node
+# =========================
+# Frontend / Node.js
+# =========================
 node_modules/
 dist/
 build/
-.npm
+.npm/
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
+# =========================
 # Backend / Python
+# =========================
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+.mypy_cache/
+
 env/
 venv/
-.pytest_cache/
+.venv/
 
-# Secrets / Environment
+# =========================
+# Environment Variables
+# =========================
 .env
 .env.local
-*.env
+.env.*
+!.env.example
 
-# Scratch / Debug output (may contain secrets)
-scratch/
-backend/scratch/
-
-# Credentials
+# =========================
+# Credentials & Secrets
+# =========================
 credentials.json
 token.json
+
 backend/credentials.json
 backend/token.json
 
-# OS / Editor
+# =========================
+# Scratch / Temporary Files
+# =========================
+scratch/*.log
+scratch/*.tmp
+scratch/*.bak
+
+backend/scratch/*.log
+backend/scratch/*.tmp
+backend/scratch/*.bak
+
+# =========================
+# OS Files
+# =========================
 .DS_Store
 Thumbs.db
+
+# =========================
+# IDE / Editor
+# =========================
 .vscode/
 .idea/
+
+# =========================
+# Misc
+# =========================
+*.swp
+*.swo
+*.temp
